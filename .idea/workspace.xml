@@ -2,36 +2,8 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="07849b7b-8dcc-4628-bbda-5b94f3bdd88b" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/auth/src/main/asciidoc/index.adoc" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/auth/src/main/java/me/nuguri/auth/ApplicationRunner.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/auth/src/main/java/me/nuguri/auth/common/Role.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/auth/src/main/java/me/nuguri/auth/entity/Account.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/auth/src/main/java/me/nuguri/auth/repository/AccountRepository.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/auth/src/main/java/me/nuguri/auth/service/AccountService.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/auth/src/test/java/me/nuguri/auth/AuthorizationServerTest.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/auth/src/test/java/me/nuguri/auth/config/RestDocsConfiguration.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/auth/src/test/resources/application-test.yml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/resource/src/main/java/me/nuguri/resource/common/AccountAdapter.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/resource/src/main/java/me/nuguri/resource/common/ResourceServerConfigProperties.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/resource/src/main/java/me/nuguri/resource/common/Role.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/resource/src/main/java/me/nuguri/resource/controller/AccountController.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/resource/src/main/java/me/nuguri/resource/entity/Account.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/resource/src/main/java/me/nuguri/resource/repository/AccountRepository.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/resource/src/main/java/me/nuguri/resource/service/AccountService.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/resource/src/test/java/resources/application-test.yml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/auth/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/auth/pom.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/auth/src/main/java/me/nuguri/auth/common/AuthServerConfigProperties.java" beforeDir="false" afterPath="$PROJECT_DIR$/auth/src/main/java/me/nuguri/auth/common/AuthServerConfigProperties.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/auth/src/main/java/me/nuguri/auth/config/ApplicationConfiguration.java" beforeDir="false" afterPath="$PROJECT_DIR$/auth/src/main/java/me/nuguri/auth/config/ApplicationConfiguration.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/auth/src/main/java/me/nuguri/auth/config/AuthorizationServerConfiguration.java" beforeDir="false" afterPath="$PROJECT_DIR$/auth/src/main/java/me/nuguri/auth/config/AuthorizationServerConfiguration.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/auth/src/main/java/me/nuguri/auth/config/SecurityConfiguration.java" beforeDir="false" afterPath="$PROJECT_DIR$/auth/src/main/java/me/nuguri/auth/config/SecurityConfiguration.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/auth/src/main/resources/application.yml" beforeDir="false" afterPath="$PROJECT_DIR$/auth/src/main/resources/application.yml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/auth/src/test/java/me/nuguri/auth/ApplicationTests.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/resource/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/resource/pom.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/resource/src/main/java/me/nuguri/resource/config/ResourceServerConfiguration.java" beforeDir="false" afterPath="$PROJECT_DIR$/resource/src/main/java/me/nuguri/resource/config/ResourceServerConfiguration.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/resource/src/main/resources/application.yml" beforeDir="false" afterPath="$PROJECT_DIR$/resource/src/main/resources/application.yml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/resource/src/test/java/me/nuguri/resource/ApplicationTests.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/auth/src/test/java/me/nuguri/auth/AuthorizationServerTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/auth/src/test/java/me/nuguri/auth/AuthorizationServerTest.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -109,7 +81,7 @@
       <recent name="me.nuguri.auth.account" />
     </key>
   </component>
-  <component name="RunManager" selected="JUnit.AuthorizationServerTest.getAccessToken_success_200 (1)">
+  <component name="RunManager" selected="Spring Boot.AuthApplication">
     <configuration name="AuthorizationServerTest" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
       <module name="auth" />
       <extension name="coverage">
@@ -221,12 +193,23 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1586481467873</updated>
-      <workItem from="1586481469482" duration="18838000" />
+      <workItem from="1586481469482" duration="20229000" />
     </task>
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="1" />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
   </component>
   <component name="WindowStateProjectService">
     <state x="2550" y="159" key="#Project_Structure" timestamp="1586481525899">
@@ -257,38 +240,38 @@
       <screen x="1920" y="0" width="1920" height="1040" />
     </state>
     <state x="2610" y="266" key="#com.intellij.refactoring.safeDelete.UnsafeUsagesDialog/0.0.1536.824/1920.0.1920.1040@1920.0.1920.1040" timestamp="1586499457352" />
-    <state width="1877" height="351" key="GridCell.Tab.0.bottom" timestamp="1586504180687">
+    <state width="1877" height="309" key="GridCell.Tab.0.bottom" timestamp="1586506081094">
       <screen x="1920" y="0" width="1920" height="1040" />
     </state>
-    <state width="1877" height="351" key="GridCell.Tab.0.bottom/0.0.1536.824/1920.0.1920.1040@1920.0.1920.1040" timestamp="1586504180687" />
-    <state width="1877" height="351" key="GridCell.Tab.0.center" timestamp="1586504180686">
+    <state width="1877" height="309" key="GridCell.Tab.0.bottom/0.0.1536.824/1920.0.1920.1040@1920.0.1920.1040" timestamp="1586506081094" />
+    <state width="1877" height="309" key="GridCell.Tab.0.center" timestamp="1586506081094">
       <screen x="1920" y="0" width="1920" height="1040" />
     </state>
-    <state width="1877" height="351" key="GridCell.Tab.0.center/0.0.1536.824/1920.0.1920.1040@1920.0.1920.1040" timestamp="1586504180686" />
-    <state width="1877" height="351" key="GridCell.Tab.0.left" timestamp="1586504180686">
+    <state width="1877" height="309" key="GridCell.Tab.0.center/0.0.1536.824/1920.0.1920.1040@1920.0.1920.1040" timestamp="1586506081094" />
+    <state width="1877" height="309" key="GridCell.Tab.0.left" timestamp="1586506081094">
       <screen x="1920" y="0" width="1920" height="1040" />
     </state>
-    <state width="1877" height="351" key="GridCell.Tab.0.left/0.0.1536.824/1920.0.1920.1040@1920.0.1920.1040" timestamp="1586504180686" />
-    <state width="1877" height="351" key="GridCell.Tab.0.right" timestamp="1586504180686">
+    <state width="1877" height="309" key="GridCell.Tab.0.left/0.0.1536.824/1920.0.1920.1040@1920.0.1920.1040" timestamp="1586506081094" />
+    <state width="1877" height="309" key="GridCell.Tab.0.right" timestamp="1586506081094">
       <screen x="1920" y="0" width="1920" height="1040" />
     </state>
-    <state width="1877" height="351" key="GridCell.Tab.0.right/0.0.1536.824/1920.0.1920.1040@1920.0.1920.1040" timestamp="1586504180686" />
-    <state width="1877" height="228" key="GridCell.Tab.1.bottom" timestamp="1586502891498">
+    <state width="1877" height="309" key="GridCell.Tab.0.right/0.0.1536.824/1920.0.1920.1040@1920.0.1920.1040" timestamp="1586506081094" />
+    <state width="1877" height="309" key="GridCell.Tab.1.bottom" timestamp="1586506081094">
       <screen x="1920" y="0" width="1920" height="1040" />
     </state>
-    <state width="1877" height="228" key="GridCell.Tab.1.bottom/0.0.1536.824/1920.0.1920.1040@1920.0.1920.1040" timestamp="1586502891498" />
-    <state width="1877" height="228" key="GridCell.Tab.1.center" timestamp="1586502891498">
+    <state width="1877" height="309" key="GridCell.Tab.1.bottom/0.0.1536.824/1920.0.1920.1040@1920.0.1920.1040" timestamp="1586506081094" />
+    <state width="1877" height="309" key="GridCell.Tab.1.center" timestamp="1586506081094">
       <screen x="1920" y="0" width="1920" height="1040" />
     </state>
-    <state width="1877" height="228" key="GridCell.Tab.1.center/0.0.1536.824/1920.0.1920.1040@1920.0.1920.1040" timestamp="1586502891498" />
-    <state width="1877" height="228" key="GridCell.Tab.1.left" timestamp="1586502891498">
+    <state width="1877" height="309" key="GridCell.Tab.1.center/0.0.1536.824/1920.0.1920.1040@1920.0.1920.1040" timestamp="1586506081094" />
+    <state width="1877" height="309" key="GridCell.Tab.1.left" timestamp="1586506081094">
       <screen x="1920" y="0" width="1920" height="1040" />
     </state>
-    <state width="1877" height="228" key="GridCell.Tab.1.left/0.0.1536.824/1920.0.1920.1040@1920.0.1920.1040" timestamp="1586502891498" />
-    <state width="1877" height="228" key="GridCell.Tab.1.right" timestamp="1586502891498">
+    <state width="1877" height="309" key="GridCell.Tab.1.left/0.0.1536.824/1920.0.1920.1040@1920.0.1920.1040" timestamp="1586506081094" />
+    <state width="1877" height="309" key="GridCell.Tab.1.right" timestamp="1586506081094">
       <screen x="1920" y="0" width="1920" height="1040" />
     </state>
-    <state width="1877" height="228" key="GridCell.Tab.1.right/0.0.1536.824/1920.0.1920.1040@1920.0.1920.1040" timestamp="1586502891498" />
+    <state width="1877" height="309" key="GridCell.Tab.1.right/0.0.1536.824/1920.0.1920.1040@1920.0.1920.1040" timestamp="1586506081094" />
     <state x="2695" y="297" key="chooseDestDirectoryDialog" timestamp="1586500519082">
       <screen x="1920" y="0" width="1920" height="1040" />
     </state>

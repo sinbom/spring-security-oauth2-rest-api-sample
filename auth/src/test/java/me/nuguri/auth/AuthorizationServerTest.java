@@ -78,8 +78,9 @@ public class AuthorizationServerTest {
                                 fieldWithPath("refresh_token").description("refresh token"),
                                 fieldWithPath("expires_in").description("access token expires time"),
                                 fieldWithPath("scope").description("access scopes")
-                        ))
-                );
+                        )
+                )
+        );
     }
 
     /**
@@ -97,7 +98,7 @@ public class AuthorizationServerTest {
     }
 
     /**
-     * 인증 서버 엑세스 토큰 HttpBasic 헤더 값 없어서 얻지 못하는 경우
+     * 인증 서버 엑세스 토큰 부정확한 username 및 password 입력 으로 얻지 못하는 경우
      * @throws Exception
      */
     @Test
