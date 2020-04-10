@@ -2,6 +2,7 @@ package me.nuguri.auth.config;
 
 import lombok.RequiredArgsConstructor;
 import me.nuguri.auth.common.AuthServerConfigProperties;
+import me.nuguri.auth.service.AccountService;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -23,6 +24,8 @@ public class AuthorizationServerConfiguration extends AuthorizationServerConfigu
 
     private final AuthenticationManager authenticationManager;
 
+    private final AccountService accountService;
+
     private final AuthServerConfigProperties authServerConfigProperties;
 
     @Override
@@ -35,17 +38,20 @@ public class AuthorizationServerConfiguration extends AuthorizationServerConfigu
     @Override
     public void configure(ClientDetailsServiceConfigurer clients) throws Exception {
         clients.inMemory()
-                .withClient(passwordEncoder.encode(authServerConfigProperties.getClientId()))
+                .withClient(authServerConfigProperties.getClientId())
                 .secret(passwordEncoder.encode(authServerConfigProperties.getClientSecret()))
+                .scopes("read", "write")
                 .authorizedGrantTypes("password", "authorization_code", "refresh_token")
                 .accessTokenValiditySeconds(60 * 10)
-                .refreshTokenValiditySeconds(60 * 10);
+                .refreshTokenValiditySeconds(60 * 10 * 6);
         super.configure(clients);
     }
 
     @Override
     public void configure(AuthorizationServerEndpointsConfigurer endpoints) throws Exception {
         endpoints.tokenStore(tokenStore)
+                .userDetailsService(accountService)
                 .authenticationManager(authenticationManager);
     }
+
 }

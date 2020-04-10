@@ -1,15 +1,16 @@
-package me.nuguri.auth.common;
+package me.nuguri.resource.common;
 
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.stereotype.Component;
 
 @Configuration
 @ConfigurationProperties(prefix = "auth")
 @Getter
 @Setter
-public class AuthServerConfigProperties {
+public class ResourceServerConfigProperties {
 
     /** 클라이언트 ID */
     private String clientId;
@@ -17,10 +18,7 @@ public class AuthServerConfigProperties {
     /** 클라이언트 Secret */
     private String clientSecret;
 
-    /** 기본 생성 관리자 아이디 */
-    private String adminEmail;
-
-    /** 기본 생성 관리자 비밀번호 */
-    private String adminPassword;
+    /** 인증 서버 URL */
+    private String remoteServerUrl;
 
 }

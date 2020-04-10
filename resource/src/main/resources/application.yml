@@ -2,6 +2,11 @@
 server:
   port: 8600
 
+security:
+  oauth2:
+    resource:
+      token-info-uri: http://localhost:9600/oauth
+
 spring:
   #  jackson:
   #    deserialization:
@@ -16,7 +21,7 @@ spring:
   # JPA Setting
   jpa:
     hibernate:
-      ddl-auto: create
+      ddl-auto: update
       use-new-id-generator-mappings: false
     properties:
       hibernate:
@@ -38,10 +43,7 @@ logging:
         security: DEBUG
 
 # configuration properties
-#my-app:
-#  admin-username: admin@email.com
-#  admin-password: admin
-#  user-username: user@email.com
-#  user-password: user
-#  client-id: myApp
-#  client-secret: pass
+auth:
+  client-id: nuguri
+  client-secret: bom
+  remote-server-url: http://localhost:9600/oauth/check_token

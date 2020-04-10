@@ -2,6 +2,10 @@
 server:
   port: 9600
 
+security:
+  basic:
+    enabled: false
+
 spring:
   #  jackson:
   #    deserialization:
@@ -41,3 +45,5 @@ logging:
 auth:
   client-id: nuguri
   client-secret: bom
+  admin-email: admin@naver.com
+  admin-password: 1234
