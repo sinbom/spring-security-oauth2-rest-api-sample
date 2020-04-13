@@ -44,7 +44,8 @@ public class AuthorizationServerConfiguration extends AuthorizationServerConfigu
                 .withClient(authServerConfigProperties.getClientId())
                 .secret(passwordEncoder.encode(authServerConfigProperties.getClientSecret()))
                 .scopes(Scope.READ.toString(), Scope.WRITE.toString())
-                .authorizedGrantTypes(GrantType.PASSWORD.toString(), GrantType.AUTHORIZATION_CODE.toString(), GrantType.IMPLICIT.toString(), GrantType.REFRESH_TOKEN.toString())
+                .authorizedGrantTypes(GrantType.PASSWORD.toString(), GrantType.AUTHORIZATION_CODE.toString(),
+                        GrantType.IMPLICIT.toString(), GrantType.CLIENT_CREDENTIALS.toString(), GrantType.REFRESH_TOKEN.toString())
                 .redirectUris(authServerConfigProperties.getRedirectUri())
                 .accessTokenValiditySeconds(60 * 10)
                 .refreshTokenValiditySeconds(60 * 10 * 6);
