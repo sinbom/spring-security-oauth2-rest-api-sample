@@ -1,6 +1,7 @@
 package me.nuguri.auth.service;
 
 import lombok.RequiredArgsConstructor;
+import me.nuguri.auth.common.Role;
 import me.nuguri.auth.entity.Account;
 import me.nuguri.auth.repository.AccountRepository;
 import org.springframework.data.domain.Page;
@@ -26,7 +27,7 @@ public class AccountService implements UserDetailsService {
         return User.builder()
                 .username(account.getEmail())
                 .password(account.getPassword())
-                .authorities(account.getRoles().stream().map(role -> new SimpleGrantedAuthority(role.name())).collect(Collectors.toSet()))
+                .roles(account.getRoles().stream().map(Role::name).toArray(String[]::new))
                 .build();
     }
 

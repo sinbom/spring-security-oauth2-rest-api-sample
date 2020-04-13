@@ -1,10 +1,16 @@
 package me.nuguri.auth;
 
+import lombok.extern.apachecommons.CommonsLog;
 import me.nuguri.auth.common.AuthServerConfigProperties;
 import me.nuguri.auth.common.GrantType;
+import me.nuguri.auth.common.Role;
 import me.nuguri.auth.config.RestDocsConfiguration;
+import org.junit.FixMethodOrder;
+import org.junit.Ignore;
 import org.junit.Test;
+import org.junit.jupiter.api.Order;
 import org.junit.runner.RunWith;
+import org.junit.runners.MethodSorters;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.json.JacksonJsonParser;
 import org.springframework.boot.test.autoconfigure.restdocs.AutoConfigureRestDocs;
@@ -12,6 +18,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpHeaders;
+import org.springframework.mock.web.MockHttpSession;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
@@ -19,12 +26,13 @@ import org.springframework.test.web.servlet.ResultActions;
 
 import static org.springframework.restdocs.headers.HeaderDocumentation.*;
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
+import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.get;
 import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.post;
 import static org.springframework.restdocs.payload.PayloadDocumentation.fieldWithPath;
 import static org.springframework.restdocs.payload.PayloadDocumentation.responseFields;
 import static org.springframework.restdocs.request.RequestDocumentation.parameterWithName;
 import static org.springframework.restdocs.request.RequestDocumentation.requestParameters;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -43,6 +51,40 @@ public class AuthorizationServerTest {
     @Autowired
     private AuthServerConfigProperties authServerConfigProperties;
 
+    @Test
+    public void getAccessToken_GrantType_Authorization_Code_Success_200() throws Exception {
+        MockHttpSession session = (MockHttpSession) mockMvc.perform(get("/oauth/authorize")
+                .with(user(authServerConfigProperties.getAdminEmail()).password(authServerConfigProperties.getAdminPassword()).roles(Role.ADMIN.name()))
+                .with(csrf())
+                .param("response_type", "code")
+                .param("client_id", authServerConfigProperties.getClientId())
+                .param("redirect_uri", authServerConfigProperties.getRedirectUri())
+                .param("scope", "read")).andDo(print()).andReturn().getRequest().getSession();
+
+        String redirectedUri = mockMvc.perform(post("/oauth/authorize")
+                .session(session)
+                .with(csrf())
+                .param("response_type", "code")
+                .param("client_id", authServerConfigProperties.getClientId())
+                .param("redirect_uri", authServerConfigProperties.getRedirectUri())
+                .param("scope", "read")
+                .param("scope.read", "true")
+                .param("user_oauth_approval", "true"))
+                .andDo(print()).andReturn().getResponse().getRedirectedUrl();
+
+        mockMvc.perform(post("/oauth/token")
+                .with(httpBasic(authServerConfigProperties.getClientId(), authServerConfigProperties.getClientSecret()))
+                .param("code", redirectedUri.substring(redirectedUri.lastIndexOf("=") + 1))
+                .param("grant_type", GrantType.AUTHORIZATION_CODE.toString())
+                .param("redirect_uri", authServerConfigProperties.getRedirectUri()))
+                .andDo(print())
+                .andExpect(jsonPath("access_token").exists())
+                .andExpect(jsonPath("token_type").exists())
+                .andExpect(jsonPath("refresh_token").exists())
+                .andExpect(jsonPath("expires_in").exists())
+                .andExpect(jsonPath("scope").exists()
+        );
+    }
 
     /**
      * 인증 서버 엑세스 토큰 Password 방식으로 정상적으로 얻는 경우
@@ -214,7 +256,6 @@ public class AuthorizationServerTest {
                                 headerWithName(HttpHeaders.AUTHORIZATION).description("Basic [clientId:clientSecret](Base64 Encoding Value)")
                         ),
                         requestParameters(
-                                parameterWithName("refresh_token").description("refresh token"),
                                 parameterWithName("scope").description("access token scope").optional(),
                                 parameterWithName("grant_type").description("access token grant type")
                         ),
@@ -229,7 +270,6 @@ public class AuthorizationServerTest {
                         responseFields(
                                 fieldWithPath("access_token").description("access token"),
                                 fieldWithPath("token_type").description("access token type"),
-                                fieldWithPath("refresh_token").description("refresh token"),
                                 fieldWithPath("expires_in").description("access token expires time"),
                                 fieldWithPath("scope").description("access scopes")
                         )

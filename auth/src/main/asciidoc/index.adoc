@@ -93,6 +93,13 @@ include::{snippets}/errors/http-response.adoc[]
 
 operation::get-access_token-password-grantType[snippets='curl-request,http-request,request-headers,request-parameters,http-response,response-headers,response-fields']
 
+[[get-access_token-client_credentials-grantType]]
+=== 엑세스 토근 발급 - Client Credentials 방식
+
+`POST` 요청을 사용하여 엑세스 토큰을 발급받을 수 있다.
+
+operation::get-access_token-client_credentials-grantType[snippets='curl-request,http-request,request-headers,request-parameters,http-response,response-headers,response-fields']
+
 [[get-access_token-refresh_token-grantType]]
 === 엑세스 토근 발급 - Refresh Token 방식
 

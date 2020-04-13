@@ -11,3 +11,12 @@ spring:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.H2Dialect
+
+# configuration properties
+auth:
+  client-id: nuguri
+  client-secret: bom
+  redirect-uri: http://localhost:9600/main
+  admin-email: admin@naver.com
+  admin-password: 1234
+

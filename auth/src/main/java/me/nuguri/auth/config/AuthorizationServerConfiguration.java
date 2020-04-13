@@ -49,7 +49,6 @@ public class AuthorizationServerConfiguration extends AuthorizationServerConfigu
                 .redirectUris(authServerConfigProperties.getRedirectUri())
                 .accessTokenValiditySeconds(60 * 10)
                 .refreshTokenValiditySeconds(60 * 10 * 6);
-        super.configure(clients);
     }
 
     @Override
