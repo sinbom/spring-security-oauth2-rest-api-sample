@@ -2,14 +2,17 @@
 server:
   port: 9600
 
-security:
-  basic:
-    enabled: false
-
 spring:
+  devtools:
+    livereload:
+      enabled: true
+    restart:
+      enabled: false
+  thymeleaf:
+    cache: false
   #  jackson:
   #    deserialization:
-  #      FAIL_ON_UNKNOWN_PROPERTIES: true # ºÒÇÊ¿äÇÑ µ¥ÀÌÅÍ ¹ÙÀÎµù ½Ã Á÷·ÄÈ­ ÇÏÁö ¾Ê°í ¿¡·¯ ¹ß»ý½ÃÅ´
+  #      FAIL_ON_UNKNOWN_PROPERTIES: true # ï¿½ï¿½ï¿½Ê¿ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Îµï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½È­ ï¿½ï¿½ï¿½ï¿½ ï¿½Ê°ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ß»ï¿½ï¿½ï¿½Å´
 
   # DB Connection Setting
   datasource:
@@ -45,5 +48,6 @@ logging:
 auth:
   client-id: nuguri
   client-secret: bom
+  redirect-uri: http://localhost:${server.port}/main
   admin-email: admin@naver.com
   admin-password: 1234

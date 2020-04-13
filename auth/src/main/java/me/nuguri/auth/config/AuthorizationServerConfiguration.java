@@ -2,9 +2,12 @@ package me.nuguri.auth.config;
 
 import lombok.RequiredArgsConstructor;
 import me.nuguri.auth.common.AuthServerConfigProperties;
+import me.nuguri.auth.common.GrantType;
+import me.nuguri.auth.common.Scope;
 import me.nuguri.auth.service.AccountService;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.config.annotation.configurers.ClientDetailsServiceConfigurer;
 import org.springframework.security.oauth2.config.annotation.web.configuration.AuthorizationServerConfigurerAdapter;
@@ -40,8 +43,9 @@ public class AuthorizationServerConfiguration extends AuthorizationServerConfigu
         clients.inMemory()
                 .withClient(authServerConfigProperties.getClientId())
                 .secret(passwordEncoder.encode(authServerConfigProperties.getClientSecret()))
-                .scopes("read", "write")
-                .authorizedGrantTypes("password", "authorization_code", "refresh_token")
+                .scopes(Scope.READ.toString(), Scope.WRITE.toString())
+                .authorizedGrantTypes(GrantType.PASSWORD.toString(), GrantType.AUTHORIZATION_CODE.toString(), GrantType.IMPLICIT.toString(), GrantType.REFRESH_TOKEN.toString())
+                .redirectUris(authServerConfigProperties.getRedirectUri())
                 .accessTokenValiditySeconds(60 * 10)
                 .refreshTokenValiditySeconds(60 * 10 * 6);
         super.configure(clients);

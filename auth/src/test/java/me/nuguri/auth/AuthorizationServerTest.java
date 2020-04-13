@@ -1,22 +1,30 @@
 package me.nuguri.auth;
 
 import me.nuguri.auth.common.AuthServerConfigProperties;
+import me.nuguri.auth.common.GrantType;
+import me.nuguri.auth.common.Scope;
 import me.nuguri.auth.config.RestDocsConfiguration;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.json.JacksonJsonParser;
 import org.springframework.boot.test.autoconfigure.restdocs.AutoConfigureRestDocs;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpHeaders;
+import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.ResultActions;
+
+import java.util.Map;
 
 import static org.springframework.restdocs.headers.HeaderDocumentation.*;
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
 import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.post;
+import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.get;
 import static org.springframework.restdocs.payload.PayloadDocumentation.fieldWithPath;
 import static org.springframework.restdocs.payload.PayloadDocumentation.responseFields;
 import static org.springframework.restdocs.request.RequestDocumentation.parameterWithName;
@@ -42,18 +50,18 @@ public class AuthorizationServerTest {
 
 
     /**
-     * 인증 서버 엑세스 토큰 정상적으로 얻는 경우
+     * 인증 서버 엑세스 토큰 Password 방식으로 정상적으로 얻는 경우
      * @throws Exception
      */
     @Test
-    public void getAccessToken_success_200() throws Exception {
-        mockMvc.perform(post("/oauth/token")
-                .with(httpBasic(authServerConfigProperties.getClientId(), authServerConfigProperties.getClientSecret()))
-                .param("username", authServerConfigProperties.getAdminEmail())
-                .param("password", authServerConfigProperties.getAdminPassword())
-                .param("grant_type", "password"))
+    public void getAccessToken_GrantType_Password_success_200() throws Exception {
+        getAccessTokenResponse(authServerConfigProperties.getAdminEmail(), authServerConfigProperties.getAdminPassword())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("access_token").exists())
+                .andExpect(jsonPath("token_type").exists())
+                .andExpect(jsonPath("refresh_token").exists())
+                .andExpect(jsonPath("expires_in").exists())
+                .andExpect(jsonPath("scope").exists())
                 .andDo(print())
                 .andDo(document("get-access_token",
                         requestHeaders(
@@ -62,6 +70,7 @@ public class AuthorizationServerTest {
                         requestParameters(
                                 parameterWithName("username").description("user account email"),
                                 parameterWithName("password").description("user account password"),
+                                parameterWithName("scope").description("access token scope").optional(),
                                 parameterWithName("grant_type").description("access token grant type")
                         ),
                         responseHeaders(
@@ -80,35 +89,68 @@ public class AuthorizationServerTest {
                                 fieldWithPath("scope").description("access scopes")
                         )
                 )
-        );
+                );
     }
 
     /**
-     * 인증 서버 엑세스 토큰 HttpBasic 헤더 값 없어서 얻지 못하는 경우
+     * 인증 서버 엑세스 토큰 Password 방식으로 HttpBasic 헤더 값 없어서 얻지 못하는 경우
      * @throws Exception
      */
     @Test
-    public void getAccessToken_No_HttpBasic_401() throws Exception {
+    public void getAccessToken_GrantType_Password_No_HttpBasic_401() throws Exception {
         mockMvc.perform(post("/oauth/token")
                 .param("username", authServerConfigProperties.getAdminEmail())
                 .param("password", authServerConfigProperties.getAdminPassword())
-                .param("grant_type", "password"))
+                .param("grant_type", GrantType.PASSWORD.toString()))
                 .andDo(print())
                 .andExpect(status().isUnauthorized());
     }
 
     /**
-     * 인증 서버 엑세스 토큰 부정확한 username 및 password 입력 으로 얻지 못하는 경우
+     * 인증 서버 엑세스 토큰 Password 방식으로 부정확한 username 및 password 입력 으로 얻지 못하는 경우
      * @throws Exception
      */
     @Test
-    public void getAccessToken_Invalid_Username_401() throws Exception {
-        mockMvc.perform(post("/oauth/token")
-                .param("username", "noexistemail@test.com")
-                .param("password", "12341234")
-                .param("grant_type", "password"))
+    public void getAccessToken_GrantType_Password_Invalid_Username_400() throws Exception {
+        getAccessTokenResponse("noexistemail@test.com", "12341234")
                 .andDo(print())
-                .andExpect(status().isUnauthorized());
+                .andExpect(status().isBadRequest());
+    }
+
+    /**
+     * 인증 서버 엑세스 토큰 Refresh Token 방식으로 정상적으로 얻는 경우
+     * @throws Exception
+     */
+    @Test
+    public void getAccessToken_GrantType_RefreshToken_success_200() throws Exception {
+        String refresh_token = (String) new JacksonJsonParser()
+                .parseMap(getAccessTokenResponse(authServerConfigProperties.getAdminEmail(), authServerConfigProperties.getAdminPassword())
+                        .andReturn()
+                        .getResponse()
+                        .getContentAsString()).get("refresh_token");
+
+        mockMvc.perform(post("/oauth/token")
+                .with(httpBasic(authServerConfigProperties.getClientId(), authServerConfigProperties.getClientSecret()))
+                .param("refresh_token", refresh_token)
+                .param("grant_type", GrantType.REFRESH_TOKEN.toString()))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("access_token").exists());
+    }
+
+    /**
+     * Password 방식 엑세스 토근 발급 요청 공통 로직
+     * @param email 이메일
+     * @param password 비밀번호
+     * @return Password 방식 엑세스 토큰 발급 요청 결과
+     * @throws Exception
+     */
+    private ResultActions getAccessTokenResponse(String email, String password) throws Exception {
+        return mockMvc.perform(post("/oauth/token")
+                .with(httpBasic(authServerConfigProperties.getClientId(), authServerConfigProperties.getClientSecret()))
+                .param("username", email)
+                .param("password", password)
+                .param("grant_type", GrantType.PASSWORD.toString()));
     }
 
 }
