@@ -2,13 +2,11 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="07849b7b-8dcc-4628-bbda-5b94f3bdd88b" name="Default Changelist" comment="">
+      <change afterPath="$PROJECT_DIR$/auth/src/main/java/me/nuguri/auth/domain/AccessTokenResource.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/auth/src/main/asciidoc/index.adoc" beforeDir="false" afterPath="$PROJECT_DIR$/auth/src/main/asciidoc/index.adoc" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/auth/src/main/java/me/nuguri/auth/config/AuthorizationServerConfiguration.java" beforeDir="false" afterPath="$PROJECT_DIR$/auth/src/main/java/me/nuguri/auth/config/AuthorizationServerConfiguration.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/auth/src/main/java/me/nuguri/auth/config/SecurityConfiguration.java" beforeDir="false" afterPath="$PROJECT_DIR$/auth/src/main/java/me/nuguri/auth/config/SecurityConfiguration.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/auth/src/main/java/me/nuguri/auth/controller/AuthorizationServerController.java" beforeDir="false" afterPath="$PROJECT_DIR$/auth/src/main/java/me/nuguri/auth/controller/AuthorizationServerController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/auth/src/main/java/me/nuguri/auth/service/AccountService.java" beforeDir="false" afterPath="$PROJECT_DIR$/auth/src/main/java/me/nuguri/auth/service/AccountService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/auth/src/test/java/me/nuguri/auth/AuthorizationServerTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/auth/src/test/java/me/nuguri/auth/AuthorizationServerTest.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/auth/src/test/resources/application-test.yml" beforeDir="false" afterPath="$PROJECT_DIR$/auth/src/test/resources/application-test.yml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -21,11 +19,11 @@
   <component name="FileTemplateManagerImpl">
     <option name="RECENT_TEMPLATES">
       <list>
-        <option value="JUnit5 Test Class" />
         <option value="HTML File" />
-        <option value="Class" />
         <option value="Interface" />
         <option value="Enum" />
+        <option value="Class" />
+        <option value="JUnit5 Test Class" />
       </list>
     </option>
   </component>
@@ -65,12 +63,10 @@
     <property name="project.structure.last.edited" value="Modules" />
     <property name="project.structure.proportion" value="0.0" />
     <property name="project.structure.side.proportion" value="0.0" />
+    <property name="restartRequiresConfirmation" value="false" />
     <property name="settings.editor.selected.configurable" value="project.propCompiler" />
   </component>
   <component name="RecentsManager">
-    <key name="CreateClassDialog.RecentsKey">
-      <recent name="me.nuguri.auth.account" />
-    </key>
     <key name="CreateTestDialog.RecentsKey">
       <recent name="me.nuguri.auth.controller" />
     </key>
@@ -78,8 +74,13 @@
       <recent name="" />
     </key>
     <key name="MoveClassesOrPackagesDialog.RECENTS_KEY">
+      <recent name="me.nuguri.auth" />
       <recent name="me.nuguri.auth.config" />
       <recent name="me.nuguri.auth.controller" />
+    </key>
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="C:\Users\nmrht\Desktop\oauth\auth\src\main\resources\templates" />
+      <recent name="C:\Users\nmrht\Desktop\oauth\auth\src\main\resources" />
     </key>
     <key name="CopyFile.RECENT_KEYS">
       <recent name="C:\Users\nmrht\Desktop\oauth\auth\src\main\resources\templates" />
@@ -93,12 +94,27 @@
       <recent name="me.nuguri.resource.account.controller" />
       <recent name="me.nuguri.resource.entity" />
     </key>
-    <key name="MoveFile.RECENT_KEYS">
-      <recent name="C:\Users\nmrht\Desktop\oauth\auth\src\main\resources\templates" />
-      <recent name="C:\Users\nmrht\Desktop\oauth\auth\src\main\resources" />
+    <key name="CreateClassDialog.RecentsKey">
+      <recent name="me.nuguri.auth.account" />
     </key>
   </component>
-  <component name="RunManager" selected="JUnit.AuthorizationServerTest">
+  <component name="RunManager" selected="Spring Boot.AuthApplication">
+    <configuration name="AuthorizationServerControllerTest.revokeAccessToken_Success_200" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+      <module name="auth" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="me.nuguri.auth.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <option name="PACKAGE_NAME" value="me.nuguri.auth" />
+      <option name="MAIN_CLASS_NAME" value="me.nuguri.auth.AuthorizationServerControllerTest" />
+      <option name="METHOD_NAME" value="revokeAccessToken_Success_200" />
+      <option name="TEST_OBJECT" value="method" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
     <configuration name="AuthorizationServerTest" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
       <module name="auth" />
       <extension name="coverage">
@@ -146,22 +162,6 @@
         <option name="Make" enabled="true" />
       </method>
     </configuration>
-    <configuration name="AuthorizationServerTest.getAccessToken_GrantType_Password_success_200" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
-      <module name="auth" />
-      <extension name="coverage">
-        <pattern>
-          <option name="PATTERN" value="me.nuguri.auth.*" />
-          <option name="ENABLED" value="true" />
-        </pattern>
-      </extension>
-      <option name="PACKAGE_NAME" value="me.nuguri.auth" />
-      <option name="MAIN_CLASS_NAME" value="me.nuguri.auth.AuthorizationServerTest" />
-      <option name="METHOD_NAME" value="getAccessToken_GrantType_Password_success_200" />
-      <option name="TEST_OBJECT" value="method" />
-      <method v="2">
-        <option name="Make" enabled="true" />
-      </method>
-    </configuration>
     <configuration name="AuthorizationServerTest.getAccessToken_GrantType_RefreshToken_success_200" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
       <module name="auth" />
       <extension name="coverage">
@@ -173,22 +173,6 @@
       <option name="PACKAGE_NAME" value="me.nuguri.auth" />
       <option name="MAIN_CLASS_NAME" value="me.nuguri.auth.AuthorizationServerTest" />
       <option name="METHOD_NAME" value="getAccessToken_GrantType_RefreshToken_success_200" />
-      <option name="TEST_OBJECT" value="method" />
-      <method v="2">
-        <option name="Make" enabled="true" />
-      </method>
-    </configuration>
-    <configuration name="AuthorizationServerTest.getAccessToken_success_200" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
-      <module name="auth" />
-      <extension name="coverage">
-        <pattern>
-          <option name="PATTERN" value="me.nuguri.auth.config.*" />
-          <option name="ENABLED" value="true" />
-        </pattern>
-      </extension>
-      <option name="PACKAGE_NAME" value="me.nuguri.auth" />
-      <option name="MAIN_CLASS_NAME" value="me.nuguri.auth.AuthorizationServerTest" />
-      <option name="METHOD_NAME" value="getAccessToken_success_200" />
       <option name="TEST_OBJECT" value="method" />
       <method v="2">
         <option name="Make" enabled="true" />
@@ -210,11 +194,11 @@
     </configuration>
     <recent_temporary>
       <list>
+        <item itemvalue="JUnit.AuthorizationServerControllerTest.revokeAccessToken_Success_200" />
         <item itemvalue="JUnit.AuthorizationServerTest" />
         <item itemvalue="JUnit.AuthorizationServerTest.getAccessToken_GrantType_Authorization_Code_Success_200" />
         <item itemvalue="JUnit.AuthorizationServerTest.getAccessToken_GrantType_ClientCredentials_Success_200" />
         <item itemvalue="JUnit.AuthorizationServerTest.getAccessToken_GrantType_RefreshToken_success_200" />
-        <item itemvalue="JUnit.AuthorizationServerTest.getAccessToken_GrantType_Password_success_200" />
       </list>
     </recent_temporary>
   </component>
@@ -231,7 +215,8 @@
       <workItem from="1586481469482" duration="20229000" />
       <workItem from="1586508260295" duration="759000" />
       <workItem from="1586736203641" duration="2834000" />
-      <workItem from="1586739668578" duration="25149000" />
+      <workItem from="1586739668578" duration="25314000" />
+      <workItem from="1586822202488" duration="8742000" />
     </task>
     <servers />
   </component>
@@ -260,18 +245,18 @@
       <screen x="1920" y="0" width="1920" height="1040" />
     </state>
     <state x="2629" y="309" key="#com.intellij.fileTypes.FileTypeChooser/0.0.1536.824/1920.0.1920.1040@1920.0.1920.1040" timestamp="1586500737645" />
-    <state x="2685" y="223" key="#com.intellij.ide.util.MemberChooser" timestamp="1586745291814">
+    <state x="2685" y="223" key="#com.intellij.ide.util.MemberChooser" timestamp="1586827318348">
       <screen x="1920" y="0" width="1920" height="1040" />
     </state>
-    <state x="2685" y="223" key="#com.intellij.ide.util.MemberChooser/0.0.1536.824/1920.0.1920.1040@1920.0.1920.1040" timestamp="1586745291814" />
+    <state x="2685" y="223" key="#com.intellij.ide.util.MemberChooser/0.0.1536.824/1920.0.1920.1040@1920.0.1920.1040" timestamp="1586827318348" />
     <state x="2610" y="295" key="#com.intellij.ide.util.PackageChooserDialog" timestamp="1586500532222">
       <screen x="1920" y="0" width="1920" height="1040" />
     </state>
     <state x="2610" y="295" key="#com.intellij.ide.util.PackageChooserDialog/0.0.1536.824/1920.0.1920.1040@1920.0.1920.1040" timestamp="1586500532222" />
-    <state x="2666" y="359" width="453" height="322" key="#com.intellij.refactoring.move.moveClassesOrPackages.MoveClassesOrPackagesDialog.classes" timestamp="1586743803100">
+    <state x="2666" y="359" width="453" height="322" key="#com.intellij.refactoring.move.moveClassesOrPackages.MoveClassesOrPackagesDialog.classes" timestamp="1586828326292">
       <screen x="1920" y="0" width="1920" height="1040" />
     </state>
-    <state x="2666" y="359" width="453" height="322" key="#com.intellij.refactoring.move.moveClassesOrPackages.MoveClassesOrPackagesDialog.classes/0.0.1536.824/1920.0.1920.1040@1920.0.1920.1040" timestamp="1586743803100" />
+    <state x="2666" y="359" width="453" height="322" key="#com.intellij.refactoring.move.moveClassesOrPackages.MoveClassesOrPackagesDialog.classes/0.0.1536.824/1920.0.1920.1040@1920.0.1920.1040" timestamp="1586828326292" />
     <state x="2634" y="67" key="#com.intellij.refactoring.rename.AutomaticRenamingDialog" timestamp="1586481850803">
       <screen x="1920" y="0" width="1920" height="1040" />
     </state>
@@ -280,38 +265,38 @@
       <screen x="1920" y="0" width="1920" height="1040" />
     </state>
     <state x="2610" y="266" key="#com.intellij.refactoring.safeDelete.UnsafeUsagesDialog/0.0.1536.824/1920.0.1920.1040@1920.0.1920.1040" timestamp="1586499457352" />
-    <state width="1877" height="455" key="GridCell.Tab.0.bottom" timestamp="1586767699109">
+    <state width="1877" height="315" key="GridCell.Tab.0.bottom" timestamp="1586830715104">
       <screen x="1920" y="0" width="1920" height="1040" />
     </state>
-    <state width="1877" height="455" key="GridCell.Tab.0.bottom/0.0.1536.824/1920.0.1920.1040@1920.0.1920.1040" timestamp="1586767699109" />
-    <state width="1877" height="455" key="GridCell.Tab.0.center" timestamp="1586767699109">
+    <state width="1877" height="315" key="GridCell.Tab.0.bottom/0.0.1536.824/1920.0.1920.1040@1920.0.1920.1040" timestamp="1586830715104" />
+    <state width="1877" height="315" key="GridCell.Tab.0.center" timestamp="1586830715104">
       <screen x="1920" y="0" width="1920" height="1040" />
     </state>
-    <state width="1877" height="455" key="GridCell.Tab.0.center/0.0.1536.824/1920.0.1920.1040@1920.0.1920.1040" timestamp="1586767699109" />
-    <state width="1877" height="455" key="GridCell.Tab.0.left" timestamp="1586767699108">
+    <state width="1877" height="315" key="GridCell.Tab.0.center/0.0.1536.824/1920.0.1920.1040@1920.0.1920.1040" timestamp="1586830715104" />
+    <state width="1877" height="315" key="GridCell.Tab.0.left" timestamp="1586830715104">
       <screen x="1920" y="0" width="1920" height="1040" />
     </state>
-    <state width="1877" height="455" key="GridCell.Tab.0.left/0.0.1536.824/1920.0.1920.1040@1920.0.1920.1040" timestamp="1586767699108" />
-    <state width="1877" height="455" key="GridCell.Tab.0.right" timestamp="1586767699109">
+    <state width="1877" height="315" key="GridCell.Tab.0.left/0.0.1536.824/1920.0.1920.1040@1920.0.1920.1040" timestamp="1586830715104" />
+    <state width="1877" height="315" key="GridCell.Tab.0.right" timestamp="1586830715104">
       <screen x="1920" y="0" width="1920" height="1040" />
     </state>
-    <state width="1877" height="455" key="GridCell.Tab.0.right/0.0.1536.824/1920.0.1920.1040@1920.0.1920.1040" timestamp="1586767699109" />
-    <state width="1877" height="279" key="GridCell.Tab.1.bottom" timestamp="1586767084675">
+    <state width="1877" height="315" key="GridCell.Tab.0.right/0.0.1536.824/1920.0.1920.1040@1920.0.1920.1040" timestamp="1586830715104" />
+    <state width="1877" height="315" key="GridCell.Tab.1.bottom" timestamp="1586830715105">
       <screen x="1920" y="0" width="1920" height="1040" />
     </state>
-    <state width="1877" height="279" key="GridCell.Tab.1.bottom/0.0.1536.824/1920.0.1920.1040@1920.0.1920.1040" timestamp="1586767084675" />
-    <state width="1877" height="279" key="GridCell.Tab.1.center" timestamp="1586767084675">
+    <state width="1877" height="315" key="GridCell.Tab.1.bottom/0.0.1536.824/1920.0.1920.1040@1920.0.1920.1040" timestamp="1586830715105" />
+    <state width="1877" height="315" key="GridCell.Tab.1.center" timestamp="1586830715104">
       <screen x="1920" y="0" width="1920" height="1040" />
     </state>
-    <state width="1877" height="279" key="GridCell.Tab.1.center/0.0.1536.824/1920.0.1920.1040@1920.0.1920.1040" timestamp="1586767084675" />
-    <state width="1877" height="279" key="GridCell.Tab.1.left" timestamp="1586767084675">
+    <state width="1877" height="315" key="GridCell.Tab.1.center/0.0.1536.824/1920.0.1920.1040@1920.0.1920.1040" timestamp="1586830715104" />
+    <state width="1877" height="315" key="GridCell.Tab.1.left" timestamp="1586830715104">
       <screen x="1920" y="0" width="1920" height="1040" />
     </state>
-    <state width="1877" height="279" key="GridCell.Tab.1.left/0.0.1536.824/1920.0.1920.1040@1920.0.1920.1040" timestamp="1586767084675" />
-    <state width="1877" height="279" key="GridCell.Tab.1.right" timestamp="1586767084675">
+    <state width="1877" height="315" key="GridCell.Tab.1.left/0.0.1536.824/1920.0.1920.1040@1920.0.1920.1040" timestamp="1586830715104" />
+    <state width="1877" height="315" key="GridCell.Tab.1.right" timestamp="1586830715105">
       <screen x="1920" y="0" width="1920" height="1040" />
     </state>
-    <state width="1877" height="279" key="GridCell.Tab.1.right/0.0.1536.824/1920.0.1920.1040@1920.0.1920.1040" timestamp="1586767084675" />
+    <state width="1877" height="315" key="GridCell.Tab.1.right/0.0.1536.824/1920.0.1920.1040@1920.0.1920.1040" timestamp="1586830715105" />
     <state x="2473" y="174" key="Registry" timestamp="1586739204723">
       <screen x="1920" y="0" width="1920" height="1040" />
     </state>
@@ -328,10 +313,10 @@
       <screen x="1920" y="0" width="1920" height="1040" />
     </state>
     <state x="2695" y="297" key="chooseDestDirectoryDialog/0.0.1536.824/1920.0.1920.1040@1920.0.1920.1040" timestamp="1586500519082" />
-    <state x="2651" y="210" key="com.intellij.testIntegration.createTest.CreateTestDialog" timestamp="1586494969017">
+    <state x="2651" y="210" key="com.intellij.testIntegration.createTest.CreateTestDialog" timestamp="1586828300195">
       <screen x="1920" y="0" width="1920" height="1040" />
     </state>
-    <state x="2651" y="210" key="com.intellij.testIntegration.createTest.CreateTestDialog/0.0.1536.824/1920.0.1920.1040@1920.0.1920.1040" timestamp="1586494969017" />
+    <state x="2651" y="210" key="com.intellij.testIntegration.createTest.CreateTestDialog/0.0.1536.824/1920.0.1920.1040@1920.0.1920.1040" timestamp="1586828300195" />
     <state x="2932" y="131" key="extract.method.dialog" timestamp="1586755550882">
       <screen x="1920" y="0" width="1920" height="1040" />
     </state>

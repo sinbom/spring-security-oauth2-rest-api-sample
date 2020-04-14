@@ -27,11 +27,9 @@ public class ResourceServerConfiguration extends ResourceServerConfigurerAdapter
 
     @Override
     public void configure(HttpSecurity http) throws Exception {
-        http.authorizeRequests()
-                .mvcMatchers(HttpMethod.GET, "/api/**").permitAll()
-                .anyRequest().authenticated()
-                .and()
-                .exceptionHandling().accessDeniedHandler(new OAuth2AccessDeniedHandler());
+        http.authorizeRequests().mvcMatchers(HttpMethod.GET, "/api/**").permitAll()
+                .anyRequest().authenticated();
+        http.exceptionHandling().accessDeniedHandler(new OAuth2AccessDeniedHandler());
     }
 
     @Primary
