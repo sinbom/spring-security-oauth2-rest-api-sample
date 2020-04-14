@@ -16,10 +16,21 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 
+import static org.springframework.restdocs.headers.HeaderDocumentation.*;
+import static org.springframework.restdocs.headers.HeaderDocumentation.headerWithName;
+import static org.springframework.restdocs.hypermedia.HypermediaDocumentation.linkWithRel;
+import static org.springframework.restdocs.hypermedia.HypermediaDocumentation.links;
+import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
 import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.get;
 import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.post;
+import static org.springframework.restdocs.payload.PayloadDocumentation.fieldWithPath;
+import static org.springframework.restdocs.payload.PayloadDocumentation.responseFields;
+import static org.springframework.restdocs.request.RequestDocumentation.parameterWithName;
+import static org.springframework.restdocs.request.RequestDocumentation.requestParameters;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @RunWith(SpringRunner.class)
@@ -36,6 +47,10 @@ public class AuthorizationServerControllerTest {
     @Autowired
     private AuthServerConfigProperties authServerConfigProperties;
 
+    /**
+     * 인증 서버 엑세스 토큰 정상적으로 만료되는 경우
+     * @throws Exception
+     */
     @Test
     public void revokeAccessToken_Success_200() throws Exception {
         String access_token = (String) new JacksonJsonParser()
@@ -48,11 +63,60 @@ public class AuthorizationServerControllerTest {
                         .getResponse()
                         .getContentAsString()).get("access_token");
 
-        mockMvc.perform(get("/oauth/revoke-token")
+        mockMvc.perform(post("/oauth/revoke_token")
+                .with(csrf())
                 .header(HttpHeaders.AUTHORIZATION, access_token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("access_token").exists())
+                .andExpect(jsonPath("token_type").exists())
+                .andExpect(jsonPath("refresh_token").exists())
+                .andExpect(jsonPath("expires_in").exists())
+                .andExpect(jsonPath("expiration").exists())
+                .andExpect(jsonPath("scope").exists())
+                .andExpect(jsonPath("_links.self.href").exists())
+                .andExpect(jsonPath("_links.document.href").exists())
                 .andDo(print())
-                .andExpect(status().isOk());
+                .andDo(document("revoke-access_token",
+                        links(
+                                linkWithRel("self").description("link self"),
+                                linkWithRel("document").description("link document")
+                        ),
+                        requestHeaders(
+                                headerWithName(HttpHeaders.AUTHORIZATION).description("Bearer [access token]")
+                        ),
+                        responseHeaders(
+                                headerWithName(HttpHeaders.CACHE_CONTROL).description("cache control"),
+                                headerWithName(HttpHeaders.PRAGMA).description("pragma"),
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type"),
+                                headerWithName("X-Content-Type-Options").description("X-Content-Type-Options"),
+                                headerWithName("X-XSS-Protection").description("X-XSS-Protection"),
+                                headerWithName("X-Frame-Options").description("X-Frame-Options")
+                        ),
+                        responseFields(
+                                fieldWithPath("access_token").description("access token"),
+                                fieldWithPath("token_type").description("access token type"),
+                                fieldWithPath("refresh_token").description("refresh token"),
+                                fieldWithPath("expires_in").description("access token expires time"),
+                                fieldWithPath("expiration").description("access token expiration"),
+                                fieldWithPath("scope").description("access scopes"),
+                                fieldWithPath("_links.self.href").description("self link"),
+                                fieldWithPath("_links.document.href").description("document link")
+                        )
+                )
+        );
     }
 
+    /**
+     * 인증 서버 엑세스 토큰 부정확하거나 존재하지 않는 엑세스 토큰 입력으로 만료하지 못하는 경우
+     * @throws Exception
+     */
+    @Test
+    public void revokeAccessToken_Invalid_AccessToken_400() throws Exception {
+        mockMvc.perform(post("/oauth/revoke_token")
+                .with(csrf())
+                .header(HttpHeaders.AUTHORIZATION, "invalid_token_!(@*#&!"))
+                .andDo(print())
+                .andExpect(status().isBadRequest());
+    }
 
 }

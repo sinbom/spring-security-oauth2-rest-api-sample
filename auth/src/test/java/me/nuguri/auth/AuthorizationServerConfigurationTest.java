@@ -1,16 +1,12 @@
 package me.nuguri.auth;
 
-import lombok.extern.apachecommons.CommonsLog;
 import me.nuguri.auth.common.AuthServerConfigProperties;
 import me.nuguri.auth.common.GrantType;
 import me.nuguri.auth.common.Role;
 import me.nuguri.auth.config.RestDocsConfiguration;
-import org.junit.FixMethodOrder;
-import org.junit.Ignore;
+import org.junit.After;
 import org.junit.Test;
-import org.junit.jupiter.api.Order;
 import org.junit.runner.RunWith;
-import org.junit.runners.MethodSorters;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.json.JacksonJsonParser;
 import org.springframework.boot.test.autoconfigure.restdocs.AutoConfigureRestDocs;
@@ -19,11 +15,14 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpHeaders;
 import org.springframework.mock.web.MockHttpSession;
+import org.springframework.security.oauth2.provider.token.TokenStore;
+import org.springframework.security.oauth2.provider.token.store.InMemoryTokenStore;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.restdocs.headers.HeaderDocumentation.*;
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
 import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.get;
@@ -43,7 +42,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Import(RestDocsConfiguration.class)
 @AutoConfigureRestDocs
 @AutoConfigureMockMvc
-public class AuthorizationServerTest {
+public class AuthorizationServerConfigurationTest {
 
     @Autowired
     private MockMvc mockMvc;
@@ -51,19 +50,101 @@ public class AuthorizationServerTest {
     @Autowired
     private AuthServerConfigProperties authServerConfigProperties;
 
+    @Autowired
+    private TokenStore tokenStore;
+
+    /**
+     * 엑세스 토큰 스토어 초기화
+     */
+    @After
+    public void clearTokenStore() {
+        InMemoryTokenStore tokenStore = (InMemoryTokenStore) this.tokenStore;
+        tokenStore.clear();
+    }
+
+    /**
+     * 인증 서버 엑세스 토큰 유효한 경우
+     * @throws Exception
+     */
+    @Test
+    public void checkAccessToken_Success_200() throws Exception {
+        String access_token = (String) new JacksonJsonParser().parseMap(getAccessTokenPasswordGrantTypeResponse(authServerConfigProperties.getAdminEmail(), authServerConfigProperties.getAdminPassword())
+                .andReturn()
+                .getResponse()
+                .getContentAsString()).get("access_token");
+
+        mockMvc.perform(post("/oauth/check_token")
+                .param("token", access_token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("active").exists())
+                .andExpect(jsonPath("active").value(true))
+                .andExpect(jsonPath("exp").exists())
+                .andExpect(jsonPath("user_name").exists())
+                .andExpect(jsonPath("authorities").exists())
+                .andExpect(jsonPath("client_id").exists())
+                .andExpect(jsonPath("scope").exists())
+                .andDo(print())
+                .andDo(document("check-access_token",
+                        requestParameters(
+                                parameterWithName("token").description("access token")
+                        ),
+                        responseHeaders(
+                                headerWithName(HttpHeaders.CACHE_CONTROL).description("cache control"),
+                                headerWithName(HttpHeaders.PRAGMA).description("pragma"),
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type"),
+                                headerWithName("X-Content-Type-Options").description("X-Content-Type-Options"),
+                                headerWithName("X-XSS-Protection").description("X-XSS-Protection"),
+                                headerWithName("X-Frame-Options").description("X-Frame-Options")
+                        ),
+                        responseFields(
+                                fieldWithPath("active").description("access token active"),
+                                fieldWithPath("exp").description("access token expires"),
+                                fieldWithPath("user_name").description("username"),
+                                fieldWithPath("authorities").description("authorities"),
+                                fieldWithPath("client_id").description("client_id"),
+                                fieldWithPath("scope").description("access scopes")
+                        )
+                )
+        );
+    }
+
+    /**
+     * 인증 서버 엑세스 토큰 유효하지 않는 경우
+     * @throws Exception
+     */
+    @Test
+    public void checkAccessToken_Invalid_AccessToken_400() throws Exception {
+        String access_token = (String) new JacksonJsonParser().parseMap(getAccessTokenPasswordGrantTypeResponse(authServerConfigProperties.getAdminEmail(), authServerConfigProperties.getAdminPassword())
+                .andReturn()
+                .getResponse()
+                .getContentAsString()).get("access_token");
+
+        mockMvc.perform(post("/oauth/revoke_token")
+                .with(csrf())
+                .header(HttpHeaders.AUTHORIZATION, access_token));
+
+        mockMvc.perform(post("/oauth/check_token")
+                .param("token", access_token))
+                .andExpect(status().isBadRequest());
+    }
+
+    /**
+     * 인증 서버 엑세스 토큰 Authorization Code 방식으로 정상적으로 얻는 경우
+     * @throws Exception
+     */
     @Test
     public void getAccessToken_GrantType_Authorization_Code_Success_200() throws Exception {
         MockHttpSession session = (MockHttpSession) mockMvc.perform(get("/oauth/authorize")
+                .session(new MockHttpSession())
                 .with(user(authServerConfigProperties.getAdminEmail()).password(authServerConfigProperties.getAdminPassword()).roles(Role.ADMIN.name()))
-                .with(csrf())
                 .param("response_type", "code")
                 .param("client_id", authServerConfigProperties.getClientId())
                 .param("redirect_uri", authServerConfigProperties.getRedirectUri())
                 .param("scope", "read")).andDo(print()).andReturn().getRequest().getSession();
 
         String redirectedUri = mockMvc.perform(post("/oauth/authorize")
-                .session(session)
                 .with(csrf())
+                .session(session)
                 .param("response_type", "code")
                 .param("client_id", authServerConfigProperties.getClientId())
                 .param("redirect_uri", authServerConfigProperties.getRedirectUri())
@@ -78,12 +159,45 @@ public class AuthorizationServerTest {
                 .param("grant_type", GrantType.AUTHORIZATION_CODE.toString())
                 .param("redirect_uri", authServerConfigProperties.getRedirectUri()))
                 .andDo(print())
+                .andExpect(status().isOk())
                 .andExpect(jsonPath("access_token").exists())
                 .andExpect(jsonPath("token_type").exists())
                 .andExpect(jsonPath("refresh_token").exists())
                 .andExpect(jsonPath("expires_in").exists())
                 .andExpect(jsonPath("scope").exists()
         );
+    }
+
+    /**
+     * 인증 서버 엑세스 토큰 Implicit 방식으로 정상적으로 얻는 경우
+     */
+    @Test
+    public void getAccessToken_GrantType_Implicit_Success_200() throws Exception {
+        MockHttpSession session = (MockHttpSession) mockMvc.perform(get("/oauth/authorize")
+                .session(new MockHttpSession())
+                .with(user(authServerConfigProperties.getAdminEmail()).password(authServerConfigProperties.getAdminPassword()).roles(Role.ADMIN.name()))
+                .param("response_type", "token")
+                .param("client_id", authServerConfigProperties.getClientId())
+                .param("redirect_uri", authServerConfigProperties.getRedirectUri())
+                .param("scope", "read")).andDo(print()).andReturn().getRequest().getSession();
+
+        String redirectedUri = mockMvc.perform(post("/oauth/authorize")
+                .with(csrf())
+                .session(session)
+                .param("response_type", "token")
+                .param("client_id", authServerConfigProperties.getClientId())
+                .param("redirect_uri", authServerConfigProperties.getRedirectUri())
+                .param("scope", "read")
+                .param("scope.read", "true")
+                .param("user_oauth_approval", "true"))
+                .andExpect(status().is3xxRedirection())
+                .andDo(print())
+                .andReturn().getResponse().getRedirectedUrl();
+
+        assertThat(redirectedUri).contains("access_token");
+        assertThat(redirectedUri).contains("token_type");
+        assertThat(redirectedUri).contains("expires_in");
+
     }
 
     /**
