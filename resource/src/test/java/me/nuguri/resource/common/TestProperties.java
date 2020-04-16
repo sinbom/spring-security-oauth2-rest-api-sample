@@ -1,4 +1,4 @@
-package me.nuguri.auth.common;
+package me.nuguri.resource.common;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -6,19 +6,10 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-@ConfigurationProperties(prefix = "auth")
+@ConfigurationProperties(prefix = "test")
 @Getter
 @Setter
-public class AuthServerConfigProperties {
-
-    /** 클라이언트 ID */
-    private String clientId;
-
-    /** 클라이언트 Secret */
-    private String clientSecret;
-
-    /** authorize code 방식 로그인 리다이렉트 uri */
-    private String redirectUri;
+public class TestProperties {
 
     /** 기본 생성 관리자 아이디 */
     private String adminEmail;

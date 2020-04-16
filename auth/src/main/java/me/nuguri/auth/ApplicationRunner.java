@@ -29,6 +29,12 @@ public class ApplicationRunner implements org.springframework.boot.ApplicationRu
                 .password(passwordEncoder.encode(authServerConfigProperties.getAdminPassword()))
                 .roles(new HashSet<>(Arrays.asList(Role.ADMIN, Role.USER)))
                 .build());
+
+        accountRepository.save(Account.builder()
+                .email(authServerConfigProperties.getUserEmail())
+                .password(passwordEncoder.encode(authServerConfigProperties.getUserPassword()))
+                .roles(new HashSet<>(Arrays.asList(Role.USER)))
+                .build());
     }
 
 }

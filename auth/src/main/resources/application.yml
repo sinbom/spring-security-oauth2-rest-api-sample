@@ -51,3 +51,5 @@ auth:
   redirect-uri: http://localhost:${server.port}/main
   admin-email: admin@naver.com
   admin-password: 1234
+  user-email: user@naver.com
+  user-password: 1234

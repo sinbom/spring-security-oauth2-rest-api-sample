@@ -11,3 +11,9 @@ spring:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.H2Dialect
+
+test:
+  admin-email: admin@naver.com
+  admin-password: 1234
+  user-email: user@naver.com
+  user-password: 1234

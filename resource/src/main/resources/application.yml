@@ -2,15 +2,10 @@
 server:
   port: 8600
 
-security:
-  oauth2:
-    resource:
-      token-info-uri: http://localhost:9600/oauth
-
 spring:
   #  jackson:
   #    deserialization:
-  #      FAIL_ON_UNKNOWN_PROPERTIES: true # 불필요한 데이터 바인딩 시 직렬화 하지 않고 에러 발생시킴
+  #      FAIL_ON_UNKNOWN_PROPERTIES: true
 
   # DB Connection Setting
   datasource:
@@ -46,4 +41,8 @@ logging:
 auth:
   client-id: nuguri
   client-secret: bom
-  remote-server-url: http://localhost:9600/oauth/check_token
+  check-token-url: http://localhost:9600/oauth/check_token
+  revoke-token-url: http://localhost:9600/oauth/revoke_token
+  access-token-url: http://localhost:9600/oauth/token
+  authorize-code-url: http://localhost:9600/oauth/authorize
+

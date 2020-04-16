@@ -3,16 +3,10 @@ package me.nuguri.auth.controller;
 import lombok.RequiredArgsConstructor;
 import me.nuguri.auth.domain.AccessToken;
 import me.nuguri.auth.domain.AccessTokenResource;
-import me.nuguri.auth.domain.AccountAdapter;
 import org.springframework.hateoas.MediaTypes;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.parameters.P;
-import org.springframework.security.core.userdetails.User;
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
 import org.springframework.security.oauth2.provider.token.TokenStore;
 import org.springframework.stereotype.Controller;
@@ -31,7 +25,6 @@ public class AuthorizationServerController {
     public String main() {
         return "main";
     }
-
 
     @PostMapping(value = "/oauth/revoke_token", produces = MediaTypes.HAL_JSON_VALUE)
     public ResponseEntity<?> revokeToken(@RequestHeader(required = false) String authorization) {

@@ -1,7 +1,7 @@
 package me.nuguri.resource.service;
 
 import lombok.RequiredArgsConstructor;
-import me.nuguri.resource.common.AccountAdapter;
+import me.nuguri.resource.domain.AccountAdapter;
 import me.nuguri.resource.entity.Account;
 import me.nuguri.resource.repository.AccountRepository;
 import org.springframework.data.domain.Page;
@@ -26,16 +26,16 @@ public class AccountService implements UserDetailsService {
         return accountRepository.findAll(pageable);
     }
 
-    public Object find(Long id) {
+    public Account find(Long id) {
         return accountRepository.findById(id).orElseThrow(RuntimeException::new);
     }
 
-    public Account join(Account account) {
+    public Account generate(Account account) {
         return accountRepository.save(account);
     }
 
-    public void withdrawal(Account account) {
-        accountRepository.delete(account);
+    public void delete(Long id) {
+        accountRepository.deleteById(id);
     }
 
 }

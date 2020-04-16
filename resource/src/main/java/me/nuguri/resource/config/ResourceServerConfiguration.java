@@ -2,10 +2,10 @@ package me.nuguri.resource.config;
 
 import lombok.RequiredArgsConstructor;
 import me.nuguri.resource.common.ResourceServerConfigProperties;
+import org.springframework.boot.autoconfigure.security.oauth2.resource.UserInfoTokenServices;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
-import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.oauth2.config.annotation.web.configuration.EnableResourceServer;
 import org.springframework.security.oauth2.config.annotation.web.configuration.ResourceServerConfigurerAdapter;
@@ -27,16 +27,14 @@ public class ResourceServerConfiguration extends ResourceServerConfigurerAdapter
 
     @Override
     public void configure(HttpSecurity http) throws Exception {
-        http.authorizeRequests().mvcMatchers(HttpMethod.GET, "/api/**").permitAll()
-                .anyRequest().authenticated();
+        http.authorizeRequests().anyRequest().authenticated();
         http.exceptionHandling().accessDeniedHandler(new OAuth2AccessDeniedHandler());
     }
 
-    @Primary
     @Bean
     public RemoteTokenServices remoteTokenServices() {
         RemoteTokenServices remoteTokenServices = new RemoteTokenServices();
-        remoteTokenServices.setCheckTokenEndpointUrl(resourceServerConfigProperties.getRemoteServerUrl());
+        remoteTokenServices.setCheckTokenEndpointUrl(resourceServerConfigProperties.getCheckTokenUrl());
         remoteTokenServices.setClientId(resourceServerConfigProperties.getClientId());
         remoteTokenServices.setClientSecret(resourceServerConfigProperties.getClientSecret());
         return remoteTokenServices;

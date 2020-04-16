@@ -1,7 +1,8 @@
-package me.nuguri.resource.common;
+package me.nuguri.resource.domain;
 
 import lombok.Getter;
 import lombok.Setter;
+import me.nuguri.resource.common.Role;
 import me.nuguri.resource.entity.Account;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.User;

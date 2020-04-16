@@ -18,7 +18,16 @@ public class ResourceServerConfigProperties {
     /** 클라이언트 Secret */
     private String clientSecret;
 
-    /** 인증 서버 URL */
-    private String remoteServerUrl;
+    /** 인증 서버 토큰 발급 URL */
+    private String authorizeCodeUrl;
+
+    /** 인증 서버 토큰 발급 URL */
+    private String accessTokenUrl;
+
+    /** 인증 서버 토근 만료 URL */
+    private String revokeTokenUrl;
+
+    /** 인증 서버 토근 검사 URL */
+    private String checkTokenUrl;
 
 }
