@@ -1,25 +1,19 @@
-package me.nuguri.auth;
+package me.nuguri.auth.config;
 
-import me.nuguri.auth.common.AuthServerConfigProperties;
-import me.nuguri.auth.common.GrantType;
-import me.nuguri.auth.common.Role;
-import me.nuguri.auth.config.RestDocsConfiguration;
+import me.nuguri.auth.common.BaseIntegrationTest;
+import me.nuguri.auth.enums.GrantType;
+import me.nuguri.auth.properties.AuthServerConfigProperties;
+import me.nuguri.auth.repository.AccessTokenRepository;
 import org.junit.After;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.json.JacksonJsonParser;
-import org.springframework.boot.test.autoconfigure.restdocs.AutoConfigureRestDocs;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpHeaders;
 import org.springframework.mock.web.MockHttpSession;
-import org.springframework.security.oauth2.provider.token.TokenStore;
-import org.springframework.security.oauth2.provider.token.store.InMemoryTokenStore;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.web.servlet.ResultActions;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -31,35 +25,28 @@ import static org.springframework.restdocs.payload.PayloadDocumentation.fieldWit
 import static org.springframework.restdocs.payload.PayloadDocumentation.responseFields;
 import static org.springframework.restdocs.request.RequestDocumentation.parameterWithName;
 import static org.springframework.restdocs.request.RequestDocumentation.requestParameters;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.*;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@RunWith(SpringRunner.class)
-@SpringBootTest
-@ActiveProfiles("test")
-@Import(RestDocsConfiguration.class)
-@AutoConfigureRestDocs
-@AutoConfigureMockMvc
-public class AuthorizationServerConfigurationTest {
-
-    @Autowired
-    private MockMvc mockMvc;
+public class AuthorizationServerConfigurationTest  extends BaseIntegrationTest {
 
     @Autowired
     private AuthServerConfigProperties authServerConfigProperties;
 
     @Autowired
-    private TokenStore tokenStore;
+    private AuthenticationManager authenticationManager;
+
+    @Autowired
+    private AccessTokenRepository accessTokenRepository;
 
     /**
      * 엑세스 토큰 스토어 초기화
      */
     @After
     public void clearTokenStore() {
-        InMemoryTokenStore tokenStore = (InMemoryTokenStore) this.tokenStore;
-        tokenStore.clear();
+        accessTokenRepository.deleteAllInBatch();
     }
 
     /**
@@ -83,6 +70,7 @@ public class AuthorizationServerConfigurationTest {
                 .andExpect(jsonPath("authorities").exists())
                 .andExpect(jsonPath("client_id").exists())
                 .andExpect(jsonPath("scope").exists())
+                .andExpect(jsonPath("id").exists())
                 .andDo(print())
                 .andDo(document("check-access_token",
                         requestParameters(
@@ -97,12 +85,14 @@ public class AuthorizationServerConfigurationTest {
                                 headerWithName("X-Frame-Options").description("X-Frame-Options")
                         ),
                         responseFields(
+                                fieldWithPath("aud").description("aud"),
                                 fieldWithPath("active").description("access token active"),
                                 fieldWithPath("exp").description("access token expires"),
                                 fieldWithPath("user_name").description("username"),
                                 fieldWithPath("authorities").description("authorities"),
                                 fieldWithPath("client_id").description("client_id"),
-                                fieldWithPath("scope").description("access scopes")
+                                fieldWithPath("scope").description("access scopes"),
+                                fieldWithPath("id").description("account id")
                         )
                 )
         );
@@ -120,7 +110,6 @@ public class AuthorizationServerConfigurationTest {
                 .getContentAsString()).get("access_token");
 
         mockMvc.perform(post("/oauth/revoke_token")
-                .with(csrf())
                 .header(HttpHeaders.AUTHORIZATION, access_token));
 
         mockMvc.perform(post("/oauth/check_token")
@@ -134,16 +123,17 @@ public class AuthorizationServerConfigurationTest {
      */
     @Test
     public void getAccessToken_GrantType_Authorization_Code_Success_200() throws Exception {
+        Authentication authentication = new UsernamePasswordAuthenticationToken(authServerConfigProperties.getAdminEmail(), authServerConfigProperties.getAdminPassword());
+        SecurityContextHolder.getContext().setAuthentication(authenticationManager.authenticate(authentication));
+
         MockHttpSession session = (MockHttpSession) mockMvc.perform(get("/oauth/authorize")
                 .session(new MockHttpSession())
-                .with(user(authServerConfigProperties.getAdminEmail()).password(authServerConfigProperties.getAdminPassword()).roles(Role.ADMIN.name()))
                 .param("response_type", "code")
                 .param("client_id", authServerConfigProperties.getClientId())
                 .param("redirect_uri", authServerConfigProperties.getRedirectUri())
                 .param("scope", "read")).andDo(print()).andReturn().getRequest().getSession();
 
         String redirectedUri = mockMvc.perform(post("/oauth/authorize")
-                .with(csrf())
                 .session(session)
                 .param("response_type", "code")
                 .param("client_id", authServerConfigProperties.getClientId())
@@ -164,7 +154,8 @@ public class AuthorizationServerConfigurationTest {
                 .andExpect(jsonPath("token_type").exists())
                 .andExpect(jsonPath("refresh_token").exists())
                 .andExpect(jsonPath("expires_in").exists())
-                .andExpect(jsonPath("scope").exists()
+                .andExpect(jsonPath("scope").exists())
+                .andExpect(jsonPath("id").exists()
         );
     }
 
@@ -173,16 +164,17 @@ public class AuthorizationServerConfigurationTest {
      */
     @Test
     public void getAccessToken_GrantType_Implicit_Success_200() throws Exception {
+        Authentication authentication = new UsernamePasswordAuthenticationToken(authServerConfigProperties.getAdminEmail(), authServerConfigProperties.getAdminPassword());
+        SecurityContextHolder.getContext().setAuthentication(authenticationManager.authenticate(authentication));
+
         MockHttpSession session = (MockHttpSession) mockMvc.perform(get("/oauth/authorize")
                 .session(new MockHttpSession())
-                .with(user(authServerConfigProperties.getAdminEmail()).password(authServerConfigProperties.getAdminPassword()).roles(Role.ADMIN.name()))
                 .param("response_type", "token")
                 .param("client_id", authServerConfigProperties.getClientId())
                 .param("redirect_uri", authServerConfigProperties.getRedirectUri())
                 .param("scope", "read")).andDo(print()).andReturn().getRequest().getSession();
 
         String redirectedUri = mockMvc.perform(post("/oauth/authorize")
-                .with(csrf())
                 .session(session)
                 .param("response_type", "token")
                 .param("client_id", authServerConfigProperties.getClientId())
@@ -197,6 +189,7 @@ public class AuthorizationServerConfigurationTest {
         assertThat(redirectedUri).contains("access_token");
         assertThat(redirectedUri).contains("token_type");
         assertThat(redirectedUri).contains("expires_in");
+        assertThat(redirectedUri).contains("id");
 
     }
 
@@ -213,6 +206,7 @@ public class AuthorizationServerConfigurationTest {
                 .andExpect(jsonPath("refresh_token").exists())
                 .andExpect(jsonPath("expires_in").exists())
                 .andExpect(jsonPath("scope").exists())
+                .andExpect(jsonPath("id").exists())
                 .andDo(print())
                 .andDo(document("get-access_token-password-grantType",
                         requestHeaders(
@@ -237,7 +231,8 @@ public class AuthorizationServerConfigurationTest {
                                 fieldWithPath("token_type").description("access token type"),
                                 fieldWithPath("refresh_token").description("refresh token"),
                                 fieldWithPath("expires_in").description("access token expires time"),
-                                fieldWithPath("scope").description("access scopes")
+                                fieldWithPath("scope").description("access scopes"),
+                                fieldWithPath("id").description("account id")
                         )
                 )
         );
@@ -290,6 +285,7 @@ public class AuthorizationServerConfigurationTest {
                 .andExpect(jsonPath("refresh_token").exists())
                 .andExpect(jsonPath("expires_in").exists())
                 .andExpect(jsonPath("scope").exists())
+                .andExpect(jsonPath("id").exists())
                 .andDo(print())
                 .andDo(document("get-access_token-refresh_token-grantType",
                         requestHeaders(
@@ -313,7 +309,8 @@ public class AuthorizationServerConfigurationTest {
                                 fieldWithPath("token_type").description("access token type"),
                                 fieldWithPath("refresh_token").description("refresh token"),
                                 fieldWithPath("expires_in").description("access token expires time"),
-                                fieldWithPath("scope").description("access scopes")
+                                fieldWithPath("scope").description("access scopes"),
+                                fieldWithPath("id").description("account id")
                         )
                 )
         );
@@ -360,10 +357,6 @@ public class AuthorizationServerConfigurationTest {
     public void getAccessToken_GrantType_ClientCredentials_Success_200() throws Exception {
         getAccessTokenClientCredentialsGrantTypeResponse(authServerConfigProperties.getClientId(), authServerConfigProperties.getClientSecret())
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("access_token").exists())
-                .andExpect(jsonPath("token_type").exists())
-                .andExpect(jsonPath("expires_in").exists())
-                .andExpect(jsonPath("scope").exists())
                 .andDo(print())
                 .andDo(document("get-access_token-client_credentials-grantType",
                         requestHeaders(

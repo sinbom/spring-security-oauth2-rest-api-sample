@@ -1,16 +1,15 @@
-package me.nuguri.resource.controller;
+package me.nuguri.auth.controller;
 
-import me.nuguri.resource.common.BaseControllerTest;
-import me.nuguri.resource.common.ResourceServerConfigProperties;
-import me.nuguri.resource.common.Role;
-import me.nuguri.resource.common.TestProperties;
-import me.nuguri.resource.entity.Account;
-import me.nuguri.resource.repository.AccountRepository;
-import org.junit.After;
+import me.nuguri.auth.common.BaseIntegrationTest;
+import me.nuguri.auth.entity.Account;
+import me.nuguri.auth.enums.Role;
+import me.nuguri.auth.service.AccountService;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.MediaTypes;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -26,21 +25,11 @@ import static org.springframework.restdocs.payload.PayloadDocumentation.response
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-public class AccountControllerTest extends BaseControllerTest {
+@Ignore
+public class AccountApiControllerTest extends BaseIntegrationTest {
 
     @Autowired
-    private AccountRepository accountRepository;
-
-    @Autowired
-    private ResourceServerConfigProperties resourceServerConfigProperties;
-
-    @Autowired
-    private TestProperties testProperties;
-
-    @After
-    public void initAccount() {
-        accountRepository.deleteAll();
-    }
+    private AccountService accountService;
 
     /**
      * 유저 정보 성공적으로 얻는 경우, 관리자 권한 엑세스 토큰
@@ -48,11 +37,9 @@ public class AccountControllerTest extends BaseControllerTest {
      */
     @Test
     public void queryUsers_V1_Success_200() throws Exception {
-        String access_token = getAccessToken(testProperties.getAdminEmail(), testProperties.getUserPassword());
         generateUser30();
         mockMvc.perform(get("/api/v1/users")
-                .header(HttpHeaders.AUTHORIZATION, "Bearer " + access_token)
-                .header(HttpHeaders.ACCEPT, MediaTypes.HAL_JSON)
+                .header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON)
                 .queryParam("page", "1")
                 .queryParam("size", "10")
                 .queryParam("sort", "id,desc"))
@@ -68,7 +55,6 @@ public class AccountControllerTest extends BaseControllerTest {
                                 linkWithRel("document").description("document")
                         ),
                         requestHeaders(
-                                headerWithName(HttpHeaders.AUTHORIZATION).description("Bearer [access token]"),
                                 headerWithName(HttpHeaders.ACCEPT).description("Accept Header")
                         ),
                         responseHeaders(
@@ -130,7 +116,6 @@ public class AccountControllerTest extends BaseControllerTest {
     @Test
     public void queryUsers_V1_Invalid_AccessToken_401() throws Exception {
         mockMvc.perform(get("/api/v1/users")
-                .header(HttpHeaders.AUTHORIZATION, "Bearer invalidtoken!@*&#(*")
                 .header(HttpHeaders.ACCEPT, MediaTypes.HAL_JSON)
                 .queryParam("page", "1")
                 .queryParam("size", "10")
@@ -144,7 +129,7 @@ public class AccountControllerTest extends BaseControllerTest {
      */
     private void generateUser30() {
         IntStream.range(0, 30).forEach(n ->
-                accountRepository.save(Account.builder()
+                accountService.generate(Account.builder()
                         .email("testId" + n + "@test.com")
                         .password("test" + n)
                         .roles(new HashSet<>(Arrays.asList(Role.USER)))

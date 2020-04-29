@@ -1,4 +1,4 @@
-package me.nuguri.auth.config;
+package me.nuguri.auth.common;
 
 import org.springframework.boot.test.autoconfigure.restdocs.RestDocsMockMvcConfigurationCustomizer;
 import org.springframework.boot.test.context.TestConfiguration;

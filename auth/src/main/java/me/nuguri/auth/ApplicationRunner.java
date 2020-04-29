@@ -1,10 +1,14 @@
 package me.nuguri.auth;
 
 import lombok.RequiredArgsConstructor;
-import me.nuguri.auth.common.AuthServerConfigProperties;
-import me.nuguri.auth.common.Role;
+import me.nuguri.auth.properties.AuthServerConfigProperties;
+import me.nuguri.auth.enums.GrantType;
+import me.nuguri.auth.enums.Role;
+import me.nuguri.auth.enums.Scope;
 import me.nuguri.auth.entity.Account;
+import me.nuguri.auth.entity.Client;
 import me.nuguri.auth.repository.AccountRepository;
+import me.nuguri.auth.repository.ClientRepository;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
@@ -17,6 +21,8 @@ import java.util.HashSet;
 public class ApplicationRunner implements org.springframework.boot.ApplicationRunner {
 
     private final AccountRepository accountRepository;
+
+    private final ClientRepository clientRepository;
 
     private final PasswordEncoder passwordEncoder;
 
@@ -35,6 +41,19 @@ public class ApplicationRunner implements org.springframework.boot.ApplicationRu
                 .password(passwordEncoder.encode(authServerConfigProperties.getUserPassword()))
                 .roles(new HashSet<>(Arrays.asList(Role.USER)))
                 .build());
+
+        clientRepository.save(Client.builder()
+                .client_id(authServerConfigProperties.getClientId())
+                .resource_ids("nuguri")
+                .client_secret(passwordEncoder.encode(authServerConfigProperties.getClientSecret()))
+                .scope(String.join(",", Scope.READ.toString(), Scope.WRITE.toString()))
+                .authorized_grant_types(String.join(",", GrantType.PASSWORD.toString(), GrantType.AUTHORIZATION_CODE.toString(),
+                        GrantType.IMPLICIT.toString(), GrantType.CLIENT_CREDENTIALS.toString(), GrantType.REFRESH_TOKEN.toString()))
+                .web_server_redirect_uri(authServerConfigProperties.getRedirectUri())
+                .authorities(String.join(",", Role.ADMIN.toString(), Role.USER.toString()))
+                .autoapprove(null)
+                .build());
+
     }
 
 }

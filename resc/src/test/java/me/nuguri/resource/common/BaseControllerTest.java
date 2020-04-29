@@ -1,10 +1,10 @@
 package me.nuguri.resource.common;
 
 import me.nuguri.resource.config.RestDocsConfiguration;
-import me.nuguri.resource.domain.AccessToken;
 import org.junit.Ignore;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.json.JacksonJsonParser;
 import org.springframework.boot.test.autoconfigure.restdocs.AutoConfigureRestDocs;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -43,7 +43,7 @@ public class BaseControllerTest {
         headers.setBasicAuth(resourceServerConfigProperties.getClientId(), resourceServerConfigProperties.getClientSecret());
         map.add("grant_type", "client_credentials");
         HttpEntity<MultiValueMap<String, String>> httpEntity = new HttpEntity<>(map, headers);
-        return restTemplate.exchange(resourceServerConfigProperties.getAccessTokenUrl(), HttpMethod.POST, httpEntity, AccessToken.class).getBody().getAccess_token();
+        return parseAccessToken(restTemplate.exchange(resourceServerConfigProperties.getAccessTokenUrl(), HttpMethod.POST, httpEntity, String.class).getBody());
     }
 
     protected String getAccessToken(String email, String password) {
@@ -54,7 +54,11 @@ public class BaseControllerTest {
         map.add("username", email);
         map.add("password", password);
         HttpEntity<MultiValueMap<String, String>> httpEntity = new HttpEntity<>(map, headers);
-        return restTemplate.exchange(resourceServerConfigProperties.getAccessTokenUrl(), HttpMethod.POST, httpEntity, AccessToken.class).getBody().getAccess_token();
+        return parseAccessToken(restTemplate.exchange(resourceServerConfigProperties.getAccessTokenUrl(), HttpMethod.POST, httpEntity, String.class).getBody());
+    }
+
+    private String parseAccessToken(String body) {
+        return (String) new JacksonJsonParser().parseMap(body).get("access_token");
     }
 
 }

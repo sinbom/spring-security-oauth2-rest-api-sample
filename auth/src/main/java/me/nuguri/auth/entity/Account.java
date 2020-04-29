@@ -1,7 +1,7 @@
 package me.nuguri.auth.entity;
 
 import lombok.*;
-import me.nuguri.auth.common.Role;
+import me.nuguri.auth.enums.Role;
 
 import javax.persistence.*;
 import java.util.Set;

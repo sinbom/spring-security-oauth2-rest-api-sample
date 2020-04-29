@@ -1,4 +1,4 @@
-package me.nuguri.auth.common;
+package me.nuguri.resource.common;
 
 public enum GrantType {
 

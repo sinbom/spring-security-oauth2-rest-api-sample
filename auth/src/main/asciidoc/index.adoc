@@ -1,5 +1,5 @@
-= REST API Guide
-rest-api;
+= API Guide
+api;
 :doctype: book
 :icons: font
 :source-highlighter: highlightjs
@@ -15,7 +15,7 @@ rest-api;
 [[overview-http-verbs]]
 == HTTP 동사
 
-본 REST API에서 사용하는 HTTP 동사(verbs)는 가능한한 표준 HTTP와 REST 규약을 따릅니다.
+본 API, REST API에서 사용하는 HTTP 동사(verbs)는 가능한한 표준 HTTP와 REST 규약을 따릅니다.
 
 |===
 | 동사 | 용례
@@ -56,6 +56,9 @@ rest-api;
 | `400 Bad Request`
 | 잘못된 요청을 보낸 경우. 응답 본문에 더 오류에 대한 정보가 담겨있다.
 
+| `401 Bad Request`
+| 잘못된 인증 정보를 보낸 경우. 응답 본문에 더 오류에 대한 정보가 담겨있다.
+
 | `404 Not Found`
 | 요청한 리소스가 없음.
 |===
@@ -85,24 +88,3 @@ include::{snippets}/errors/http-response.adoc[]
 == 인덱스
 
 인덱스는 서비스 진입점을 제공한다.
-
-[[get-access_token-password-grantType]]
-=== 엑세스 토근 발급 - Password 방식
-
-`POST` 요청을 사용하여 엑세스 토큰을 발급받을 수 있다.
-
-operation::get-access_token-password-grantType[snippets='curl-request,http-request,request-headers,request-parameters,http-response,response-headers,response-fields']
-
-[[get-access_token-client_credentials-grantType]]
-=== 엑세스 토근 발급 - Client Credentials 방식
-
-`POST` 요청을 사용하여 엑세스 토큰을 발급받을 수 있다.
-
-operation::get-access_token-client_credentials-grantType[snippets='curl-request,http-request,request-headers,request-parameters,http-response,response-headers,response-fields']
-
-[[get-access_token-refresh_token-grantType]]
-=== 엑세스 토근 발급 - Refresh Token 방식
-
-`POST` 요청을 사용하여 재발급 토큰을 전송하여 인증없이 엑세스 토큰을 재발급받을 수 있다.
-
-operation::get-access_token-refresh_token-grantType[snippets='curl-request,http-request,request-headers,request-parameters,http-response,response-headers,response-fields']

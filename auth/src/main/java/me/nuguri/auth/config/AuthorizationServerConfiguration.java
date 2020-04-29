@@ -1,9 +1,7 @@
 package me.nuguri.auth.config;
 
 import lombok.RequiredArgsConstructor;
-import me.nuguri.auth.common.AuthServerConfigProperties;
-import me.nuguri.auth.common.GrantType;
-import me.nuguri.auth.common.Scope;
+import me.nuguri.auth.properties.AuthServerConfigProperties;
 import me.nuguri.auth.service.AccountService;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -13,7 +11,12 @@ import org.springframework.security.oauth2.config.annotation.web.configuration.A
 import org.springframework.security.oauth2.config.annotation.web.configuration.EnableAuthorizationServer;
 import org.springframework.security.oauth2.config.annotation.web.configurers.AuthorizationServerEndpointsConfigurer;
 import org.springframework.security.oauth2.config.annotation.web.configurers.AuthorizationServerSecurityConfigurer;
+import org.springframework.security.oauth2.provider.ClientDetailsService;
+import org.springframework.security.oauth2.provider.approval.ApprovalStore;
+import org.springframework.security.oauth2.provider.token.TokenEnhancer;
 import org.springframework.security.oauth2.provider.token.TokenStore;
+
+import javax.sql.DataSource;
 
 @Configuration
 @EnableAuthorizationServer
@@ -23,6 +26,14 @@ public class AuthorizationServerConfiguration extends AuthorizationServerConfigu
     private final PasswordEncoder passwordEncoder;
 
     private final TokenStore tokenStore;
+
+    private final DataSource dataSource;
+
+    private final TokenEnhancer tokenEnhancer;
+
+    private final ClientDetailsService clientDetailsService;
+
+    private final ApprovalStore approvalStore;
 
     private final AuthenticationManager authenticationManager;
 
@@ -34,12 +45,14 @@ public class AuthorizationServerConfiguration extends AuthorizationServerConfigu
     public void configure(AuthorizationServerSecurityConfigurer security) throws Exception {
         security.passwordEncoder(passwordEncoder)
                 .tokenKeyAccess("permitAll()")
-                .checkTokenAccess("permitAll()")
-                .allowFormAuthenticationForClients();
+                .checkTokenAccess("permitAll()");
     }
 
     @Override
     public void configure(ClientDetailsServiceConfigurer clients) throws Exception {
+        clients.jdbc(dataSource);
+    /*
+        인메모리 클라이언트 세팅
         clients.inMemory()
                 .withClient(authServerConfigProperties.getClientId())
                 .secret(passwordEncoder.encode(authServerConfigProperties.getClientSecret()))
@@ -49,13 +62,16 @@ public class AuthorizationServerConfiguration extends AuthorizationServerConfigu
                 .redirectUris(authServerConfigProperties.getRedirectUri())
                 .accessTokenValiditySeconds(60 * 10)
                 .refreshTokenValiditySeconds(60 * 10 * 6);
+    */
     }
 
     @Override
     public void configure(AuthorizationServerEndpointsConfigurer endpoints) throws Exception {
         endpoints.tokenStore(tokenStore)
+                .tokenEnhancer(tokenEnhancer)
                 .userDetailsService(accountService)
                 .authenticationManager(authenticationManager);
+//                .tokenEnhancer(tokenEnhancer); 토근 발급 api 리턴 타입을 구현한 TokenEnhancer 응답으로 사용
     }
 
 }
