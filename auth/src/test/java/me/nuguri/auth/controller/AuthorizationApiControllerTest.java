@@ -87,7 +87,11 @@ public class AuthorizationApiControllerTest extends BaseIntegrationTest {
     public void revokeAccessToken_No_AccessToken_401() throws Exception {
         mockMvc.perform(post("/oauth/revoke_token"))
                 .andDo(print())
-                .andExpect(status().isUnauthorized());
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("timeStamp").exists())
+                .andExpect(jsonPath("status").exists())
+                .andExpect(jsonPath("error").exists())
+                .andExpect(jsonPath("message").exists());
     }
 
     /**
@@ -99,7 +103,11 @@ public class AuthorizationApiControllerTest extends BaseIntegrationTest {
         mockMvc.perform(post("/oauth/revoke_token")
                 .header(HttpHeaders.AUTHORIZATION, "invalid_token_!(@*#&!"))
                 .andDo(print())
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("timeStamp").exists())
+                .andExpect(jsonPath("status").exists())
+                .andExpect(jsonPath("error").exists())
+                .andExpect(jsonPath("message").exists());
     }
 
     /**
@@ -149,7 +157,11 @@ public class AuthorizationApiControllerTest extends BaseIntegrationTest {
     public void getMe_No_AccessToken_401() throws Exception {
         mockMvc.perform(get("/oauth/me"))
                 .andExpect(status().isUnauthorized())
-                .andDo(print());
+                .andDo(print())
+                .andExpect(jsonPath("timeStamp").exists())
+                .andExpect(jsonPath("status").exists())
+                .andExpect(jsonPath("error").exists())
+                .andExpect(jsonPath("message").exists());
     }
 
     /**
@@ -161,7 +173,11 @@ public class AuthorizationApiControllerTest extends BaseIntegrationTest {
         mockMvc.perform(get("/oauth/me")
                 .header(HttpHeaders.AUTHORIZATION, "invalid_token_!(@*#&!"))
                 .andExpect(status().isBadRequest())
-                .andDo(print());
+                .andDo(print())
+                .andExpect(jsonPath("timeStamp").exists())
+                .andExpect(jsonPath("status").exists())
+                .andExpect(jsonPath("error").exists())
+                .andExpect(jsonPath("message").exists());
     }
 
 /*    @Test

@@ -8,6 +8,7 @@ import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Before;
 import org.aspectj.lang.reflect.MethodSignature;
+import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.springframework.web.context.request.RequestContextHolder;
@@ -23,7 +24,7 @@ public class AuthorizationBearerTokenAspect {
     @Around("execution(* *(.., @me.nuguri.auth.annotation.AuthorizationBearerToken (*), ..))")
     public Object getBearerToken(ProceedingJoinPoint joinPoint) throws Throwable {
         HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.currentRequestAttributes()).getRequest();
-        String authorization = request.getHeader("Authorization");
+        String authorization = request.getHeader(HttpHeaders.AUTHORIZATION);
         Object[] args = joinPoint.getArgs();
         if (!StringUtils.isEmpty(authorization)) {
             String token = authorization.replace("Bearer", "").trim();

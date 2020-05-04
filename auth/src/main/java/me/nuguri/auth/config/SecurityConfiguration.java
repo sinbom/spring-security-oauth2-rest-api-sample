@@ -31,10 +31,11 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
-        http.authorizeRequests().antMatchers(HttpMethod.GET, "/api/**").permitAll()
-                .antMatchers("/", "/main", "/oauth/revoke_token", "/oauth/me").permitAll()
+
+        http.authorizeRequests().antMatchers("/", "/main", "/oauth/revoke_token", "/oauth/me").permitAll()
                 .anyRequest().authenticated();
         http.formLogin();
+        http.logout().logoutSuccessUrl("/");
         http.httpBasic();
         http.csrf().disable();
     }

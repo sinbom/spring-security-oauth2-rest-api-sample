@@ -1,13 +1,23 @@
 <!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org" lang="en">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      lang="en">
 <head>
     <meta charset="UTF-8">
     <title>Authorization Server Main</title>
 </head>
 <body>
-    <h1>Welcome!! Authorization Server</h1>
-
-    <a href="/oauth/authorize?response_type=code&client_id=nuguri&redirect_uri=http://localhost:9600/main&scope=read">로그인(Authorization Code)</a>
-
+<h1>Welcome!! Authorization Server</h1>
+<div>
+    <h3>Service</h3>
+    <span sec:authorize="isAnonymous()"><a href="/login">login</a></span>
+    <span sec:authorize="isAuthenticated()"><a href="/logout">logout</a></span>
+</div>
+<div>
+    <h3>Document</h3>
+    <a href="/docs/index.html">API index</a><br>
+    <a href="/docs/auth.html">oauth2 API</a>
+</div>
 </body>
 </html>

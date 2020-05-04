@@ -3,6 +3,7 @@ package me.nuguri.auth.controller;
 import me.nuguri.auth.common.BaseIntegrationTest;
 import me.nuguri.auth.entity.Account;
 import me.nuguri.auth.enums.Role;
+import me.nuguri.auth.properties.AuthServerConfigProperties;
 import me.nuguri.auth.service.AccountService;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -13,6 +14,7 @@ import org.springframework.http.MediaType;
 
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.UUID;
 import java.util.stream.IntStream;
 
 import static org.springframework.restdocs.headers.HeaderDocumentation.*;
@@ -22,14 +24,18 @@ import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.docu
 import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.get;
 import static org.springframework.restdocs.payload.PayloadDocumentation.fieldWithPath;
 import static org.springframework.restdocs.payload.PayloadDocumentation.responseFields;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@Ignore
 public class AccountApiControllerTest extends BaseIntegrationTest {
 
     @Autowired
     private AccountService accountService;
+
+    @Autowired
+    private AuthServerConfigProperties authServerConfigProperties;
 
     /**
      * 유저 정보 성공적으로 얻는 경우, 관리자 권한 엑세스 토큰
@@ -39,10 +45,11 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
     public void queryUsers_V1_Success_200() throws Exception {
         generateUser30();
         mockMvc.perform(get("/api/v1/users")
-                .header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON)
+                .with(user(authServerConfigProperties.getAdminEmail()).password(authServerConfigProperties.getAdminPassword()))
+                .header(HttpHeaders.ACCEPT, MediaTypes.HAL_JSON)
                 .queryParam("page", "1")
                 .queryParam("size", "10")
-                .queryParam("sort", "id,desc"))
+                .queryParam("sort", "id,email,desc"))
                 .andExpect(status().isOk())
                 .andDo(print())
                 .andDo(document("queryUsers",
@@ -95,18 +102,19 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
     }
 
     /**
-     * 유저 정보 엑세스 토큰 없어서 못 얻는 경우
+     * 유저 정보 로그인 하지 않아서 실패하는 경우
      * @throws Exception
      */
     @Test
-    public void queryUsers_V1_No_AccessToken_401() throws Exception {
+    public void queryUsers_V1_No_Authentication_3XX() throws Exception {
         mockMvc.perform(get("/api/v1/users")
                 .header(HttpHeaders.ACCEPT, MediaTypes.HAL_JSON)
                 .queryParam("page", "1")
                 .queryParam("size", "10")
                 .queryParam("sort", "id,asc"))
                 .andDo(print())
-                .andExpect(status().isUnauthorized());
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("http://localhost:8080/login"));
     }
 
     /**
@@ -114,24 +122,25 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
      * @throws Exception
      */
     @Test
-    public void queryUsers_V1_Invalid_AccessToken_401() throws Exception {
+    public void queryUsers_V1_Invalid_Params_400() throws Exception {
         mockMvc.perform(get("/api/v1/users")
+                .with(user(authServerConfigProperties.getAdminEmail()).password(authServerConfigProperties.getAdminPassword()))
                 .header(HttpHeaders.ACCEPT, MediaTypes.HAL_JSON)
-                .queryParam("page", "1")
-                .queryParam("size", "10")
-                .queryParam("sort", "id,asc"))
+                .queryParam("page", "1-0")
+                .queryParam("size", "-12")
+                .queryParam("sort", "zxczxczxc,zxc"))
                 .andDo(print())
-                .andExpect(status().isUnauthorized());
+                .andExpect(status().isBadRequest());
     }
 
     /**
-     * 테스트 게정 30개 생성
+     * 테스트 계정 30개 생성
      */
     private void generateUser30() {
         IntStream.range(0, 30).forEach(n ->
                 accountService.generate(Account.builder()
-                        .email("testId" + n + "@test.com")
-                        .password("test" + n)
+                        .email(UUID.randomUUID().toString() + "@test.com")
+                        .password("test")
                         .roles(new HashSet<>(Arrays.asList(Role.USER)))
                         .build())
         );

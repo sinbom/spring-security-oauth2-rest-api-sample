@@ -2,11 +2,14 @@ package me.nuguri.auth.controller.api;
 
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
+import me.nuguri.auth.domain.ErrorResponse;
+import me.nuguri.auth.domain.Pagination;
 import me.nuguri.auth.entity.Account;
 import me.nuguri.auth.enums.Role;
 import me.nuguri.auth.service.AccountService;
+import me.nuguri.auth.validator.PaginationValidator;
 import org.modelmapper.ModelMapper;
-import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.Link;
@@ -16,6 +19,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.oauth2.provider.OAuth2Authentication;
 import org.springframework.util.StringUtils;
+import org.springframework.validation.Errors;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Set;
@@ -30,11 +34,17 @@ public class AccountApiController {
 
     private final AccountService accountService;
 
+    private final PaginationValidator paginationValidator;
+
     private final ModelMapper modelMapper;
 
     @GetMapping(value = "/api/v1/users", produces = MediaTypes.HAL_JSON_VALUE)
-    public ResponseEntity<?> queryUsers(PagedResourcesAssembler<Account> assembler, Pageable pageable) {
-        PagedModel<GetUsersResource> getUserResources = assembler.toModel(accountService.findAll(pageable),
+    public ResponseEntity<?> queryUsers(PagedResourcesAssembler<Account> assembler, Pagination pagination, Errors errors) {
+        paginationValidator.validate(pagination, Account.class, errors);
+        if (errors.hasErrors()) {
+            return ResponseEntity.badRequest().body(new ErrorResponse(HttpStatus.BAD_REQUEST, "invalid parameter value", errors));
+        }
+        PagedModel<GetUsersResource> getUserResources = assembler.toModel(accountService.findAll(pagination.getPageable()),
                 account -> new GetUsersResource(modelMapper.map(account, GetUserResponse.class)));
         getUserResources.add(linkTo(AccountApiController.class).slash("/docs/index.html").withRel("document"));
         return ResponseEntity.ok(getUserResources);

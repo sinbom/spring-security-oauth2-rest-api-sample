@@ -3,9 +3,11 @@ package me.nuguri.auth.controller.api;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import me.nuguri.auth.annotation.AuthorizationBearerToken;
+import me.nuguri.auth.domain.ErrorResponse;
 import me.nuguri.auth.enums.Role;
 import me.nuguri.auth.service.AccountService;
 import org.modelmapper.ModelMapper;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -36,11 +38,11 @@ public class AuthorizationApiController {
     @PostMapping(value = "/oauth/revoke_token", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> revokeToken(@AuthorizationBearerToken String token) {
         if (StringUtils.isEmpty(token)) {
-            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ErrorResponse(HttpStatus.UNAUTHORIZED, "no bearer token in authorization header"));
         }
         OAuth2AccessToken oAuth2AccessToken = tokenStore.readAccessToken(token);
         if (oAuth2AccessToken == null) {
-            return ResponseEntity.badRequest().build();
+            return ResponseEntity.badRequest().body(new ErrorResponse(HttpStatus.BAD_REQUEST, "invalid token"));
         }
         tokenStore.removeAccessToken(oAuth2AccessToken);
         return ResponseEntity.ok(oAuth2AccessToken);
@@ -54,11 +56,11 @@ public class AuthorizationApiController {
     @GetMapping(value = "/oauth/me", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> getMe(@AuthorizationBearerToken String token) {
         if (StringUtils.isEmpty(token)) {
-            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ErrorResponse(HttpStatus.UNAUTHORIZED, "no bearer token in authorization header"));
         }
         OAuth2AccessToken oAuth2AccessToken = tokenStore.readAccessToken(token);
         if (oAuth2AccessToken == null) {
-            return ResponseEntity.badRequest().build();
+            return ResponseEntity.badRequest().body(new ErrorResponse(HttpStatus.BAD_REQUEST, "invalid token"));
         }
         return ResponseEntity.ok(modelMapper.map(accountService.find((Long) oAuth2AccessToken.getAdditionalInformation().get("id")), GetMeResponse.class));
     }
