@@ -7,7 +7,6 @@ import me.nuguri.auth.domain.ErrorResponse;
 import me.nuguri.auth.enums.Role;
 import me.nuguri.auth.service.AccountService;
 import org.modelmapper.ModelMapper;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -49,7 +48,7 @@ public class AuthorizationApiController {
     }
 
     /**
-     * Authorization Header 통해 전달 받은 Bearer 토큰으로 계정 정보를 조회
+     * Authorization Header 통해 전달 받은 Bearer 토큰으로 토큰을 발급 받은 계정 정보 조회
      * @param token
      * @return
      */

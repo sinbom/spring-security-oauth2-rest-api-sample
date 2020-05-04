@@ -3,6 +3,7 @@ package me.nuguri.auth.config;
 import lombok.RequiredArgsConstructor;
 import me.nuguri.auth.domain.AccountAdapter;
 import me.nuguri.auth.enums.GrantType;
+import org.codehaus.jackson.map.ObjectMapper;
 import org.modelmapper.ModelMapper;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -35,6 +36,9 @@ public class ApplicationConfiguration {
     }
 
     @Bean
+    public ObjectMapper objectMapper() { return new ObjectMapper(); }
+
+    @Bean
     public PasswordEncoder passwordEncoder() {
         return PasswordEncoderFactories.createDelegatingPasswordEncoder();
     }
@@ -45,18 +49,13 @@ public class ApplicationConfiguration {
     }
 
     @Bean
-    public ApprovalStore approvalStore() {
-        return new JdbcApprovalStore(dataSource);
-    }
-
-    @Bean
     public TokenEnhancer tokenEnhancer() {
         return (oAuth2AccessToken, oAuth2Authentication) -> {
             String grantType = oAuth2Authentication.getOAuth2Request().getGrantType();
             if (!grantType.equals(GrantType.CLIENT_CREDENTIALS.toString())) {
                 AccountAdapter account = (AccountAdapter) oAuth2Authentication.getPrincipal();
                 Map<String, Object> info = new HashMap<>();
-                info.put("id", account.getId());
+                info.put("id", account.getAccount().getId());
                 ((DefaultOAuth2AccessToken) oAuth2AccessToken).setAdditionalInformation(info);
             }
             return oAuth2AccessToken;

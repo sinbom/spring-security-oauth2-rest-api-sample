@@ -31,8 +31,6 @@ public class AuthorizationServerConfiguration extends AuthorizationServerConfigu
 
     private final TokenEnhancer tokenEnhancer;
 
-    private final ApprovalStore approvalStore;
-
     private final AuthenticationManager authenticationManager;
 
     private final AccountService accountService;

@@ -1,17 +1,15 @@
 package me.nuguri.auth.domain;
 
 import lombok.Data;
-import org.apache.coyote.ErrorState;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.Errors;
 
 import java.time.LocalDateTime;
-import java.util.stream.Stream;
 
 @Data
 public class ErrorResponse {
 
-    private LocalDateTime timeStamp = LocalDateTime.now();
+    private LocalDateTime timestamp = LocalDateTime.now();
 
     private int status;
 

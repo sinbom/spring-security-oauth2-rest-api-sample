@@ -4,6 +4,7 @@ import lombok.*;
 import me.nuguri.auth.enums.Role;
 
 import javax.persistence.*;
+import java.io.Serializable;
 import java.util.Set;
 
 @Entity
@@ -13,7 +14,7 @@ import java.util.Set;
 @Setter
 @EqualsAndHashCode(of ="id")
 @Builder
-public class Account {
+public class Account implements Serializable {
 
     /** PK */
     @Id

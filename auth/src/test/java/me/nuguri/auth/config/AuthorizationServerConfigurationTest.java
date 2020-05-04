@@ -2,7 +2,6 @@ package me.nuguri.auth.config;
 
 import me.nuguri.auth.common.BaseIntegrationTest;
 import me.nuguri.auth.enums.GrantType;
-import me.nuguri.auth.properties.AuthServerConfigProperties;
 import me.nuguri.auth.repository.AccessTokenRepository;
 import org.junit.After;
 import org.junit.Test;
@@ -10,10 +9,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.json.JacksonJsonParser;
 import org.springframework.http.HttpHeaders;
 import org.springframework.mock.web.MockHttpSession;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.web.servlet.ResultActions;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -33,12 +28,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 public class AuthorizationServerConfigurationTest  extends BaseIntegrationTest {
 
     @Autowired
-    private AuthServerConfigProperties authServerConfigProperties;
-
-    @Autowired
-    private AuthenticationManager authenticationManager;
-
-    @Autowired
     private AccessTokenRepository accessTokenRepository;
 
     /**
@@ -55,7 +44,7 @@ public class AuthorizationServerConfigurationTest  extends BaseIntegrationTest {
      */
     @Test
     public void checkAccessToken_Success_200() throws Exception {
-        String access_token = (String) new JacksonJsonParser().parseMap(getAccessTokenPasswordGrantTypeResponse(authServerConfigProperties.getAdminEmail(), authServerConfigProperties.getAdminPassword())
+        String access_token = (String) new JacksonJsonParser().parseMap(getAccessTokenPasswordGrantTypeResponse(properties.getAdminEmail(), properties.getAdminPassword())
                 .andReturn()
                 .getResponse()
                 .getContentAsString()).get("access_token");
@@ -104,7 +93,7 @@ public class AuthorizationServerConfigurationTest  extends BaseIntegrationTest {
      */
     @Test
     public void checkAccessToken_Invalid_AccessToken_400() throws Exception {
-        String access_token = (String) new JacksonJsonParser().parseMap(getAccessTokenPasswordGrantTypeResponse(authServerConfigProperties.getAdminEmail(), authServerConfigProperties.getAdminPassword())
+        String access_token = (String) new JacksonJsonParser().parseMap(getAccessTokenPasswordGrantTypeResponse(properties.getAdminEmail(), properties.getAdminPassword())
                 .andReturn()
                 .getResponse()
                 .getContentAsString()).get("access_token");
@@ -123,31 +112,30 @@ public class AuthorizationServerConfigurationTest  extends BaseIntegrationTest {
      */
     @Test
     public void getAccessToken_GrantType_Authorization_Code_Success_200() throws Exception {
-        Authentication authentication = new UsernamePasswordAuthenticationToken(authServerConfigProperties.getAdminEmail(), authServerConfigProperties.getAdminPassword());
-        SecurityContextHolder.getContext().setAuthentication(authenticationManager.authenticate(authentication));
+        setUserAuthentication();
 
         MockHttpSession session = (MockHttpSession) mockMvc.perform(get("/oauth/authorize")
                 .session(new MockHttpSession())
                 .param("response_type", "code")
-                .param("client_id", authServerConfigProperties.getClientId())
-                .param("redirect_uri", authServerConfigProperties.getRedirectUri())
+                .param("client_id", properties.getClientId())
+                .param("redirect_uri", properties.getRedirectUri())
                 .param("scope", "read")).andDo(print()).andReturn().getRequest().getSession();
 
         String redirectedUri = mockMvc.perform(post("/oauth/authorize")
                 .session(session)
                 .param("response_type", "code")
-                .param("client_id", authServerConfigProperties.getClientId())
-                .param("redirect_uri", authServerConfigProperties.getRedirectUri())
+                .param("client_id", properties.getClientId())
+                .param("redirect_uri", properties.getRedirectUri())
                 .param("scope", "read")
                 .param("scope.read", "true")
                 .param("user_oauth_approval", "true"))
                 .andDo(print()).andReturn().getResponse().getRedirectedUrl();
 
         mockMvc.perform(post("/oauth/token")
-                .with(httpBasic(authServerConfigProperties.getClientId(), authServerConfigProperties.getClientSecret()))
+                .with(httpBasic(properties.getClientId(), properties.getClientSecret()))
                 .param("code", redirectedUri.substring(redirectedUri.lastIndexOf("=") + 1))
                 .param("grant_type", GrantType.AUTHORIZATION_CODE.toString())
-                .param("redirect_uri", authServerConfigProperties.getRedirectUri()))
+                .param("redirect_uri", properties.getRedirectUri()))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("access_token").exists())
@@ -164,21 +152,20 @@ public class AuthorizationServerConfigurationTest  extends BaseIntegrationTest {
      */
     @Test
     public void getAccessToken_GrantType_Implicit_Success_200() throws Exception {
-        Authentication authentication = new UsernamePasswordAuthenticationToken(authServerConfigProperties.getAdminEmail(), authServerConfigProperties.getAdminPassword());
-        SecurityContextHolder.getContext().setAuthentication(authenticationManager.authenticate(authentication));
+        setUserAuthentication();
 
         MockHttpSession session = (MockHttpSession) mockMvc.perform(get("/oauth/authorize")
                 .session(new MockHttpSession())
                 .param("response_type", "token")
-                .param("client_id", authServerConfigProperties.getClientId())
-                .param("redirect_uri", authServerConfigProperties.getRedirectUri())
+                .param("client_id", properties.getClientId())
+                .param("redirect_uri", properties.getRedirectUri())
                 .param("scope", "read")).andDo(print()).andReturn().getRequest().getSession();
 
         String redirectedUri = mockMvc.perform(post("/oauth/authorize")
                 .session(session)
                 .param("response_type", "token")
-                .param("client_id", authServerConfigProperties.getClientId())
-                .param("redirect_uri", authServerConfigProperties.getRedirectUri())
+                .param("client_id", properties.getClientId())
+                .param("redirect_uri", properties.getRedirectUri())
                 .param("scope", "read")
                 .param("scope.read", "true")
                 .param("user_oauth_approval", "true"))
@@ -199,7 +186,7 @@ public class AuthorizationServerConfigurationTest  extends BaseIntegrationTest {
      */
     @Test
     public void getAccessToken_GrantType_Password_Success_200() throws Exception {
-        getAccessTokenPasswordGrantTypeResponse(authServerConfigProperties.getAdminEmail(), authServerConfigProperties.getAdminPassword())
+        getAccessTokenPasswordGrantTypeResponse(properties.getAdminEmail(), properties.getAdminPassword())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("access_token").exists())
                 .andExpect(jsonPath("token_type").exists())
@@ -245,8 +232,8 @@ public class AuthorizationServerConfigurationTest  extends BaseIntegrationTest {
     @Test
     public void getAccessToken_GrantType_Password_No_HttpBasic_401() throws Exception {
         mockMvc.perform(post("/oauth/token")
-                .param("username", authServerConfigProperties.getAdminEmail())
-                .param("password", authServerConfigProperties.getAdminPassword())
+                .param("username", properties.getAdminEmail())
+                .param("password", properties.getAdminPassword())
                 .param("grant_type", GrantType.PASSWORD.toString()))
                 .andDo(print())
                 .andExpect(status().isUnauthorized())
@@ -272,7 +259,7 @@ public class AuthorizationServerConfigurationTest  extends BaseIntegrationTest {
     @Test
     public void getAccessToken_GrantType_RefreshToken_Success_200() throws Exception {
         String refresh_token = (String) new JacksonJsonParser()
-                .parseMap(getAccessTokenPasswordGrantTypeResponse(authServerConfigProperties.getAdminEmail(), authServerConfigProperties.getAdminPassword())
+                .parseMap(getAccessTokenPasswordGrantTypeResponse(properties.getAdminEmail(), properties.getAdminPassword())
                         .andReturn()
                         .getResponse()
                         .getContentAsString())
@@ -323,7 +310,7 @@ public class AuthorizationServerConfigurationTest  extends BaseIntegrationTest {
     @Test
     public void getAccessToken_GrantType_RefreshToken_No_HttpBasic_401() throws Exception {
         String refresh_token = (String) new JacksonJsonParser()
-                .parseMap(getAccessTokenPasswordGrantTypeResponse(authServerConfigProperties.getAdminEmail(), authServerConfigProperties.getAdminPassword())
+                .parseMap(getAccessTokenPasswordGrantTypeResponse(properties.getAdminEmail(), properties.getAdminPassword())
                         .andReturn()
                         .getResponse()
                         .getContentAsString())
@@ -355,7 +342,7 @@ public class AuthorizationServerConfigurationTest  extends BaseIntegrationTest {
      */
     @Test
     public void getAccessToken_GrantType_ClientCredentials_Success_200() throws Exception {
-        getAccessTokenClientCredentialsGrantTypeResponse(authServerConfigProperties.getClientId(), authServerConfigProperties.getClientSecret())
+        getAccessTokenClientCredentialsGrantTypeResponse(properties.getClientId(), properties.getClientSecret())
                 .andExpect(status().isOk())
                 .andDo(print())
                 .andDo(document("get-access_token-client_credentials-grantType",
@@ -430,7 +417,7 @@ public class AuthorizationServerConfigurationTest  extends BaseIntegrationTest {
      */
     private ResultActions getAccessTokenRefreshTokenGrantTypeResponse(String refresh_token) throws Exception {
         return mockMvc.perform(post("/oauth/token")
-                .with(httpBasic(authServerConfigProperties.getClientId(), authServerConfigProperties.getClientSecret()))
+                .with(httpBasic(properties.getClientId(), properties.getClientSecret()))
                 .param("refresh_token", refresh_token)
                 .param("grant_type", GrantType.REFRESH_TOKEN.toString()));
     }
@@ -444,7 +431,7 @@ public class AuthorizationServerConfigurationTest  extends BaseIntegrationTest {
      */
     private ResultActions getAccessTokenPasswordGrantTypeResponse(String email, String password) throws Exception {
         return mockMvc.perform(post("/oauth/token")
-                .with(httpBasic(authServerConfigProperties.getClientId(), authServerConfigProperties.getClientSecret()))
+                .with(httpBasic(properties.getClientId(), properties.getClientSecret()))
                 .param("username", email)
                 .param("password", password)
                 .param("grant_type", GrantType.PASSWORD.toString()));

@@ -31,8 +31,8 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
-
-        http.authorizeRequests().antMatchers("/", "/main", "/oauth/revoke_token", "/oauth/me").permitAll()
+        http.authorizeRequests().antMatchers(HttpMethod.GET, "/", "/main", "/oauth/me").permitAll()
+                .antMatchers(HttpMethod.POST, "/api/v1/login", "/oauth/revoke_token").permitAll()
                 .anyRequest().authenticated();
         http.formLogin();
         http.logout().logoutSuccessUrl("/");

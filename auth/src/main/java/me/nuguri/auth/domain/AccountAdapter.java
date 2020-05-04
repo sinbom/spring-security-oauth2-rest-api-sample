@@ -12,14 +12,14 @@ import java.util.stream.Collectors;
 @Setter
 public class AccountAdapter extends User {
 
-    private Long id;
+    private Account account;
 
     public AccountAdapter(Account account) {
         super(account.getEmail(), account.getPassword(), account.getRoles()
                 .stream()
                 .map(role -> new SimpleGrantedAuthority("ROLE_" + role.name()))
                 .collect(Collectors.toSet()));
-        this.id = account.getId();
+        this.account = account;
     }
 
 }

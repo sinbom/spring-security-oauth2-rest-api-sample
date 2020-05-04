@@ -11,6 +11,8 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
+import java.util.Optional;
+
 @Service
 @RequiredArgsConstructor
 public class AccountService implements UserDetailsService {
@@ -26,12 +28,12 @@ public class AccountService implements UserDetailsService {
         return accountRepository.findAll(pageable);
     }
 
-    public Account find(Long id) {
-        return accountRepository.findById(id).orElseThrow(RuntimeException::new);
+    public Optional<Account> find(Long id) {
+        return accountRepository.findById(id);
     }
 
-    public Account find(String email) {
-        return accountRepository.findByEmail(email).orElseThrow(RuntimeException::new);
+    public Optional<Account> find(String email) {
+        return accountRepository.findByEmail(email);
     }
 
     public Account generate(Account account) {
