@@ -8,14 +8,13 @@ import me.nuguri.auth.service.AccountService;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.json.JacksonJsonParser;
 import org.springframework.hateoas.MediaTypes;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -23,8 +22,7 @@ import static org.springframework.restdocs.headers.HeaderDocumentation.*;
 import static org.springframework.restdocs.hypermedia.HypermediaDocumentation.linkWithRel;
 import static org.springframework.restdocs.hypermedia.HypermediaDocumentation.links;
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
-import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.get;
-import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.post;
+import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.*;
 import static org.springframework.restdocs.payload.PayloadDocumentation.fieldWithPath;
 import static org.springframework.restdocs.payload.PayloadDocumentation.responseFields;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
@@ -38,6 +36,9 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
 
     @Autowired
     private ObjectMapper objectMapper;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     /**
      * 유저 로그인 API 방식 리턴 JSON 타입, 성공적으로 로그인 하는 경우
@@ -100,7 +101,7 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
                 .queryParam("sort", "id,email,desc"))
                 .andExpect(status().isOk())
                 .andDo(print())
-                .andDo(document("queryUsers",
+                .andDo(document("query-users",
                         links(
                                 linkWithRel("first").description("first page link"),
                                 linkWithRel("prev").description("prev page link"),
@@ -209,13 +210,13 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
                 .header(HttpHeaders.ACCEPT, MediaTypes.HAL_JSON))
                 .andDo(print())
                 .andExpect(status().isOk())
-                .andDo(document("getUser",
+                .andDo(document("get-user",
                         links(
                                 linkWithRel("self").description("self link"),
                                 linkWithRel("document").description("document"),
-                                linkWithRel("updateUser").description("next page link"),
-                                linkWithRel("mergeUser").description("last page link"),
-                                linkWithRel("deleteUser").description("last page link")
+                                linkWithRel("updateUser").description("update user link"),
+                                linkWithRel("mergeUser").description("merge user link"),
+                                linkWithRel("deleteUser").description("delete user link")
                         ),
                         requestHeaders(
                                 headerWithName(HttpHeaders.ACCEPT).description("Accept Header")
@@ -331,9 +332,140 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
                 .andExpect(status().isNotFound());
     }
 
+    /**
+     * 유저 정보 생성 성공적인 경우
+     * @throws Exception
+     */
     @Test
-    public void generateUser_V1_Success_200() throws Exception {
+    public void generateUser_V1_Success_201() throws Exception {
+        mockMvc.perform(post("/api/v1/user")
+                .with(user(properties.getAdminEmail()).password(properties.getAdminPassword()))
+                .header(HttpHeaders.ACCEPT, MediaTypes.HAL_JSON)
+                .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(Account.builder()
+                        .email("test200@naver.com")
+                        .password("123123")
+                        .roles(new HashSet<>(Arrays.asList(Role.USER)))
+                        .build())))
+                .andDo(print())
+                .andExpect(status().isCreated())
+                .andDo(document("generate-user",
+                        links(
+                                linkWithRel("self").description("self link"),
+                                linkWithRel("document").description("document"),
+                                linkWithRel("getUser").description("get user link"),
+                                linkWithRel("updateUser").description("update user link"),
+                                linkWithRel("mergeUser").description("merge user link"),
+                                linkWithRel("deleteUser").description("delete user link")
+                        ),
+                        requestHeaders(
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("Content Type"),
+                                headerWithName(HttpHeaders.ACCEPT).description("Accept Header")
+                        ),
+                        responseHeaders(
+                                headerWithName(HttpHeaders.LOCATION).description("created resource link"),
+                                headerWithName(HttpHeaders.CACHE_CONTROL).description("cache control"),
+                                headerWithName(HttpHeaders.PRAGMA).description("pragma"),
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type"),
+                                headerWithName("X-Content-Type-Options").description("X-Content-Type-Options"),
+                                headerWithName("X-XSS-Protection").description("X-XSS-Protection"),
+                                headerWithName("X-Frame-Options").description("X-Frame-Options")
+                        ),
+                        responseFields(
+                                fieldWithPath("_links.self.href").description("self link"),
+                                fieldWithPath("_links.document.href").description("document"),
+                                fieldWithPath("_links.getUser.href").description("get user link"),
+                                fieldWithPath("_links.updateUser.href").description("update user link"),
+                                fieldWithPath("_links.mergeUser.href").description("merge user link"),
+                                fieldWithPath("_links.deleteUser.href").description("delete user link"),
+                                fieldWithPath("_links.self.type").description("self link http method type"),
+                                fieldWithPath("_links.getUser.type").description("get user link  http method type"),
+                                fieldWithPath("_links.updateUser.type").description("update user link  http method type"),
+                                fieldWithPath("_links.mergeUser.type").description("merge user link  http method type"),
+                                fieldWithPath("_links.deleteUser.type").description("delete user link  http method type"),
+                                fieldWithPath("id").description("account id"),
+                                fieldWithPath("email").description("account email"),
+                                fieldWithPath("roles").description("account roles")
+                        )
+                )
+        );
+    }
 
+    /**
+     * 유저 정보 생성 잘못된 입력 정보로 실패하는 경우
+     * @throws Exception
+     */
+    @Test
+    public void generateUser_V1_Invalid_400() throws Exception {
+        mockMvc.perform(post("/api/v1/user")
+                .with(user(properties.getAdminEmail()).password(properties.getAdminPassword()))
+                .header(HttpHeaders.ACCEPT, MediaTypes.HAL_JSON)
+                .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(Account.builder()
+                        .email("isNotEmailType")
+                        .build())))
+                .andDo(print())
+                .andExpect(jsonPath("timestamp").exists())
+                .andExpect(jsonPath("status").exists())
+                .andExpect(jsonPath("error").exists())
+                .andExpect(jsonPath("message").exists())
+                .andExpect(status().isBadRequest());
+    }
+
+    /**
+     * 유저 정보 생성 이미 존재하는 입력 정보로 실패하는 경우
+     * @throws Exception
+     */
+    @Test
+    public void generateUser_V1_Already_Exist_400() throws Exception {
+        String email = "already@test.com";
+
+        accountService.generate(Account.builder()
+                .email(email)
+                .password("1243")
+                .roles(new HashSet<>(Arrays.asList(Role.USER)))
+                .build());
+
+        mockMvc.perform(post("/api/v1/user")
+                .with(user(properties.getAdminEmail()).password(properties.getAdminPassword()))
+                .header(HttpHeaders.ACCEPT, MediaTypes.HAL_JSON)
+                .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(Account.builder()
+                        .email(email)
+                        .password("54368")
+                        .roles(new HashSet<>(Arrays.asList(Role.USER)))
+                        .build())))
+                .andDo(print())
+                .andExpect(jsonPath("timestamp").exists())
+                .andExpect(jsonPath("status").exists())
+                .andExpect(jsonPath("error").exists())
+                .andExpect(jsonPath("message").exists())
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    public void updateUser_V1_Success_200() throws Exception {
+        setAdminAuthentication();
+
+        Account account = accountService.find(properties.getUserEmail()).get();
+        String password = "123123";
+        Set<Role> roles = new HashSet<>(Arrays.asList(Role.ADMIN));
+        Account update = Account.builder()
+                .password(password)
+                .roles(roles)
+                .build();
+
+        mockMvc.perform(patch("/api/v1/user/{id}", account.getId())
+                .content(objectMapper.writeValueAsString(update))
+                .header(HttpHeaders.ACCEPT, MediaTypes.HAL_JSON)
+                .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("roles").value(Role.ADMIN.toString()));
+
+        Account updated = accountService.find(properties.getUserEmail()).get();
+        assertThat(passwordEncoder.matches(password, updated.getPassword())).isTrue();
+        assertThat(roles).isEqualTo(updated.getRoles());
     }
 
     /**

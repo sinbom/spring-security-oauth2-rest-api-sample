@@ -22,10 +22,11 @@ public class Account implements Serializable {
     private Long id;
 
     /** 이메일 */
-    @Column(unique = true)
+    @Column(unique = true, nullable = false, updatable = false)
     private String email;
 
     /** 비밀번호 */
+    @Column(nullable = false)
     private String password;
 
     /** 권한 */
