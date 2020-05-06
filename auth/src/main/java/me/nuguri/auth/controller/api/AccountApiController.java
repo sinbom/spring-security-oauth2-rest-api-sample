@@ -91,14 +91,12 @@ public class AccountApiController {
      */
     @GetMapping(value = "/api/v1/user/{id}", produces = MediaTypes.HAL_JSON_VALUE)
     public ResponseEntity<?> getUser(@PathVariable Long id, @AuthenticationUser Account loginAccount) {
-        Account account;
-        try {
-            account = accountService.find(id);
-        } catch (UserNotExistException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponse(HttpStatus.NOT_FOUND, "not exist account of id"));
-        }
         if (hasAuthority(loginAccount, id)) {
-            return ResponseEntity.ok(new GetUserResource(modelMapper.map(account, GetUserResponse.class)));
+            try {
+                return ResponseEntity.ok(new GetUserResource(modelMapper.map(accountService.find(id), GetUserResponse.class)));
+            } catch (UserNotExistException e) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponse(HttpStatus.NOT_FOUND, "not exist account of id"));
+            }
         }
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new ErrorResponse(HttpStatus.FORBIDDEN, "have no authority"));
     }
@@ -134,7 +132,7 @@ public class AccountApiController {
      * @return
      */
     @PatchMapping(value = "/api/v1/user/{id}")
-    public ResponseEntity<?> updateUser(@PathVariable Long id, @RequestBody @Valid UpdateUserRequest request, Errors errors, @AuthenticationUser Account loginAccount) {
+    public ResponseEntity<?> updateUser(@PathVariable Long id, @RequestBody UpdateUserRequest request, Errors errors, @AuthenticationUser Account loginAccount) {
         Account account = modelMapper.map(request, Account.class);
         account.setId(id);
         accountValidator.validate(account, errors);
@@ -151,6 +149,14 @@ public class AccountApiController {
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new ErrorResponse(HttpStatus.FORBIDDEN, "have no authority"));
     }
 
+    /**
+     * 유저 정보 전체 값 변경, 없는 유저의 경우 생성
+     * @param id 식별키
+     * @param request password 비밀번호, roles 권한
+     * @param errors 에러
+     * @param loginAccount 현재 로그인 된 계정(세션)
+     * @return
+     */
     @PutMapping(value = "/api/v1/user/{id}")
     public ResponseEntity<?> mergeUser(@PathVariable Long id, @RequestBody @Valid UpdateUserRequest request, Errors errors, @AuthenticationUser Account loginAccount) {
         Account account = modelMapper.map(request, Account.class);
@@ -161,16 +167,20 @@ public class AccountApiController {
         }
         if (hasAuthority(loginAccount, id)) {
             try {
-                accountService.find(id);
-                return ResponseEntity.ok(new MergeUserResource(modelMapper.map(accountService.generate(account), GetUserResponse.class)));
+                return ResponseEntity.ok(new MergeUserResource(modelMapper.map(accountService.merge(account), GetUserResponse.class)));
             } catch (UserNotExistException e) {
-                return ResponseEntity.created(linkTo(methodOn(AccountApiController.class).mergeUser(id, null, null, null)).toUri())
-                        .body(modelMapper.map(accountService.generate(account), GetUserResponse.class));
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponse(HttpStatus.NOT_FOUND, "not exist account of id"));
             }
         }
         return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
     }
 
+    /**
+     * 유저 정보 삭제
+     * @param id 식별키
+     * @param loginAccount 현재 로그인 된 계정(세션)
+     * @return
+     */
     @DeleteMapping(value = "/api/v1/user/{id}")
     public ResponseEntity<?> deleteUser(@PathVariable Long id, @AuthenticationUser Account loginAccount) {
         if (hasAuthority(loginAccount, id)) {
@@ -185,6 +195,13 @@ public class AccountApiController {
 
     // ==========================================================================================================================================
     // Common Method
+
+    /**
+     * 현재 로그인된 계정의 식별키와 CRUD 하고자 하는 식별키가 동일하거나 로그인 계정이 관리자 권한인지 확인
+     * @param loginAccount 현재 로그인 된 계정(세션)
+     * @param id 식별키
+     * @return
+     */
     private boolean hasAuthority(Account loginAccount, Long id) {
         return loginAccount.getId().equals(id) || loginAccount.getRoles().stream().anyMatch(r -> r.equals(Role.ADMIN));
     }
@@ -212,7 +229,9 @@ public class AccountApiController {
 
     @Data
     public static class UpdateUserRequest {
+        @NotBlank
         private String password;
+        @NotEmpty
         private Set<Role> roles;
     }
 
@@ -298,6 +317,11 @@ public class AccountApiController {
     // Validator
     @Component
     public static class AccountValidator {
+        /**
+         * Account 도메인 condition 값 중 이메일, 비밀번호 검증
+         * @param request email 이메일, password 비밀번호
+         * @param errors 에러
+         */
         public void validate(Account request, Errors errors) {
             String email = request.getEmail();
             String password = request.getPassword();

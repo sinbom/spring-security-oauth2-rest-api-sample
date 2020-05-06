@@ -7,6 +7,9 @@ import javax.persistence.*;
 import java.io.Serializable;
 import java.util.Set;
 
+/**
+ * 계정 엔티티
+ */
 @Entity
 @NoArgsConstructor
 @AllArgsConstructor

@@ -1,5 +1,8 @@
 package me.nuguri.auth.enums;
 
+/**
+ * 접근 범위
+ */
 public enum Scope {
 
     READ, WRITE;

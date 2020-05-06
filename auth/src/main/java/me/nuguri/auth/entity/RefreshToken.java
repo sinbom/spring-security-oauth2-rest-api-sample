@@ -7,6 +7,9 @@ import javax.persistence.Id;
 import javax.persistence.Lob;
 import javax.persistence.Table;
 
+/**
+ * 재발급 토큰 엔티티
+ */
 @Entity
 @Table(name = "oauth_refresh_token")
 @NoArgsConstructor

@@ -10,6 +10,13 @@ import java.util.stream.Stream;
 @Component
 public class PaginationValidator {
 
+    /**
+     * Pagination 도메인 condition 값 중 페이지, 페이지 사이즈, 정렬 방식 검증
+     * @param pagination page 페이지 번호, size 페이지 사이즈, sort 정렬 방식
+     * @param entityType 페이징 객체 엔티티 타입 클래스
+     * @param errors 에러
+     * @param <T> 페이징 객체 엔티티 타입
+     */
     public <T> void validate(Pagination pagination, Class<T> entityType, Errors errors) {
         if (!pagination.getPage().matches("^[1-9][0-9]*$")) {
             errors.rejectValue("page", "wrongValue", "page is wrong");

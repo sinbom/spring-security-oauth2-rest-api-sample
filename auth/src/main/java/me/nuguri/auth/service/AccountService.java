@@ -5,6 +5,7 @@ import me.nuguri.auth.domain.AccountAdapter;
 import me.nuguri.auth.entity.Account;
 import me.nuguri.auth.exception.UserNotExistException;
 import me.nuguri.auth.repository.AccountRepository;
+import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -38,6 +39,8 @@ public class AccountService implements UserDetailsService {
     private final HttpSession httpSession;
 
     private final PasswordEncoder passwordEncoder;
+
+    private final ModelMapper modelMapper;
 
     @Override
     @Transactional(readOnly = true)
@@ -74,6 +77,7 @@ public class AccountService implements UserDetailsService {
     }
 
     public Account generate(Account account) {
+        account.setPassword(passwordEncoder.encode(account.getPassword()));
         return accountRepository.save(account);
     }
 
@@ -86,6 +90,13 @@ public class AccountService implements UserDetailsService {
             update.setRoles(account.getRoles());
         }
         return update;
+    }
+
+    public Account merge(Account account) {
+        Account merge = accountRepository.findById(account.getId()).orElseThrow(UserNotExistException::new);
+        account.setPassword(passwordEncoder.encode(account.getPassword()));
+        modelMapper.map(account, merge);
+        return merge;
     }
 
     public Account delete(Long id) {

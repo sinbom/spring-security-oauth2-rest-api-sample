@@ -2,10 +2,7 @@ package me.nuguri.auth.config;
 
 import me.nuguri.auth.common.BaseIntegrationTest;
 import me.nuguri.auth.enums.GrantType;
-import me.nuguri.auth.repository.AccessTokenRepository;
-import org.junit.After;
 import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.json.JacksonJsonParser;
 import org.springframework.http.HttpHeaders;
 import org.springframework.mock.web.MockHttpSession;
@@ -26,17 +23,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 public class AuthorizationServerConfigurationTest  extends BaseIntegrationTest {
-
-    @Autowired
-    private AccessTokenRepository accessTokenRepository;
-
-    /**
-     * 엑세스 토큰 스토어 초기화
-     */
-    @After
-    public void clearTokenStore() {
-        accessTokenRepository.deleteAllInBatch();
-    }
 
     /**
      * 인증 서버 엑세스 토큰 유효한 경우

@@ -1,10 +1,7 @@
 package me.nuguri.auth.controller;
 
 import me.nuguri.auth.common.BaseIntegrationTest;
-import me.nuguri.auth.entity.Client;
 import me.nuguri.auth.enums.GrantType;
-import me.nuguri.auth.enums.Role;
-import me.nuguri.auth.enums.Scope;
 import me.nuguri.auth.properties.AuthServerConfigProperties;
 import me.nuguri.auth.repository.ClientRepository;
 import org.junit.Test;

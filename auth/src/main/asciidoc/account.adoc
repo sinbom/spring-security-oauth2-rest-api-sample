@@ -1,0 +1,67 @@
+= API Guide
+api;
+:doctype: book
+:icons: font
+:source-highlighter: highlightjs
+:toc: left
+:toclevels: 4
+:sectlinks:
+:operation-curl-request-title: Example request
+:operation-http-response-title: Example response
+
+[[resources]]
+= 리소스
+
+[[resources-index]]
+== 인덱스
+
+account API는 계정 관련 CRUD 서비스를 제공한다.
+
+[[login-api]]
+=== 로그인 세션 아이디 발급 - API 방식
+
+`POST` 요청을 사용하여 세션 아이디를 발급받을 수 있다.
+
+operation::login-api[snippets='curl-request,http-request,request-headers,request-body,http-response,response-headers,response-fields']
+
+[[query-users]]
+=== 계정 리스트 페이징 조회
+
+`GET` 요청을 사용하여 계정 리스트를 페이징 조회할 수 있다.
+
+operation::query-users[snippets='curl-request,http-request,request-headers,http-response,response-headers,response-fields',links]
+
+[[get-user]]
+=== 계정 조회
+
+`GET` 요청을 사용하여 계정을 조회할 수 있다.
+
+operation::get-user[snippets='curl-request,http-request,request-headers,path-parameters,http-response,response-headers,response-fields',links]
+
+[[generate-user]]
+=== 계정 생성
+
+`POST` 요청을 사용하여 계정을 생성할 수 있다.
+
+operation::generate-user[snippets='curl-request,http-request,request-headers,request-body,http-response,response-headers,response-fields',links]
+
+[[update-user]]
+=== 계정 수정 - 부분 수정
+
+`PATCH` 요청을 사용하여 계정 정보를 부분 수정할 수 있다.
+
+operation::update-user[snippets='curl-request,http-request,request-headers,path-parameters,request-body,http-response,response-headers,response-fields',links]
+
+[[merge-user]]
+=== 계정 수정 - 전체 수정
+
+`PUT` 요청을 사용하여 계정 정보를 전체 수정할 수 있다.
+
+operation::merge-user[snippets='curl-request,http-request,request-headers,path-parameters,request-body,http-response,response-headers,response-fields',links]
+
+[[delete-user]]
+=== 계정 제거
+
+`DELETE` 요청을 사용하여 계정을 삭제할 수 있다.
+
+operation::delete-user[snippets='curl-request,http-request,request-headers,path-parameters,request-body,http-response,response-headers,response-fields',links]
