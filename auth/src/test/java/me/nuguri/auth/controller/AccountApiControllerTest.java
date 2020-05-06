@@ -14,6 +14,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+import java.io.IOException;
 import java.util.*;
 import java.util.stream.IntStream;
 
@@ -73,9 +74,27 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
      * @throws Exception
      */
     @Test
-    public void login_V1_Invalid_400() throws Exception {
+    public void login_V1_Unauthorized_401() throws Exception {
         mockMvc.perform(post("/api/v1/login")
                 .content(objectMapper.writeValueAsString(new LoginRequest("invalidUser", "invalidPw")))
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("timestamp").exists())
+                .andExpect(jsonPath("status").exists())
+                .andExpect(jsonPath("error").exists())
+                .andExpect(jsonPath("message").exists())
+                .andDo(print());
+    }
+
+    /**
+     * 유저 로그인 API 방식 리턴 JSON 타입, 유저 정보를 입력하지 않아 로그인 실패하는 경우
+     * @throws Exception
+     */
+    @Test
+    public void login_V1_Invalid_400() throws Exception {
+        mockMvc.perform(post("/api/v1/login")
+                .content(objectMapper.writeValueAsString(new LoginRequest("invalidUser", "")))
                 .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isBadRequest())
@@ -254,8 +273,8 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
     @Test
     public void getUser_V1_User_Success_200() throws Exception {
         setUserAuthentication();
-        Optional<Account> optionalAccount = accountService.find(properties.getUserEmail());
-        mockMvc.perform(get("/api/v1/user/{id}", optionalAccount.get().getId())
+        Account account = accountService.find(properties.getUserEmail());
+        mockMvc.perform(get("/api/v1/user/{id}", account.getId())
                 .header(HttpHeaders.ACCEPT, MediaTypes.HAL_JSON))
                 .andDo(print())
                 .andExpect(status().isOk());
@@ -443,11 +462,15 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
                 .andExpect(status().isBadRequest());
     }
 
+    /**
+     * 유저 정보 부분 수정 성곶적인 경우
+     * @throws Exception
+     */
     @Test
     public void updateUser_V1_Success_200() throws Exception {
         setAdminAuthentication();
 
-        Account account = accountService.find(properties.getUserEmail()).get();
+        Account account = accountService.find(properties.getUserEmail());
         String password = "123123";
         Set<Role> roles = new HashSet<>(Arrays.asList(Role.ADMIN));
         Account update = Account.builder()
@@ -463,9 +486,56 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("roles").value(Role.ADMIN.toString()));
 
-        Account updated = accountService.find(properties.getUserEmail()).get();
+        Account updated = accountService.find(properties.getUserEmail());
         assertThat(passwordEncoder.matches(password, updated.getPassword())).isTrue();
         assertThat(roles).isEqualTo(updated.getRoles());
+    }
+
+    /**
+     * 유저 정보 부분 수정 잘못된 입력 값으로 실패하는 경우
+     * @throws Exception
+     */
+    @Test
+    public void updateUser_V1_Invalid_400() throws Exception {
+        setAdminAuthentication();
+
+        Account account = accountService.find(properties.getUserEmail());
+        String password = "1";
+        Set<Role> roles = new HashSet<>(Arrays.asList(Role.ADMIN));
+        Account update = Account.builder()
+                .password(password)
+                .build();
+
+        mockMvc.perform(patch("/api/v1/user/{id}", account.getId())
+                .content(objectMapper.writeValueAsString(update))
+                .header(HttpHeaders.ACCEPT, MediaTypes.HAL_JSON)
+                .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON))
+                .andDo(print())
+                .andExpect(status().isBadRequest());
+    }
+
+    /**
+     * 유저 정보 수정 권한 없어서 실패하는 경우
+     * @throws Exception
+     */
+    @Test
+    public void updateUser_V1_Forbidden_403() throws Exception {
+        setUserAuthentication();
+
+        Account account = accountService.find(properties.getAdminEmail());
+        String password = "1123123";
+        Set<Role> roles = new HashSet<>(Arrays.asList(Role.USER));
+        Account update = Account.builder()
+                .password(password)
+                .roles(roles)
+                .build();
+
+        mockMvc.perform(patch("/api/v1/user/{id}", account.getId())
+                .content(objectMapper.writeValueAsString(update))
+                .header(HttpHeaders.ACCEPT, MediaTypes.HAL_JSON)
+                .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON))
+                .andDo(print())
+                .andExpect(status().isForbidden());
     }
 
     /**

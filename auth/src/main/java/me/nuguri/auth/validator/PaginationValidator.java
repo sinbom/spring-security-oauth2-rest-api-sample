@@ -11,11 +11,10 @@ import java.util.stream.Stream;
 public class PaginationValidator {
 
     public <T> void validate(Pagination pagination, Class<T> entityType, Errors errors) {
-        String pageAndSizePattern = "^[1-9][0-9]*$";
-        if (!pagination.getPage().matches(pageAndSizePattern)) {
+        if (!pagination.getPage().matches("^[1-9][0-9]*$")) {
             errors.rejectValue("page", "wrongValue", "page is wrong");
         }
-        if (!pagination.getSize().matches(pageAndSizePattern)) {
+        if (!pagination.getSize().matches("^[1-9][0-9]*$")) {
             errors.rejectValue("size", "wrongValue", "size is wrong");
         }
         if (!StringUtils.isEmpty(pagination.getSort())) {
