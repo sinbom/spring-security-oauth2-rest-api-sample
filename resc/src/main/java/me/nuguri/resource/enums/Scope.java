@@ -1,4 +1,4 @@
-package me.nuguri.resource.common;
+package me.nuguri.resource.enums;
 
 public enum Scope {
 

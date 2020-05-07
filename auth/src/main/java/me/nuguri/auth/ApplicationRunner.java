@@ -1,7 +1,7 @@
 package me.nuguri.auth;
 
 import lombok.RequiredArgsConstructor;
-import me.nuguri.auth.properties.AuthServerConfigProperties;
+import me.nuguri.auth.property.AuthServerConfigProperties;
 import me.nuguri.auth.enums.GrantType;
 import me.nuguri.auth.enums.Role;
 import me.nuguri.auth.enums.Scope;

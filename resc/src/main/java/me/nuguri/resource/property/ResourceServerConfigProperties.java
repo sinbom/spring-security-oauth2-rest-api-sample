@@ -1,10 +1,9 @@
-package me.nuguri.resource.common;
+package me.nuguri.resource.property;
 
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.stereotype.Component;
 
 @Configuration
 @ConfigurationProperties(prefix = "auth")

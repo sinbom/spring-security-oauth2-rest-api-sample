@@ -1,4 +1,4 @@
-package me.nuguri.auth.properties;
+package me.nuguri.auth.property;
 
 import lombok.Getter;
 import lombok.Setter;

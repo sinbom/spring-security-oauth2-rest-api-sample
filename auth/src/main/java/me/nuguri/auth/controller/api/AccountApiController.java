@@ -76,10 +76,10 @@ public class AccountApiController {
         if (errors.hasErrors()) {
             return ResponseEntity.badRequest().body(new ErrorResponse(HttpStatus.BAD_REQUEST, "invalid parameter value", errors));
         }
-        PagedModel<GetUsersResource> getUserResources = assembler.toModel(accountService.findAll(pagination.getPageable()),
-                account -> new GetUsersResource(modelMapper.map(account, GetUserResponse.class)));
-        getUserResources.add(linkTo(AccountApiController.class).slash("/docs/index.html").withRel("document"));
-        return ResponseEntity.ok(getUserResources);
+        PagedModel<QueryUsersResource> queryUsersResources = assembler.toModel(accountService.findAll(pagination.getPageable()),
+                account -> new QueryUsersResource(modelMapper.map(account, GetUserResponse.class)));
+        queryUsersResources.add(linkTo(AccountApiController.class).slash("/docs/account.html").withRel("document"));
+        return ResponseEntity.ok(queryUsersResources);
     }
 
     /**
@@ -252,8 +252,8 @@ public class AccountApiController {
 
     // ==========================================================================================================================================
     // Resource
-    public static class GetUsersResource extends EntityModel<GetUserResponse> {
-        public GetUsersResource(GetUserResponse content, Link... links) {
+    public static class QueryUsersResource extends EntityModel<GetUserResponse> {
+        public QueryUsersResource(GetUserResponse content, Link... links) {
             super(content, links);
             add(linkTo(methodOn(AccountApiController.class).queryUsers(null, null, null)).withSelfRel().withType("GET"));
             add(linkTo(methodOn(AccountApiController.class).getUser(content.getId(), null)).withRel("getUser").withType("GET"));
@@ -266,7 +266,7 @@ public class AccountApiController {
     public static class GetUserResource extends EntityModel<GetUserResponse> {
         public GetUserResource(GetUserResponse content, Link... links) {
             super(content, links);
-            add(linkTo(AccountApiController.class).slash("/docs/index.html").withRel("document"));
+            add(linkTo(AccountApiController.class).slash("/docs/account.html").withRel("document"));
             add(linkTo(methodOn(AccountApiController.class).getUser(content.getId(), null)).withSelfRel().withType("GET"));
             add(linkTo(methodOn(AccountApiController.class).updateUser(content.getId(), null, null, null)).withRel("updateUser").withType("PATCH"));
             add(linkTo(methodOn(AccountApiController.class).mergeUser(content.getId(), null, null, null)).withRel("mergeUser").withType("PUT"));
@@ -277,7 +277,7 @@ public class AccountApiController {
     public static class GenerateUserResource extends EntityModel<GetUserResponse> {
         public GenerateUserResource(GetUserResponse content, Link... links) {
             super(content, links);
-            add(linkTo(AccountApiController.class).slash("/docs/index.html").withRel("document"));
+            add(linkTo(AccountApiController.class).slash("/docs/account.html").withRel("document"));
             add(linkTo(methodOn(AccountApiController.class).generateUser(null, null)).withSelfRel().withType("POST"));
             add(linkTo(methodOn(AccountApiController.class).getUser(content.getId(), null)).withRel("getUser").withType("GET"));
             add(linkTo(methodOn(AccountApiController.class).updateUser(content.getId(), null, null, null)).withRel("updateUser").withType("PATCH"));
@@ -289,7 +289,7 @@ public class AccountApiController {
     public static class UpdateUserResource extends EntityModel<GetUserResponse> {
         public UpdateUserResource(GetUserResponse content, Link... links) {
             super(content, links);
-            add(linkTo(AccountApiController.class).slash("/docs/index.html").withRel("document"));
+            add(linkTo(AccountApiController.class).slash("/docs/account.html").withRel("document"));
             add(linkTo(methodOn(AccountApiController.class).updateUser(content.getId(), null, null, null)).withSelfRel().withType("PATCH"));
             add(linkTo(methodOn(AccountApiController.class).getUser(content.getId(), null)).withRel("getUser").withType("GET"));
             add(linkTo(methodOn(AccountApiController.class).mergeUser(content.getId(), null, null, null)).withRel("mergeUser").withType("PUT"));
@@ -300,7 +300,7 @@ public class AccountApiController {
     public static class MergeUserResource extends EntityModel<GetUserResponse> {
         public MergeUserResource(GetUserResponse content, Link... links) {
             super(content, links);
-            add(linkTo(AccountApiController.class).slash("/docs/index.html").withRel("document"));
+            add(linkTo(AccountApiController.class).slash("/docs/account.html").withRel("document"));
             add(linkTo(methodOn(AccountApiController.class).mergeUser(content.getId(), null, null, null)).withSelfRel().withType("PUT"));
             add(linkTo(methodOn(AccountApiController.class).getUser(content.getId(), null)).withRel("getUser").withType("GET"));
             add(linkTo(methodOn(AccountApiController.class).updateUser(content.getId(), null, null, null)).withRel("updateUser").withType("PATCH"));
@@ -311,7 +311,7 @@ public class AccountApiController {
     public static class DeleteUserResource extends EntityModel<GetUserResponse> {
         public DeleteUserResource(GetUserResponse content, Link... links) {
             super(content, links);
-            add(linkTo(AccountApiController.class).slash("/docs/index.html").withRel("document"));
+            add(linkTo(AccountApiController.class).slash("/docs/account.html").withRel("document"));
             add(linkTo(methodOn(AccountApiController.class).deleteUser(content.getId(), null)).withSelfRel().withType("DELETE"));
             add(linkTo(methodOn(AccountApiController.class).getUser(content.getId(), null)).withRel("getUser").withType("GET"));
             add(linkTo(methodOn(AccountApiController.class).mergeUser(content.getId(), null, null, null)).withRel("mergeUser").withType("PUT"));

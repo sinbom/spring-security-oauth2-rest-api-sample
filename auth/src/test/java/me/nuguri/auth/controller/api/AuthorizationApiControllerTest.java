@@ -2,13 +2,9 @@ package me.nuguri.auth.controller.api;
 
 import me.nuguri.auth.common.BaseIntegrationTest;
 import me.nuguri.auth.enums.GrantType;
-import me.nuguri.auth.properties.AuthServerConfigProperties;
-import me.nuguri.auth.repository.ClientRepository;
 import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.json.JacksonJsonParser;
 import org.springframework.http.HttpHeaders;
-import org.springframework.security.crypto.password.PasswordEncoder;
 
 import static org.springframework.restdocs.headers.HeaderDocumentation.*;
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;

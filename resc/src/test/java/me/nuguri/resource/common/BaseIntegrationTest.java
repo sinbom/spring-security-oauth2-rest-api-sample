@@ -1,6 +1,7 @@
 package me.nuguri.resource.common;
 
 import me.nuguri.resource.config.RestDocsConfiguration;
+import me.nuguri.resource.property.ResourceServerConfigProperties;
 import org.junit.Ignore;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,6 +16,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
@@ -26,7 +28,8 @@ import org.springframework.web.client.RestTemplate;
 @Import(RestDocsConfiguration.class)
 @AutoConfigureRestDocs
 @AutoConfigureMockMvc
-public class BaseControllerTest {
+@Transactional
+public abstract class BaseIntegrationTest {
 
     @Autowired
     protected MockMvc mockMvc;

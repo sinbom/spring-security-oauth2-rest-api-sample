@@ -1,6 +1,6 @@
 package me.nuguri.auth.common;
 
-import me.nuguri.auth.properties.AuthServerConfigProperties;
+import me.nuguri.auth.property.AuthServerConfigProperties;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.junit.Ignore;
 import org.junit.runner.RunWith;
@@ -11,7 +11,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
