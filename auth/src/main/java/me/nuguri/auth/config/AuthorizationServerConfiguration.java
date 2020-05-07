@@ -1,10 +1,14 @@
 package me.nuguri.auth.config;
 
 import lombok.RequiredArgsConstructor;
+import me.nuguri.auth.enums.GrantType;
+import me.nuguri.auth.enums.Role;
+import me.nuguri.auth.enums.Scope;
 import me.nuguri.auth.properties.AuthServerConfigProperties;
 import me.nuguri.auth.service.AccountService;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.config.annotation.configurers.ClientDetailsServiceConfigurer;
 import org.springframework.security.oauth2.config.annotation.web.configuration.AuthorizationServerConfigurerAdapter;
@@ -33,7 +37,7 @@ public class AuthorizationServerConfiguration extends AuthorizationServerConfigu
 
     private final AuthenticationManager authenticationManager;
 
-    private final AccountService accountService;
+    private final UserDetailsService userDetailsService;
 
     private final AuthServerConfigProperties authServerConfigProperties;
 
@@ -65,7 +69,7 @@ public class AuthorizationServerConfiguration extends AuthorizationServerConfigu
     public void configure(AuthorizationServerEndpointsConfigurer endpoints) throws Exception {
         endpoints.tokenStore(tokenStore)
                 .tokenEnhancer(tokenEnhancer)
-                .userDetailsService(accountService)
+                .userDetailsService(userDetailsService)
                 .authenticationManager(authenticationManager);
 //                .tokenEnhancer(tokenEnhancer); 토근 발급 api 리턴 타입을 구현한 TokenEnhancer 응답으로 사용
     }

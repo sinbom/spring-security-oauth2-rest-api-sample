@@ -2,9 +2,7 @@ package me.nuguri.auth.entity;
 
 import lombok.*;
 
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.Table;
+import javax.persistence.*;
 
 /**
  * 클라이언트 엔티티
@@ -15,42 +13,55 @@ import javax.persistence.Table;
 @AllArgsConstructor
 @Getter
 @Setter
-@EqualsAndHashCode(of ="client_id")
+@EqualsAndHashCode(of ="clientId")
 @Builder
 public class Client {
 
     /** 클라이언트 Id */
     @Id
-    private String client_id;
+    @Column(updatable = false)
+    private String clientId;
 
     /** 리소스 Id */
-    private String resource_ids;
+    @Column(nullable = false)
+    private String resourceIds;
 
     /** 클라이언트 Secret */
-    private String client_secret;
+    @Column(nullable = false, updatable = false)
+    private String clientSecret;
 
     /** 접근 범위 */
+    @Column(nullable = false)
     private String scope;
 
     /** 권한 부여 방식 */
-    private String authorized_grant_types;
+    @Column(name = "authorizedGrantTypes", nullable = false)
+    private String grantTypes;
 
     /** 리다이렉트 URI */
-    private String web_server_redirect_uri;
+    @Column(name = "web_server_redirect_uri", nullable = false)
+    private String redirectUri;
 
     /** 권한 */
+    @Column(nullable = false)
     private String authorities;
 
     /** 토근 유효 시간 초 */
-    private Integer access_token_validity = 600;
+    @Column(nullable = false)
+    private Integer accessTokenValidity = 600;
 
     /** 재발급 토큰 유효 시간 초 */
-    private Integer refresh_token_validity = 3600;
+    @Column(nullable = false)
+    private Integer refreshTokenValidity = 3600;
 
     /** 토큰 추가 정보 */
-    private String additional_information;
+    private String additionalInformation;
 
     /** 인증 동의 자동 저장 여부*/
     private String autoapprove;
+
+    /** 클라이언트 등록 계정 */
+    @ManyToOne(optional = false, fetch = FetchType.LAZY)
+    private Account account;
 
 }

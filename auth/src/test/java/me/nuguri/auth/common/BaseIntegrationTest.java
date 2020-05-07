@@ -1,6 +1,7 @@
 package me.nuguri.auth.common;
 
 import me.nuguri.auth.properties.AuthServerConfigProperties;
+import org.codehaus.jackson.map.ObjectMapper;
 import org.junit.Ignore;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,6 +36,10 @@ public abstract class BaseIntegrationTest {
 
     @Autowired
     protected AuthServerConfigProperties properties;
+
+    @Autowired
+    protected ObjectMapper objectMapper;
+
 
     protected void setAdminAuthentication() {
         setAuthentication(properties.getAdminEmail(), properties.getAdminPassword());

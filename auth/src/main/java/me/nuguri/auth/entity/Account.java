@@ -5,6 +5,7 @@ import me.nuguri.auth.enums.Role;
 
 import javax.persistence.*;
 import java.io.Serializable;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -36,5 +37,9 @@ public class Account implements Serializable {
     @ElementCollection
     @Enumerated(EnumType.STRING)
     private Set<Role> roles;
+
+    /** 등록 클라이언트 */
+    @OneToMany(mappedBy = "account", cascade = CascadeType.ALL)
+    private List<Client> clients;
 
 }

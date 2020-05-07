@@ -9,15 +9,17 @@
 </head>
 <body>
 <h1>Welcome!! Authorization Server</h1>
+<h2 sec:authorize="isAuthenticated()">Hello!! <span sec:authentication="name" th:remove="tag"></span></h2>
 <div>
     <h3>Service</h3>
     <span sec:authorize="isAnonymous()"><a href="/login">login</a></span>
     <span sec:authorize="isAuthenticated()"><a href="/logout">logout</a></span>
 </div>
 <div>
-    <h3>Document</h3>
-    <a href="/docs/index.html">API index</a><br>
-    <a href="/docs/auth.html">oauth2 API</a>
+    <h3>API Document</h3>
+    <a href="/docs/index.html">index</a><br>
+    <a href="/docs/auth.html">oauth2</a><br>
+    <a href="/docs/account.html">account</a>
 </div>
 </body>
 </html>

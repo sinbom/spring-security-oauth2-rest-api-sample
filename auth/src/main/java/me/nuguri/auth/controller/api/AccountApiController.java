@@ -4,7 +4,6 @@ import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import me.nuguri.auth.annotation.AuthenticationUser;
 import me.nuguri.auth.domain.ErrorResponse;
-import me.nuguri.auth.domain.LoginRequest;
 import me.nuguri.auth.domain.Pagination;
 import me.nuguri.auth.entity.Account;
 import me.nuguri.auth.enums.Role;
@@ -209,6 +208,14 @@ public class AccountApiController {
 
     // ==========================================================================================================================================
     // Domain
+    @Data
+    public static class LoginRequest {
+        @NotBlank
+        private String username;
+        @NotBlank
+        private String password;
+    }
+
     @Data
     public static class LoginResponse {
         private String sessionId;

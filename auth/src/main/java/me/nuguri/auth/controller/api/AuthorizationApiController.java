@@ -64,10 +64,12 @@ public class AuthorizationApiController {
         return ResponseEntity.ok(modelMapper.map(accountService.find((Long) oAuth2AccessToken.getAdditionalInformation().get("id")), GetMeResponse.class));
     }
 
+    // ==========================================================================================================================================
+    // Domain
     @Data
     public static class GetMeResponse {
         private String email;
         private Set<Role> roles;
     }
-
+    // ==========================================================================================================================================
 }

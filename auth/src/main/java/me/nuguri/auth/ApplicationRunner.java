@@ -30,7 +30,7 @@ public class ApplicationRunner implements org.springframework.boot.ApplicationRu
 
     @Override
     public void run(ApplicationArguments args) {
-        accountRepository.save(Account.builder()
+        Account admin = accountRepository.save(Account.builder()
                 .email(authServerConfigProperties.getAdminEmail())
                 .password(passwordEncoder.encode(authServerConfigProperties.getAdminPassword()))
                 .roles(new HashSet<>(Arrays.asList(Role.ADMIN, Role.USER)))
@@ -43,15 +43,18 @@ public class ApplicationRunner implements org.springframework.boot.ApplicationRu
                 .build());
 
         clientRepository.save(Client.builder()
-                .client_id(authServerConfigProperties.getClientId())
-                .resource_ids("nuguri")
-                .client_secret(passwordEncoder.encode(authServerConfigProperties.getClientSecret()))
+                .clientId(authServerConfigProperties.getClientId())
+                .resourceIds("nuguri")
+                .clientSecret(passwordEncoder.encode(authServerConfigProperties.getClientSecret()))
                 .scope(String.join(",", Scope.READ.toString(), Scope.WRITE.toString()))
-                .authorized_grant_types(String.join(",", GrantType.PASSWORD.toString(), GrantType.AUTHORIZATION_CODE.toString(),
+                .grantTypes(String.join(",", GrantType.PASSWORD.toString(), GrantType.AUTHORIZATION_CODE.toString(),
                         GrantType.IMPLICIT.toString(), GrantType.CLIENT_CREDENTIALS.toString(), GrantType.REFRESH_TOKEN.toString()))
-                .web_server_redirect_uri(authServerConfigProperties.getRedirectUri())
+                .redirectUri(authServerConfigProperties.getRedirectUri())
                 .authorities(String.join(",", Role.ADMIN.toString(), Role.USER.toString()))
+                .accessTokenValidity(600)
+                .refreshTokenValidity(3600)
                 .autoapprove(null)
+                .account(admin)
                 .build());
 
     }

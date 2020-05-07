@@ -1,4 +1,4 @@
-package me.nuguri.auth.controller;
+package me.nuguri.auth.controller.api;
 
 import me.nuguri.auth.common.BaseIntegrationTest;
 import me.nuguri.auth.enums.GrantType;
@@ -23,15 +23,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 public class AuthorizationApiControllerTest extends BaseIntegrationTest {
 
-    @Autowired
-    private AuthServerConfigProperties authServerConfigProperties;
-
-    @Autowired
-    private ClientRepository clientRepository;
-
-    @Autowired
-    private PasswordEncoder passwordEncoder;
-
     /**
      * 인증 서버 엑세스 토큰 정상적으로 만료되는 경우
      * @throws Exception
@@ -40,9 +31,9 @@ public class AuthorizationApiControllerTest extends BaseIntegrationTest {
     public void revokeAccessToken_Success_200() throws Exception {
         String access_token = (String) new JacksonJsonParser()
                 .parseMap(mockMvc.perform(post("/oauth/token")
-                        .with(httpBasic(authServerConfigProperties.getClientId(), authServerConfigProperties.getClientSecret()))
-                        .param("username", authServerConfigProperties.getAdminEmail())
-                        .param("password", authServerConfigProperties.getAdminPassword())
+                        .with(httpBasic(properties.getClientId(), properties.getClientSecret()))
+                        .param("username", properties.getAdminEmail())
+                        .param("password", properties.getAdminPassword())
                         .param("grant_type", GrantType.PASSWORD.toString()))
                         .andReturn()
                         .getResponse()
@@ -115,9 +106,9 @@ public class AuthorizationApiControllerTest extends BaseIntegrationTest {
     public void getMe_Success_200() throws Exception {
         String access_token = (String) new JacksonJsonParser()
                 .parseMap(mockMvc.perform(post("/oauth/token")
-                        .with(httpBasic(authServerConfigProperties.getClientId(), authServerConfigProperties.getClientSecret()))
-                        .param("username", authServerConfigProperties.getAdminEmail())
-                        .param("password", authServerConfigProperties.getAdminPassword())
+                        .with(httpBasic(properties.getClientId(), properties.getClientSecret()))
+                        .param("username", properties.getAdminEmail())
+                        .param("password", properties.getAdminPassword())
                         .param("grant_type", GrantType.PASSWORD.toString()))
                         .andReturn()
                         .getResponse()
@@ -177,25 +168,5 @@ public class AuthorizationApiControllerTest extends BaseIntegrationTest {
                 .andExpect(jsonPath("message").exists());
     }
 
-/*    @Test
-    public void registerClient_Success_200() throws Exception {
-        String client_id = "test";
-        String client_secret = "testing";
-        clientRepository.save(Client.builder()
-                .client_id(client_id)
-                .client_secret(passwordEncoder.encode(client_secret))
-                .scope(Scope.READ.toString())
-                .authorities(Role.USER.toString())
-                .web_server_redirect_uri("https://www.naver.com")
-                .authorized_grant_types(GrantType.CLIENT_CREDENTIALS.toString())
-                .resource_ids("test")
-                .autoapprove(null)
-                .build());
-
-        mockMvc.perform(post("/oauth/token")
-                .with(httpBasic(client_id, client_secret))
-                .param("grant_type", GrantType.CLIENT_CREDENTIALS.toString()))
-                .andExpect(status().isOk());
-    }*/
 
 }

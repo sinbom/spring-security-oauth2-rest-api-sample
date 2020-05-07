@@ -1,11 +1,9 @@
-package me.nuguri.auth.controller;
+package me.nuguri.auth.controller.api;
 
 import me.nuguri.auth.common.BaseIntegrationTest;
-import me.nuguri.auth.domain.LoginRequest;
 import me.nuguri.auth.entity.Account;
 import me.nuguri.auth.enums.Role;
 import me.nuguri.auth.service.AccountService;
-import org.codehaus.jackson.map.ObjectMapper;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.MediaTypes;
@@ -39,9 +37,6 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
     private AccountService accountService;
 
     @Autowired
-    private ObjectMapper objectMapper;
-
-    @Autowired
     private PasswordEncoder passwordEncoder;
 
     /**
@@ -50,8 +45,11 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
      */
     @Test
     public void login_V1_Success_200() throws Exception {
+        AccountApiController.LoginRequest request = new AccountApiController.LoginRequest();
+        request.setUsername(properties.getAdminEmail());
+        request.setPassword(properties.getAdminPassword());
         mockMvc.perform(post("/api/v1/login")
-                .content(objectMapper.writeValueAsString(new LoginRequest(properties.getAdminEmail(), properties.getAdminPassword())))
+                .content(objectMapper.writeValueAsString(request))
                 .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("sessionId").exists())
@@ -78,8 +76,12 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
      */
     @Test
     public void login_V1_Unauthorized_401() throws Exception {
+        AccountApiController.LoginRequest request = new AccountApiController.LoginRequest();
+        request.setUsername(properties.getAdminEmail());
+        request.setPassword("1892378");
+
         mockMvc.perform(post("/api/v1/login")
-                .content(objectMapper.writeValueAsString(new LoginRequest("invalidUser", "invalidPw")))
+                .content(objectMapper.writeValueAsString(request))
                 .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isUnauthorized())
@@ -96,8 +98,12 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
      */
     @Test
     public void login_V1_Invalid_400() throws Exception {
+        AccountApiController.LoginRequest request = new AccountApiController.LoginRequest();
+        request.setUsername("invalidUser");
+        request.setPassword("");
+
         mockMvc.perform(post("/api/v1/login")
-                .content(objectMapper.writeValueAsString(new LoginRequest("invalidUser", "")))
+                .content(objectMapper.writeValueAsString(request))
                 .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isBadRequest())
@@ -117,7 +123,7 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
         generateUser30();
         mockMvc.perform(get("/api/v1/users")
                 .with(user(properties.getAdminEmail()).password(properties.getAdminPassword()))
-                .header(HttpHeaders.ACCEPT, MediaTypes.HAL_JSON)
+                .accept(MediaTypes.HAL_JSON)
                 .queryParam("page", "1")
                 .queryParam("size", "10")
                 .queryParam("sort", "id,email,desc"))
@@ -185,7 +191,7 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
         for (int i = 0; i < pages.length; i++) {
             mockMvc.perform(get("/api/v1/users")
                     .with(user(properties.getAdminEmail()).password(properties.getAdminPassword()))
-                    .header(HttpHeaders.ACCEPT, MediaTypes.HAL_JSON)
+                    .accept(MediaTypes.HAL_JSON)
                     .queryParam("page", pages[i])
                     .queryParam("size", sizes[i])
                     .queryParam("sort", sorts[i]))
@@ -213,7 +219,7 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
                 .build());
 
         mockMvc.perform(get("/api/v1/user/{id}", account.getId())
-                .header(HttpHeaders.ACCEPT, MediaTypes.HAL_JSON))
+                .accept(MediaTypes.HAL_JSON))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andDo(document("get-user",
@@ -265,7 +271,7 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
         setUserAuthentication();
         Account account = accountService.find(properties.getUserEmail());
         mockMvc.perform(get("/api/v1/user/{id}", account.getId())
-                .header(HttpHeaders.ACCEPT, MediaTypes.HAL_JSON))
+                .accept(MediaTypes.HAL_JSON))
                 .andDo(print())
                 .andExpect(status().isOk());
     }
@@ -283,7 +289,7 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
                 .roles(new HashSet<>(Arrays.asList(Role.USER)))
                 .build());
         mockMvc.perform(get("/api/v1/user/{id}", account.getId())
-                .header(HttpHeaders.ACCEPT, MediaTypes.HAL_JSON))
+                .accept(MediaTypes.HAL_JSON))
                 .andDo(print())
                 .andExpect(jsonPath("timestamp").exists())
                 .andExpect(jsonPath("status").exists())
@@ -300,7 +306,7 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
     public void getUser_V1_Invalid_400() throws Exception {
         mockMvc.perform(get("/api/v1/user/{id}", "asdasd")
                 .with(user(properties.getAdminEmail()).password(properties.getAdminPassword()))
-                .header(HttpHeaders.ACCEPT, MediaTypes.HAL_JSON))
+                .accept(MediaTypes.HAL_JSON))
                 .andDo(print())
                 .andExpect(status().isBadRequest());
     }
@@ -313,7 +319,7 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
     public void getUser_No_Exist_404() throws Exception {
         setAdminAuthentication();
         mockMvc.perform(get("/api/v1/user/{id}", "1928361836")
-                .header(HttpHeaders.ACCEPT, MediaTypes.HAL_JSON))
+                .accept(MediaTypes.HAL_JSON))
                 .andDo(print())
                 .andExpect(jsonPath("timestamp").exists())
                 .andExpect(jsonPath("status").exists())
@@ -328,15 +334,16 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
      */
     @Test
     public void generateUser_V1_Success_201() throws Exception {
+        AccountApiController.GenerateUserRequest request =  new AccountApiController.GenerateUserRequest();
+        request.setEmail("test200@naver.com");
+        request.setPassword("123123");
+        request.setRoles(new HashSet<>(Arrays.asList(Role.USER)));
+
         mockMvc.perform(post("/api/v1/user")
                 .with(user(properties.getAdminEmail()).password(properties.getAdminPassword()))
-                .header(HttpHeaders.ACCEPT, MediaTypes.HAL_JSON)
-                .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(Account.builder()
-                        .email("test200@naver.com")
-                        .password("123123")
-                        .roles(new HashSet<>(Arrays.asList(Role.USER)))
-                        .build())))
+                .accept(MediaTypes.HAL_JSON)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
                 .andDo(print())
                 .andExpect(status().isCreated())
                 .andDo(document("generate-user",
@@ -387,14 +394,15 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
      */
     @Test
     public void generateUser_V1_Invalid_400() throws Exception {
+        AccountApiController.GenerateUserRequest request =  new AccountApiController.GenerateUserRequest();
+        request.setEmail("isNotEmailType");
+        request.setPassword("1234");
+
         mockMvc.perform(post("/api/v1/user")
                 .with(user(properties.getAdminEmail()).password(properties.getAdminPassword()))
-                .header(HttpHeaders.ACCEPT, MediaTypes.HAL_JSON)
-                .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(Account.builder()
-                        .email("isNotEmailType")
-                        .password("1234")
-                        .build())))
+                .accept(MediaTypes.HAL_JSON)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
                 .andDo(print())
                 .andExpect(jsonPath("timestamp").exists())
                 .andExpect(jsonPath("status").exists())
@@ -411,21 +419,22 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
     public void generateUser_V1_Already_Exist_400() throws Exception {
         String email = "already@test.com";
 
+        AccountApiController.GenerateUserRequest request =  new AccountApiController.GenerateUserRequest();
+        request.setEmail(email);
+        request.setPassword("124331");
+        request.setRoles(new HashSet<>(Arrays.asList(Role.USER)));
+
         accountService.generate(Account.builder()
                 .email(email)
-                .password("1243")
+                .password("124332")
                 .roles(new HashSet<>(Arrays.asList(Role.USER)))
                 .build());
 
         mockMvc.perform(post("/api/v1/user")
                 .with(user(properties.getAdminEmail()).password(properties.getAdminPassword()))
-                .header(HttpHeaders.ACCEPT, MediaTypes.HAL_JSON)
-                .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(Account.builder()
-                        .email(email)
-                        .password("54368")
-                        .roles(new HashSet<>(Arrays.asList(Role.USER)))
-                        .build())))
+                .accept(MediaTypes.HAL_JSON)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
                 .andDo(print())
                 .andExpect(jsonPath("timestamp").exists())
                 .andExpect(jsonPath("status").exists())
@@ -445,15 +454,15 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
         Account account = accountService.find(properties.getUserEmail());
         String password = "123123";
         Set<Role> roles = new HashSet<>(Arrays.asList(Role.ADMIN));
-        Account update = Account.builder()
-                .password(password)
-                .roles(roles)
-                .build();
+
+        AccountApiController.UpdateUserRequest request = new AccountApiController.UpdateUserRequest();
+        request.setPassword(password);
+        request.setRoles(roles);
 
         mockMvc.perform(patch("/api/v1/user/{id}", account.getId())
-                .content(objectMapper.writeValueAsString(update))
-                .header(HttpHeaders.ACCEPT, MediaTypes.HAL_JSON)
-                .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON))
+                .content(objectMapper.writeValueAsString(request))
+                .accept(MediaTypes.HAL_JSON)
+                .contentType(MediaType.APPLICATION_JSON))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("roles").value(Role.ADMIN.toString()))
@@ -510,17 +519,14 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
     public void updateUser_V1_NotFound_404() throws Exception {
         setAdminAuthentication();
 
-        String password = "1123123";
-        Set<Role> roles = new HashSet<>(Arrays.asList(Role.ADMIN));
-        Account update = Account.builder()
-                .password(password)
-                .roles(roles)
-                .build();
+        AccountApiController.UpdateUserRequest request = new AccountApiController.UpdateUserRequest();
+        request.setPassword("1123123");
+        request.setRoles(new HashSet<>(Arrays.asList(Role.ADMIN)));
 
         mockMvc.perform(patch("/api/v1/user/{id}", "198237981")
-                .content(objectMapper.writeValueAsString(update))
-                .header(HttpHeaders.ACCEPT, MediaTypes.HAL_JSON)
-                .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON))
+                .content(objectMapper.writeValueAsString(request))
+                .accept(MediaTypes.HAL_JSON)
+                .contentType(MediaType.APPLICATION_JSON))
                 .andDo(print())
                 .andExpect(status().isNotFound());
     }
@@ -534,16 +540,14 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
         setAdminAuthentication();
 
         Account account = accountService.find(properties.getUserEmail());
-        String password = "1";
-        Set<Role> roles = new HashSet<>(Arrays.asList(Role.ADMIN));
-        Account update = Account.builder()
-                .password(password)
-                .build();
+
+        AccountApiController.UpdateUserRequest request = new AccountApiController.UpdateUserRequest();
+        request.setPassword("1");
 
         mockMvc.perform(patch("/api/v1/user/{id}", account.getId())
-                .content(objectMapper.writeValueAsString(update))
-                .header(HttpHeaders.ACCEPT, MediaTypes.HAL_JSON)
-                .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON))
+                .content(objectMapper.writeValueAsString(request))
+                .accept(MediaTypes.HAL_JSON)
+                .contentType(MediaType.APPLICATION_JSON))
                 .andDo(print())
                 .andExpect(status().isBadRequest());
     }
@@ -557,17 +561,15 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
         setUserAuthentication();
 
         Account account = accountService.find(properties.getAdminEmail());
-        String password = "1123123";
-        Set<Role> roles = new HashSet<>(Arrays.asList(Role.USER));
-        Account update = Account.builder()
-                .password(password)
-                .roles(roles)
-                .build();
+
+        AccountApiController.UpdateUserRequest request = new AccountApiController.UpdateUserRequest();
+        request.setPassword("1123123");
+        request.setRoles(new HashSet<>(Arrays.asList(Role.USER)));
 
         mockMvc.perform(patch("/api/v1/user/{id}", account.getId())
-                .content(objectMapper.writeValueAsString(update))
-                .header(HttpHeaders.ACCEPT, MediaTypes.HAL_JSON)
-                .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON))
+                .content(objectMapper.writeValueAsString(request))
+                .accept(MediaTypes.HAL_JSON)
+                .contentType(MediaType.APPLICATION_JSON))
                 .andDo(print())
                 .andExpect(status().isForbidden());
     }
@@ -583,15 +585,15 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
         Account account = accountService.find(properties.getUserEmail());
         String password = "1123123";
         Set<Role> roles = new HashSet<>(Arrays.asList(Role.ADMIN, Role.USER));
-        Account update = Account.builder()
-                .password(password)
-                .roles(roles)
-                .build();
+
+        AccountApiController.UpdateUserRequest request = new AccountApiController.UpdateUserRequest();
+        request.setPassword(password);
+        request.setRoles(roles);
 
         mockMvc.perform(put("/api/v1/user/{id}", account.getId())
-                .content(objectMapper.writeValueAsString(update))
-                .header(HttpHeaders.ACCEPT, MediaTypes.HAL_JSON)
-                .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON))
+                .content(objectMapper.writeValueAsString(request))
+                .accept(MediaTypes.HAL_JSON)
+                .contentType(MediaType.APPLICATION_JSON))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andDo(document("merge-user",
@@ -648,17 +650,15 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
         setUserAuthentication();
 
         Account account = accountService.find(properties.getAdminEmail());
-        String password = "1123123";
-        Set<Role> roles = new HashSet<>(Arrays.asList(Role.USER));
-        Account update = Account.builder()
-                .password(password)
-                .roles(roles)
-                .build();
+
+        AccountApiController.UpdateUserRequest request = new AccountApiController.UpdateUserRequest();
+        request.setPassword("1123123");
+        request.setRoles(new HashSet<>(Arrays.asList(Role.USER)));
 
         mockMvc.perform(put("/api/v1/user/{id}", account.getId())
-                .content(objectMapper.writeValueAsString(update))
-                .header(HttpHeaders.ACCEPT, MediaTypes.HAL_JSON)
-                .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON))
+                .content(objectMapper.writeValueAsString(request))
+                .accept(MediaTypes.HAL_JSON)
+                .contentType(MediaType.APPLICATION_JSON))
                 .andDo(print())
                 .andExpect(status().isForbidden());
     }
@@ -671,17 +671,14 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
     public void mergeUser_V1_NotFound_404() throws Exception {
         setAdminAuthentication();
 
-        String password = "1123123";
-        Set<Role> roles = new HashSet<>(Arrays.asList(Role.ADMIN));
-        Account update = Account.builder()
-                .password(password)
-                .roles(roles)
-                .build();
+        AccountApiController.UpdateUserRequest request = new AccountApiController.UpdateUserRequest();
+        request.setPassword("1123123");
+        request.setRoles(new HashSet<>(Arrays.asList(Role.ADMIN)));
 
         mockMvc.perform(put("/api/v1/user/{id}", "198237981")
-                .content(objectMapper.writeValueAsString(update))
-                .header(HttpHeaders.ACCEPT, MediaTypes.HAL_JSON)
-                .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON))
+                .content(objectMapper.writeValueAsString(request))
+                .accept(MediaTypes.HAL_JSON)
+                .contentType(MediaType.APPLICATION_JSON))
                 .andDo(print())
                 .andExpect(status().isNotFound());
     }
@@ -695,16 +692,14 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
         setAdminAuthentication();
 
         Account account = accountService.find(properties.getUserEmail());
-        String password = "1";
-        Set<Role> roles = new HashSet<>(Arrays.asList(Role.ADMIN));
-        Account update = Account.builder()
-                .password(password)
-                .build();
+        AccountApiController.UpdateUserRequest request = new AccountApiController.UpdateUserRequest();
+        request.setPassword("1");
+        request.setRoles(new HashSet<>(Arrays.asList(Role.ADMIN)));
 
         mockMvc.perform(put("/api/v1/user/{id}", account.getId())
-                .content(objectMapper.writeValueAsString(update))
-                .header(HttpHeaders.ACCEPT, MediaTypes.HAL_JSON)
-                .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON))
+                .content(objectMapper.writeValueAsString(request))
+                .accept(MediaTypes.HAL_JSON)
+                .contentType(MediaType.APPLICATION_JSON))
                 .andDo(print())
                 .andExpect(status().isBadRequest());
     }
@@ -719,7 +714,7 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
         Account account = accountService.find(properties.getUserEmail());
 
         mockMvc.perform(delete("/api/v1/user/{id}", account.getId())
-                .header(HttpHeaders.ACCEPT, MediaTypes.HAL_JSON))
+                .accept(MediaTypes.HAL_JSON))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andDo(document("delete-user",
@@ -772,7 +767,7 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
         Account account = accountService.find(properties.getAdminEmail());
 
         mockMvc.perform(delete("/api/v1/user/{id}", account.getId())
-                .header(HttpHeaders.ACCEPT, MediaTypes.HAL_JSON))
+                .accept(MediaTypes.HAL_JSON))
                 .andDo(print())
                 .andExpect(status().isForbidden());
     }
@@ -786,7 +781,7 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
         setAdminAuthentication();
 
         mockMvc.perform(delete("/api/v1/user/{id}", "123123123123")
-                .header(HttpHeaders.ACCEPT, MediaTypes.HAL_JSON))
+                .accept(MediaTypes.HAL_JSON))
                 .andDo(print())
                 .andExpect(status().isNotFound());
     }
@@ -800,7 +795,7 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
         setAdminAuthentication();
 
         mockMvc.perform(delete("/api/v1/user/{id}", "asdasd")
-                .header(HttpHeaders.ACCEPT, MediaTypes.HAL_JSON))
+                .accept(MediaTypes.HAL_JSON))
                 .andDo(print())
                 .andExpect(status().isBadRequest());
     }
