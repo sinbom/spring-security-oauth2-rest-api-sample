@@ -20,12 +20,19 @@ import org.springframework.hateoas.MediaTypes;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.annotation.Secured;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.springframework.validation.Errors;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpSession;
 import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotEmpty;
@@ -44,6 +51,8 @@ public class AccountApiController {
 
     private final AccountValidator accountValidator;
 
+    private final AuthenticationManager authenticationManager;
+
     private final ModelMapper modelMapper;
 
     /**
@@ -53,12 +62,15 @@ public class AccountApiController {
      * @return
      */
     @PostMapping(value = "/api/v1/login", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<?> login(@RequestBody @Valid LoginRequest request, Errors errors) {
+    public ResponseEntity<?> login(@RequestBody @Valid LoginRequest request, Errors errors, HttpSession httpSession) {
         if (errors.hasErrors()) {
             return ResponseEntity.badRequest().body(new ErrorResponse(HttpStatus.BAD_REQUEST, "username and password must not be null(blank)", errors));
         }
         try {
-            return ResponseEntity.ok(new LoginResponse(accountService.login(request.getUsername(), request.getPassword())));
+            SecurityContext context = SecurityContextHolder.getContext();
+            context.setAuthentication(authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword())));
+            httpSession.setAttribute(HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY, context);
+            return ResponseEntity.ok(new LoginResponse(httpSession.getId()));
         } catch (AuthenticationException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ErrorResponse(HttpStatus.UNAUTHORIZED, "invalid username or password"));
         }
@@ -71,6 +83,7 @@ public class AccountApiController {
      * @return
      */
     @GetMapping(value = "/api/v1/users", produces = MediaTypes.HAL_JSON_VALUE)
+    @Secured("ROLE_ADMIN")
     public ResponseEntity<?> queryUsers(Pagination pagination, Errors errors) {
         paginationValidator.validate(pagination, Account.class, errors);
         if (errors.hasErrors()) {

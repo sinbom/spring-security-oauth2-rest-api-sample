@@ -12,8 +12,8 @@ import java.util.List;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-@EqualsAndHashCode(of = "id")
-public class MinorCategory {
+@EqualsAndHashCode(of = "id", callSuper = false)
+public class MinorCategory extends BaseEntity {
 
     @Id
     @GeneratedValue

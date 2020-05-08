@@ -2,7 +2,9 @@ package me.nuguri.auth.controller.api;
 
 import me.nuguri.auth.common.BaseIntegrationTest;
 import me.nuguri.auth.enums.GrantType;
-import org.junit.Test;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 import org.springframework.boot.json.JacksonJsonParser;
 import org.springframework.http.HttpHeaders;
 
@@ -17,13 +19,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+@DisplayName("Oauth2 API 테스트")
 public class AuthorizationApiControllerTest extends BaseIntegrationTest {
 
-    /**
-     * 인증 서버 엑세스 토큰 정상적으로 만료되는 경우
-     * @throws Exception
-     */
     @Test
+    @DisplayName("인증 서버 엑세스 토큰 정상적으로 만료되는 경우")
     public void revokeAccessToken_Success_200() throws Exception {
         String access_token = (String) new JacksonJsonParser()
                 .parseMap(mockMvc.perform(post("/oauth/token")
@@ -63,11 +63,8 @@ public class AuthorizationApiControllerTest extends BaseIntegrationTest {
         );
     }
 
-    /**
-     * 인증 서버 엑세스 토큰  전달하지 않아서 만료하지 못하는 경우
-     * @throws Exception
-     */
     @Test
+    @DisplayName("인증 서버 엑세스 토큰  전달하지 않아서 만료하지 못하는 경우")
     public void revokeAccessToken_No_AccessToken_401() throws Exception {
         mockMvc.perform(post("/oauth/revoke_token"))
                 .andDo(print())
@@ -78,11 +75,8 @@ public class AuthorizationApiControllerTest extends BaseIntegrationTest {
                 .andExpect(jsonPath("message").exists());
     }
 
-    /**
-     * 인증 서버 엑세스 토큰 부정확하거나 존재하지 않는 엑세스 토큰 입력으로 만료하지 못하는 경우
-     * @throws Exception
-     */
     @Test
+    @DisplayName("인증 서버 엑세스 토큰 부정확하거나 존재하지 않는 엑세스 토큰 입력으로 만료하지 못하는 경우")
     public void revokeAccessToken_Invalid_AccessToken_400() throws Exception {
         mockMvc.perform(post("/oauth/revoke_token")
                 .header(HttpHeaders.AUTHORIZATION, "invalid_token_!(@*#&!"))
@@ -94,11 +88,8 @@ public class AuthorizationApiControllerTest extends BaseIntegrationTest {
                 .andExpect(jsonPath("message").exists());
     }
 
-    /**
-     * 인증 서버 엑세스 토큰을 전달해 현재 토큰의 유저 정보를 성공적으로 조회하는 경우
-     * @throws Exception
-     */
     @Test
+    @DisplayName("인증 서버 엑세스 토큰을 전달해 현재 토큰의 유저 정보를 성공적으로 조회하는 경우")
     public void getMe_Success_200() throws Exception {
         String access_token = (String) new JacksonJsonParser()
                 .parseMap(mockMvc.perform(post("/oauth/token")
@@ -133,11 +124,8 @@ public class AuthorizationApiControllerTest extends BaseIntegrationTest {
                 ));
     }
 
-    /**
-     * 인증 서버 엑세스 토큰을 전달하지 않아 유저 정보를 조회하지 못하는 경우
-     * @throws Exception
-     */
     @Test
+    @DisplayName("인증 서버 엑세스 토큰을 전달하지 않아 유저 정보를 조회하지 못하는 경우")
     public void getMe_No_AccessToken_401() throws Exception {
         mockMvc.perform(get("/oauth/me"))
                 .andExpect(status().isUnauthorized())
@@ -148,11 +136,8 @@ public class AuthorizationApiControllerTest extends BaseIntegrationTest {
                 .andExpect(jsonPath("message").exists());
     }
 
-    /**
-     * 잘못된 인증 서버 엑세스 토큰으 전달해서 유저 정보를 조회하지 못하는 경우
-     * @throws Exception
-     */
     @Test
+    @DisplayName("잘못된 인증 서버 엑세스 토큰으 전달해서 유저 정보를 조회하지 못하는 경우")
     public void getMe_Invalid_AccessToken_400() throws Exception {
         mockMvc.perform(get("/oauth/me")
                 .header(HttpHeaders.AUTHORIZATION, "invalid_token_!(@*#&!"))

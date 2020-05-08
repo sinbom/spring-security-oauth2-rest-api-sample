@@ -4,7 +4,8 @@ import me.nuguri.auth.common.BaseIntegrationTest;
 import me.nuguri.auth.entity.Account;
 import me.nuguri.auth.enums.Role;
 import me.nuguri.auth.service.AccountService;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.DisplayName;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.MediaTypes;
 import org.springframework.http.HttpHeaders;
@@ -31,6 +32,7 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
+@DisplayName("계정 API 테스트")
 public class AccountApiControllerTest extends BaseIntegrationTest {
 
     @Autowired
@@ -39,11 +41,8 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
-    /**
-     * 유저 로그인 API 방식 리턴 JSON 타입, 성공적으로 로그인 하는 경우
-     * @throws Exception
-     */
     @Test
+    @DisplayName("유저 로그인 API 방식 리턴 JSON 타입, 성공적으로 로그인 하는 경우")
     public void login_V1_Success_200() throws Exception {
         AccountApiController.LoginRequest request = new AccountApiController.LoginRequest();
         request.setUsername(properties.getAdminEmail());
@@ -70,11 +69,8 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
         );
     }
 
-    /**
-     * 유저 로그인 API 방식 리턴 JSON 타입, 잘못된 유저 정보로 로그인 실패하는 경우
-     * @throws Exception
-     */
     @Test
+    @DisplayName("유저 로그인 API 방식 리턴 JSON 타입, 잘못된 유저 정보로 로그인 실패하는 경우")
     public void login_V1_Unauthorized_401() throws Exception {
         AccountApiController.LoginRequest request = new AccountApiController.LoginRequest();
         request.setUsername(properties.getAdminEmail());
@@ -92,11 +88,8 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
                 .andDo(print());
     }
 
-    /**
-     * 유저 로그인 API 방식 리턴 JSON 타입, 유저 정보를 입력하지 않아 로그인 실패하는 경우
-     * @throws Exception
-     */
     @Test
+    @DisplayName("유저 로그인 API 방식 리턴 JSON 타입, 유저 정보를 입력하지 않아 로그인 실패하는 경우")
     public void login_V1_Invalid_400() throws Exception {
         AccountApiController.LoginRequest request = new AccountApiController.LoginRequest();
         request.setUsername("invalidUser");
@@ -114,15 +107,12 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
                 .andDo(print());
     }
 
-    /**
-     * 유저 정보 리스트 성공적으로 얻는 경우
-     * @throws Exception
-     */
     @Test
+    @DisplayName("유저 정보 리스트 성공적으로 얻는 경우")
     public void queryUsers_V1_Success_200() throws Exception {
         generateUser30();
         mockMvc.perform(get("/api/v1/users")
-                .with(user(properties.getAdminEmail()).password(properties.getAdminPassword()))
+                .with(user(properties.getAdminEmail()).password(properties.getAdminPassword()).roles(Role.ADMIN.toString()))
                 .accept(MediaTypes.HAL_JSON)
                 .queryParam("size", "10")
                 .queryParam("sort", "id,email,desc"))
@@ -177,26 +167,28 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
         );
     }
 
-    /**
-     * 유저 정보 리스트 요청 페이지 데이터 없어서 못 얻는 경우
-     * @throws Exception
-     */
+    @DisplayName("유저 정보 리스트 관리자 권한 없어서 못 얻는 경우")
+    public void queryUsers_V1_Forbidden_403() throws Exception {
+        mockMvc.perform(get("/api/v1/users")
+                .with(user(properties.getAdminEmail()).password(properties.getAdminPassword()).roles(Role.USER.toString()))
+                .accept(MediaTypes.HAL_JSON))
+                .andExpect(status().isForbidden())
+                .andDo(print());
+    }
+
     @Test
+    @DisplayName("유저 정보 리스트 요청 페이지 데이터 없어서 못 얻는 경우")
     public void queryUsers_V1_NotFound_404() throws Exception {
          mockMvc.perform(get("/api/v1/users")
-                .with(user(properties.getAdminEmail()).password(properties.getAdminPassword()))
-                .accept(MediaTypes.HAL_JSON)
-                .queryParam("page", "9999")
-                .queryParam("size", "10"))
+                 .queryParam("page", "18723671")
+                .with(user(properties.getAdminEmail()).password(properties.getAdminPassword()).roles(Role.ADMIN.toString()))
+                .accept(MediaTypes.HAL_JSON))
                 .andExpect(status().isNotFound())
                 .andDo(print());
     }
 
-    /**
-     * 유저 정보 리스트 잘못된 엑세스 토큰으로 못 얻는 경우
-     * @throws Exception
-     */
     @Test
+    @DisplayName("유저 정보 리스트 잘못된 엑세스 토큰으로 못 얻는 경우")
     public void queryUsers_V1_Invalid_Params_400() throws Exception {
         String[] pages = {"1-0", "0", "-98"};
         String[] sizes = {"asd", "08", "--12"};
@@ -204,7 +196,7 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
 
         for (int i = 0; i < pages.length; i++) {
             mockMvc.perform(get("/api/v1/users")
-                    .with(user(properties.getAdminEmail()).password(properties.getAdminPassword()))
+                    .with(user(properties.getAdminEmail()).password(properties.getAdminPassword()).roles(Role.ADMIN.toString()))
                     .accept(MediaTypes.HAL_JSON)
                     .queryParam("page", pages[i])
                     .queryParam("size", sizes[i])
@@ -219,11 +211,8 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
 
     }
 
-    /**
-     * 관리자가 유저 정보 성공적으로 얻는 경우
-     * @throws Exception
-     */
     @Test
+    @DisplayName("관리자가 유저 정보 성공적으로 얻는 경우")
     public void getUser_V1_Admin_Success_200() throws Exception {
         setAdminAuthentication();
         Account account = accountService.generate(Account.builder()
@@ -276,11 +265,8 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
         );
     }
 
-    /**
-     * 사용자 자신의 유저 정보 성공적으로 얻는 경우
-     * @throws Exception
-     */
     @Test
+    @DisplayName("사용자 자신의 유저 정보 성공적으로 얻는 경우")
     public void getUser_V1_User_Success_200() throws Exception {
         setUserAuthentication();
         Account account = accountService.find(properties.getUserEmail());
@@ -290,11 +276,8 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
                 .andExpect(status().isOk());
     }
 
-    /**
-     * 사용자가 자신의 유저 정보가 아닌 다른 정보를 얻지 못하는 경우
-     * @throws Exception
-     */
     @Test
+    @DisplayName("사용자가 자신의 유저 정보가 아닌 다른 정보를 얻지 못하는 경우")
     public void getUser_V1_User_Forbidden_403() throws Exception {
         setUserAuthentication();
         Account account = accountService.generate(Account.builder()
@@ -312,11 +295,8 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
                 .andExpect(status().isForbidden());
     }
 
-    /**
-     * 유저 정보 잘못된 식별자로 얻지 못하는 경우
-     * @throws Exception
-     */
     @Test
+    @DisplayName("유저 정보 잘못된 식별자로 얻지 못하는 경우")
     public void getUser_V1_Invalid_400() throws Exception {
         mockMvc.perform(get("/api/v1/user/{id}", "asdasd")
                 .with(user(properties.getAdminEmail()).password(properties.getAdminPassword()))
@@ -325,11 +305,8 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
                 .andExpect(status().isBadRequest());
     }
 
-    /**
-     * 유저 정보 존재하지 않는 식별자로 얻지 못하는 경우
-     * @throws Exception
-     */
     @Test
+    @DisplayName("유저 정보 존재하지 않는 식별자로 얻지 못하는 경우")
     public void getUser_No_Exist_404() throws Exception {
         setAdminAuthentication();
         mockMvc.perform(get("/api/v1/user/{id}", "1928361836")
@@ -342,11 +319,8 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
                 .andExpect(status().isNotFound());
     }
 
-    /**
-     * 유저 정보 생성 성공적인 경우
-     * @throws Exception
-     */
     @Test
+    @DisplayName("유저 정보 생성 성공적인 경우")
     public void generateUser_V1_Success_201() throws Exception {
         AccountApiController.GenerateUserRequest request =  new AccountApiController.GenerateUserRequest();
         request.setEmail("test200@naver.com");
@@ -402,11 +376,8 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
         );
     }
 
-    /**
-     * 유저 정보 생성 잘못된 입력 정보로 실패하는 경우
-     * @throws Exception
-     */
     @Test
+    @DisplayName("유저 정보 생성 잘못된 입력 정보로 실패하는 경우")
     public void generateUser_V1_Invalid_400() throws Exception {
         AccountApiController.GenerateUserRequest request =  new AccountApiController.GenerateUserRequest();
         request.setEmail("isNotEmailType");
@@ -425,11 +396,8 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
                 .andExpect(status().isBadRequest());
     }
 
-    /**
-     * 유저 정보 생성 이미 존재하는 입력 정보로 실패하는 경우
-     * @throws Exception
-     */
     @Test
+    @DisplayName("유저 정보 생성 이미 존재하는 입력 정보로 실패하는 경우")
     public void generateUser_V1_Already_Exist_400() throws Exception {
         String email = "already@test.com";
 
@@ -457,11 +425,8 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
                 .andExpect(status().isBadRequest());
     }
 
-    /**
-     * 유저 정보 부분 수정 성공적인 경우
-     * @throws Exception
-     */
     @Test
+    @DisplayName("유저 정보 부분 수정 성공적인 경우")
     public void updateUser_V1_Success_200() throws Exception {
         setAdminAuthentication();
 
@@ -525,11 +490,8 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
         assertThat(roles).isEqualTo(updated.getRoles());
     }
 
-    /**
-     * 유저 정보 부분 수정 유저 정보 존재하지 않는 경우
-     * @throws Exception
-     */
     @Test
+    @DisplayName("유저 정보 부분 수정 유저 정보 존재하지 않는 경우")
     public void updateUser_V1_NotFound_404() throws Exception {
         setAdminAuthentication();
 
@@ -545,11 +507,8 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
                 .andExpect(status().isNotFound());
     }
 
-    /**
-     * 유저 정보 부분 수정 잘못된 입력 값으로 실패하는 경우
-     * @throws Exception
-     */
     @Test
+    @DisplayName("유저 정보 부분 수정 잘못된 입력 값으로 실패하는 경우")
     public void updateUser_V1_Invalid_400() throws Exception {
         setAdminAuthentication();
 
@@ -566,11 +525,8 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
                 .andExpect(status().isBadRequest());
     }
 
-    /**
-     * 유저 정보 부분 수정 권한 없어서 실패하는 경우
-     * @throws Exception
-     */
     @Test
+    @DisplayName("유저 정보 부분 수정 권한 없어서 실패하는 경우")
     public void updateUser_V1_Forbidden_403() throws Exception {
         setUserAuthentication();
 
@@ -588,11 +544,8 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
                 .andExpect(status().isForbidden());
     }
 
-    /**
-     * 유저 정보 전체 수정 성공하는 경우
-     * @throws Exception
-     */
     @Test
+    @DisplayName("유저 정보 전체 수정 성공하는 경우")
     public void mergeUser_V1_Success_200() throws Exception {
         setAdminAuthentication();
 
@@ -655,11 +608,8 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
         assertThat(roles).isEqualTo(merge.getRoles());
     }
 
-    /**
-     * 유저 정보 없어서 수정하지 않고 생성하는 경우
-     * @throws Exception
-     */
     @Test
+    @DisplayName("유저 정보 없어서 수정하지 않고 생성하는 경우")
     public void mergeUser_V1_Success_403() throws Exception {
         setUserAuthentication();
 
@@ -677,11 +627,8 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
                 .andExpect(status().isForbidden());
     }
 
-    /**
-     * 유저 정보 전체 수정 유저 정보 존재하지 않는 경우
-     * @throws Exception
-     */
     @Test
+    @DisplayName("유저 정보 전체 수정 유저 정보 존재하지 않는 경우")
     public void mergeUser_V1_NotFound_404() throws Exception {
         setAdminAuthentication();
 
@@ -697,11 +644,8 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
                 .andExpect(status().isNotFound());
     }
 
-    /**
-     * 유저 정보 전체 수정 잘못된 입력 값으로 실패하는 경우
-     * @throws Exception
-     */
     @Test
+    @DisplayName("유저 정보 전체 수정 잘못된 입력 값으로 실패하는 경우")
     public void mergeUser_V1_Invalid_400() throws Exception {
         setAdminAuthentication();
 
@@ -718,11 +662,8 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
                 .andExpect(status().isBadRequest());
     }
 
-    /**
-     * 유저 정보 삭제 성공적인 경우
-     * @throws Exception
-     */
     @Test
+    @DisplayName("유저 정보 삭제 성공적인 경우")
     public void deleteUser_V1_Success_200() throws Exception {
         setAdminAuthentication();
         Account account = accountService.find(properties.getUserEmail());
@@ -771,11 +712,8 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
                 );
     }
 
-    /**
-     * 유저 정보 삭제 권한 없어서 실패하는 경우
-     * @throws Exception
-     */
     @Test
+    @DisplayName("유저 정보 삭제 권한 없어서 실패하는 경우")
     public void deleteUser_V1_Forbidden_403() throws Exception {
         setUserAuthentication();
         Account account = accountService.find(properties.getAdminEmail());
@@ -786,11 +724,8 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
                 .andExpect(status().isForbidden());
     }
 
-    /**
-     * 유저 정보 존재 하지 않아서 실패하는 경우
-     * @throws Exception
-     */
     @Test
+    @DisplayName("유저 정보 존재 하지 않아서 실패하는 경우")
     public void deleteUser_V1_Forbidden_404() throws Exception {
         setAdminAuthentication();
 
@@ -800,11 +735,8 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
                 .andExpect(status().isNotFound());
     }
 
-    /**
-     * 유저 정보 잘못된 입력 값으로 실패하는 경우
-     * @throws Exception
-     */
     @Test
+    @DisplayName("유저 정보 잘못된 입력 값으로 실패하는 경우")
     public void deleteUser_V1_Invalid_400() throws Exception {
         setAdminAuthentication();
 

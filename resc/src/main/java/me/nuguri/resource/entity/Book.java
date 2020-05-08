@@ -13,8 +13,8 @@ import java.util.List;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-@EqualsAndHashCode(of = "id")
-public class Book {
+@EqualsAndHashCode(of = "id", callSuper = false)
+public class Book extends BaseEntity {
 
     @Id
     @GeneratedValue

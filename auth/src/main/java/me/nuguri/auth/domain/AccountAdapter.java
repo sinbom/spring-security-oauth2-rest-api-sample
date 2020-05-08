@@ -1,5 +1,6 @@
 package me.nuguri.auth.domain;
 
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import me.nuguri.auth.entity.Account;
@@ -10,6 +11,7 @@ import java.util.stream.Collectors;
 
 @Getter
 @Setter
+@EqualsAndHashCode(of = "account", callSuper = false)
 public class AccountAdapter extends User {
 
     private Account account;

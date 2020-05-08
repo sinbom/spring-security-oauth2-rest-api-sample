@@ -1,7 +1,6 @@
 package me.nuguri.resource.entity;
 
 import lombok.*;
-import me.nuguri.resource.entity.embedded.CategoryBookId;
 
 import javax.persistence.*;
 
@@ -11,8 +10,8 @@ import javax.persistence.*;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-@EqualsAndHashCode(of = "id")
-public class CategoryBook {
+@EqualsAndHashCode(of = "id", callSuper = false)
+public class CategoryBook extends BaseEntity {
 
     @Id
     @GeneratedValue

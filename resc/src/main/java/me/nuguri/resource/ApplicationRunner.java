@@ -2,13 +2,10 @@ package me.nuguri.resource;
 
 import lombok.RequiredArgsConstructor;
 import me.nuguri.resource.entity.*;
-import me.nuguri.resource.entity.embedded.CategoryBookId;
 import me.nuguri.resource.repository.*;
-import org.apache.tomcat.jni.Local;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.stereotype.Component;
 
-import java.lang.reflect.Array;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;

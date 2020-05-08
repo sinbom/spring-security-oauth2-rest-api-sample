@@ -2,7 +2,8 @@ package me.nuguri.auth.config;
 
 import me.nuguri.auth.common.BaseIntegrationTest;
 import me.nuguri.auth.enums.GrantType;
-import org.junit.Test;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 import org.springframework.boot.json.JacksonJsonParser;
 import org.springframework.http.HttpHeaders;
 import org.springframework.mock.web.MockHttpSession;
@@ -22,13 +23,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+@DisplayName("Oauth2 인증 서버 설정 테스트")
 public class AuthorizationServerConfigurationTest  extends BaseIntegrationTest {
 
-    /**
-     * 인증 서버 엑세스 토큰 유효한 경우
-     * @throws Exception
-     */
     @Test
+    @DisplayName("인증 서버 엑세스 토큰 유효한 경우")
     public void checkAccessToken_Success_200() throws Exception {
         String access_token = (String) new JacksonJsonParser().parseMap(getAccessTokenPasswordGrantTypeResponse(properties.getAdminEmail(), properties.getAdminPassword())
                 .andReturn()
@@ -73,11 +72,8 @@ public class AuthorizationServerConfigurationTest  extends BaseIntegrationTest {
         );
     }
 
-    /**
-     * 인증 서버 엑세스 토큰 유효하지 않는 경우
-     * @throws Exception
-     */
     @Test
+    @DisplayName("인증 서버 엑세스 토큰 유효하지 않는 경우")
     public void checkAccessToken_Invalid_AccessToken_400() throws Exception {
         String access_token = (String) new JacksonJsonParser().parseMap(getAccessTokenPasswordGrantTypeResponse(properties.getAdminEmail(), properties.getAdminPassword())
                 .andReturn()
@@ -92,11 +88,8 @@ public class AuthorizationServerConfigurationTest  extends BaseIntegrationTest {
                 .andExpect(status().isBadRequest());
     }
 
-    /**
-     * 인증 서버 엑세스 토큰 Authorization Code 방식으로 정상적으로 얻는 경우
-     * @throws Exception
-     */
     @Test
+    @DisplayName("인증 서버 엑세스 토큰 Authorization Code 방식으로 정상적으로 얻는 경우")
     public void getAccessToken_GrantType_Authorization_Code_Success_200() throws Exception {
         setUserAuthentication();
 
@@ -133,10 +126,8 @@ public class AuthorizationServerConfigurationTest  extends BaseIntegrationTest {
         );
     }
 
-    /**
-     * 인증 서버 엑세스 토큰 Implicit 방식으로 정상적으로 얻는 경우
-     */
     @Test
+    @DisplayName("인증 서버 엑세스 토큰 Implicit 방식으로 정상적으로 얻는 경우")
     public void getAccessToken_GrantType_Implicit_Success_200() throws Exception {
         setUserAuthentication();
 
@@ -166,11 +157,8 @@ public class AuthorizationServerConfigurationTest  extends BaseIntegrationTest {
 
     }
 
-    /**
-     * 인증 서버 엑세스 토큰 Password 방식으로 정상적으로 얻는 경우
-     * @throws Exception
-     */
     @Test
+    @DisplayName("인증 서버 엑세스 토큰 Password 방식으로 정상적으로 얻는 경우")
     public void getAccessToken_GrantType_Password_Success_200() throws Exception {
         getAccessTokenPasswordGrantTypeResponse(properties.getAdminEmail(), properties.getAdminPassword())
                 .andExpect(status().isOk())
@@ -211,11 +199,8 @@ public class AuthorizationServerConfigurationTest  extends BaseIntegrationTest {
         );
     }
 
-    /**
-     * 인증 서버 엑세스 토큰 Password 방식으로 HttpBasic 헤더 값 없어서 얻지 못하는 경우
-     * @throws Exception
-     */
     @Test
+    @DisplayName("인증 서버 엑세스 토큰 Password 방식으로 HttpBasic 헤더 값 없어서 얻지 못하는 경우")
     public void getAccessToken_GrantType_Password_No_HttpBasic_401() throws Exception {
         mockMvc.perform(post("/oauth/token")
                 .param("username", properties.getAdminEmail())
@@ -226,11 +211,8 @@ public class AuthorizationServerConfigurationTest  extends BaseIntegrationTest {
         ;
     }
 
-    /**
-     * 인증 서버 엑세스 토큰 Password 방식으로 부정확한 username 및 password 입력으로 얻지 못하는 경우
-     * @throws Exception
-     */
     @Test
+    @DisplayName("인증 서버 엑세스 토큰 Password 방식으로 부정확한 username 및 password 입력으로 얻지 못하는 경우")
     public void getAccessToken_GrantType_Password_Invalid_Username_400() throws Exception {
         getAccessTokenPasswordGrantTypeResponse("noexistemail@test.com", "12341234")
                 .andDo(print())
@@ -238,11 +220,8 @@ public class AuthorizationServerConfigurationTest  extends BaseIntegrationTest {
         ;
     }
 
-    /**
-     * 인증 서버 엑세스 토큰 Refresh Token 방식으로 정상적으로 얻는 경우
-     * @throws Exception
-     */
     @Test
+    @DisplayName("인증 서버 엑세스 토큰 Refresh Token 방식으로 정상적으로 얻는 경우")
     public void getAccessToken_GrantType_RefreshToken_Success_200() throws Exception {
         String refresh_token = (String) new JacksonJsonParser()
                 .parseMap(getAccessTokenPasswordGrantTypeResponse(properties.getAdminEmail(), properties.getAdminPassword())
@@ -289,11 +268,8 @@ public class AuthorizationServerConfigurationTest  extends BaseIntegrationTest {
         );
     }
 
-    /**
-     * 인증 서버 엑세스 토큰 Refresh Token 방식으로 HttpBasic 헤더 값 없어서 얻지 못하는 경우
-     * @throws Exception
-     */
     @Test
+    @DisplayName("인증 서버 엑세스 토큰 Refresh Token 방식으로 HttpBasic 헤더 값 없어서 얻지 못하는 경우")
     public void getAccessToken_GrantType_RefreshToken_No_HttpBasic_401() throws Exception {
         String refresh_token = (String) new JacksonJsonParser()
                 .parseMap(getAccessTokenPasswordGrantTypeResponse(properties.getAdminEmail(), properties.getAdminPassword())
@@ -310,11 +286,8 @@ public class AuthorizationServerConfigurationTest  extends BaseIntegrationTest {
         ;
     }
 
-    /**
-     * 인증 서버 엑세스 토큰 Refresh Token 방식으로 부정확한 refresh token 입력으로 얻지 못하는 경우
-     * @throws Exception
-     */
     @Test
+    @DisplayName("인증 서버 엑세스 토큰 Refresh Token 방식으로 부정확한 refresh token 입력으로 얻지 못하는 경우")
     public void getAccessToken_GrantType_RefreshToken_Invalid_Token_400() throws Exception {
         getAccessTokenRefreshTokenGrantTypeResponse("invalid_token!@(#*&!@(*#")
                 .andExpect(status().isBadRequest())
@@ -322,11 +295,8 @@ public class AuthorizationServerConfigurationTest  extends BaseIntegrationTest {
         ;
     }
 
-    /**
-     * 인증 서버 엑세스 토큰 Client Credentials 방식으로 정상적으로 얻는 경우
-     * @throws Exception
-     */
     @Test
+    @DisplayName("인증 서버 엑세스 토큰 Client Credentials 방식으로 정상적으로 얻는 경우")
     public void getAccessToken_GrantType_ClientCredentials_Success_200() throws Exception {
         getAccessTokenClientCredentialsGrantTypeResponse(properties.getClientId(), properties.getClientSecret())
                 .andExpect(status().isOk())
@@ -357,11 +327,8 @@ public class AuthorizationServerConfigurationTest  extends BaseIntegrationTest {
         );
     }
 
-    /**
-     * 인증 서버 엑세스 토큰 Client Credentials 방식으로 HttpBasic 헤더 값 없어서 얻지 못하는 경우
-     * @throws Exception
-     */
     @Test
+    @DisplayName("인증 서버 엑세스 토큰 Client Credentials 방식으로 HttpBasic 헤더 값 없어서 얻지 못하는 경우")
     public void getAccessToken_GrantType_ClientCredentials_No_HttpBasic_401() throws Exception {
         mockMvc.perform(post("/oauth/token")
                 .param("grant_type", GrantType.CLIENT_CREDENTIALS.toString()))
@@ -370,11 +337,8 @@ public class AuthorizationServerConfigurationTest  extends BaseIntegrationTest {
         ;
     }
 
-    /**
-     * 인증 서버 엑세스 토큰 Client Credentials 방식으로 부정확한 HttpBasic 헤더 값 입력으로 얻지 못하는 경우
-     * @throws Exception
-     */
     @Test
+    @DisplayName("인증 서버 엑세스 토큰 Client Credentials 방식으로 부정확한 HttpBasic 헤더 값 입력으로 얻지 못하는 경우")
     public void getAccessToken_GrantType_ClientCredentials_Invalid_HttpBasic_401() throws Exception {
         getAccessTokenClientCredentialsGrantTypeResponse("invalid_client_id", "invalid_client_secret")
                 .andExpect(status().isUnauthorized())

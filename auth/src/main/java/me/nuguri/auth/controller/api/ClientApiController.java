@@ -1,6 +1,5 @@
 package me.nuguri.auth.controller.api;
 
-import lombok.Data;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;

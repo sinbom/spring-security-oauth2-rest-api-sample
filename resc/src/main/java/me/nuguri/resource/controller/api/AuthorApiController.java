@@ -19,8 +19,7 @@ import org.springframework.hateoas.PagedModel;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.Errors;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -56,6 +55,11 @@ public class AuthorApiController {
         queryAuthorsResources.add(linkTo(AuthorApiController.class).slash("/docs/author.html").withRel("document"));
         return ResponseEntity.ok(queryAuthorsResources);
     }
+
+/*    @PostMapping("/api/v1/author")
+    @PatchMapping("/api/v1/author/{id}")
+    @PutMapping("/api/v1/author/{id}")
+    @DeleteMapping("/api/v1/author/{id}")*/
 
     public static class QueryAuthorsResource extends EntityModel<GetAuthorResponse> {
         public QueryAuthorsResource(GetAuthorResponse content, Link... links) {

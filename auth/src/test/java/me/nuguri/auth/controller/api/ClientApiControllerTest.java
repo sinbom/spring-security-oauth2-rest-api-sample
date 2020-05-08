@@ -2,7 +2,8 @@ package me.nuguri.auth.controller.api;
 
 import me.nuguri.auth.common.BaseIntegrationTest;
 import org.codehaus.jackson.map.ObjectMapper;
-import org.junit.Test;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 
@@ -14,9 +15,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+@DisplayName("클라이언트 API 테스트")
 public class ClientApiControllerTest extends BaseIntegrationTest {
 
     @Test
+    @DisplayName("클라이언트 생성 성공적인 경우")
     public void generateClient_V1_Success_200() throws Exception {
         setUserAuthentication();
         ClientApiController.GenerateClientRequest request = new ClientApiController.GenerateClientRequest();
