@@ -65,7 +65,6 @@ public class AuthorizationServerConfiguration extends AuthorizationServerConfigu
                 .tokenEnhancer(tokenEnhancer)
                 .userDetailsService(userDetailsService)
                 .authenticationManager(authenticationManager);
-//                .tokenEnhancer(tokenEnhancer); 토근 발급 api 리턴 타입을 구현한 TokenEnhancer 응답으로 사용
     }
 
 }
