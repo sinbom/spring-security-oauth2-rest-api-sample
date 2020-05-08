@@ -110,12 +110,7 @@ public class ApplicationRunner implements org.springframework.boot.ApplicationRu
                 if (book.getCategoryBooks().stream().anyMatch(cb -> cb.getCategory().equals(minorCategory))) {
                     j--;
                 } else {
-                    CategoryBook categoryBook = CategoryBook.builder()
-                            .id(CategoryBookId.builder()
-                                    .bookId(book.getId())
-                                    .categoryId(minorCategory.getId())
-                                    .build())
-                            .build();
+                    CategoryBook categoryBook = new CategoryBook();
                     categoryBook.addMinorCategory(minorCategory);
                     categoryBook.addBook(book);
                     categoryBookRepository.save(categoryBook);

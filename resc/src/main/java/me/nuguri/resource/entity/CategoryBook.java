@@ -14,14 +14,13 @@ import javax.persistence.*;
 @EqualsAndHashCode(of = "id")
 public class CategoryBook {
 
-    @EmbeddedId
-    private CategoryBookId id;
+    @Id
+    @GeneratedValue
+    private Long id;
 
-    @MapsId("categoryId")
     @ManyToOne(fetch = FetchType.LAZY)
     private MinorCategory category;
 
-    @MapsId("bookId")
     @ManyToOne(fetch = FetchType.LAZY)
     private Book book;
 

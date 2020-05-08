@@ -4,11 +4,13 @@ import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import me.nuguri.resource.domain.ErrorResponse;
 import me.nuguri.resource.domain.Pagination;
+import me.nuguri.resource.domain.PaginationResource;
 import me.nuguri.resource.entity.Author;
 import me.nuguri.resource.entity.Book;
 import me.nuguri.resource.service.AuthorService;
 import me.nuguri.resource.validator.PaginationValidator;
 import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.Page;
 import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.Link;
@@ -26,6 +28,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 @RestController
 @RequiredArgsConstructor
@@ -38,13 +41,18 @@ public class AuthorApiController {
     private final ModelMapper modelMapper;
 
     @GetMapping(value = "/api/v1/authors", produces = MediaTypes.HAL_JSON_VALUE)
-    public ResponseEntity<?> queryAuthors(PagedResourcesAssembler<Author> assembler, Pagination pagination, Errors errors) {
+    public ResponseEntity<?> queryAuthors(Pagination pagination, Errors errors) {
         paginationValidator.validate(pagination, Author.class, errors);
         if (errors.hasErrors()) {
             return ResponseEntity.badRequest().body(new ErrorResponse(HttpStatus.BAD_REQUEST, "invalid parameters", errors));
         }
-        PagedModel<QueryAuthorsResource> queryAuthorsResources = assembler.toModel(authorService.findAll(pagination.getPageable()),
-                author -> new QueryAuthorsResource(new GetAuthorResponse(author)));
+        Page<Author> page = authorService.findAll(pagination.getPageable());
+        if (page.getNumberOfElements() < 1) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(new ErrorResponse(HttpStatus.NOT_FOUND, page.getTotalElements() < 1 ? "content of all pages does not exist" : "content of current page does not exist"));
+        }
+        PaginationResource<QueryAuthorsResource> queryAuthorsResources = new PaginationResource<>(page, author -> new QueryAuthorsResource(new GetAuthorResponse(author)));
+        queryAuthorsResources.addPaginationLink(pagination, linkTo(methodOn(AuthorApiController.class).queryAuthors(null, null)));
         queryAuthorsResources.add(linkTo(AuthorApiController.class).slash("/docs/author.html").withRel("document"));
         return ResponseEntity.ok(queryAuthorsResources);
     }

@@ -18,11 +18,15 @@ public class PaginationValidator {
      * @param <T> 페이징 객체 엔티티 타입
      */
     public <T> void validate(Pagination pagination, Class<T> entityType, Errors errors) {
-        if (!pagination.getPage().matches("^[1-9][0-9]*$")) {
-            errors.rejectValue("page", "wrongValue", "page is wrong");
+        if (!StringUtils.isEmpty(pagination.getPage())) {
+            if (!pagination.getPage().matches("^[1-9][0-9]*$")) {
+                errors.rejectValue("page", "wrongValue", "page is wrong");
+            }
         }
-        if (!pagination.getSize().matches("^[1-9][0-9]*$")) {
-            errors.rejectValue("size", "wrongValue", "size is wrong");
+        if (!StringUtils.isEmpty(pagination.getSize())) {
+            if (!pagination.getSize().matches("^[1-9][0-9]*$")) {
+                errors.rejectValue("size", "wrongValue", "size is wrong");
+            }
         }
         if (!StringUtils.isEmpty(pagination.getSort())) {
             String[] sort = pagination.getSort().split(",");

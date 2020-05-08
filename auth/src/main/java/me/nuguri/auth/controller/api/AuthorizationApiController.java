@@ -1,7 +1,9 @@
 package me.nuguri.auth.controller.api;
 
 import lombok.Data;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import me.nuguri.auth.annotation.AuthorizationBearerToken;
 import me.nuguri.auth.domain.ErrorResponse;
 import me.nuguri.auth.enums.Role;
@@ -66,7 +68,7 @@ public class AuthorizationApiController {
 
     // ==========================================================================================================================================
     // Domain
-    @Data
+    @Getter @Setter
     public static class GetMeResponse {
         private String email;
         private Set<Role> roles;

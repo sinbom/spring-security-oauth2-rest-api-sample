@@ -1,21 +1,22 @@
 package me.nuguri.auth.controller.api;
 
-import lombok.Data;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import me.nuguri.auth.annotation.AuthenticationUser;
 import me.nuguri.auth.domain.ErrorResponse;
 import me.nuguri.auth.domain.Pagination;
+import me.nuguri.auth.domain.PaginationResource;
 import me.nuguri.auth.entity.Account;
 import me.nuguri.auth.enums.Role;
 import me.nuguri.auth.exception.UserNotExistException;
 import me.nuguri.auth.service.AccountService;
 import me.nuguri.auth.validator.PaginationValidator;
 import org.modelmapper.ModelMapper;
-import org.springframework.data.web.PagedResourcesAssembler;
+import org.springframework.data.domain.Page;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.Link;
 import org.springframework.hateoas.MediaTypes;
-import org.springframework.hateoas.PagedModel;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -65,21 +66,25 @@ public class AccountApiController {
 
     /**
      * 유저 정보 페이징 조회
-     * @param assembler 페이징 리소스
      * @param pagination page 페이지 번호, size 페이지 당 갯수, sort 정렬(방식,기준)
      * @param errors 에러
      * @return
      */
     @GetMapping(value = "/api/v1/users", produces = MediaTypes.HAL_JSON_VALUE)
-    public ResponseEntity<?> queryUsers(PagedResourcesAssembler<Account> assembler, Pagination pagination, Errors errors) {
+    public ResponseEntity<?> queryUsers(Pagination pagination, Errors errors) {
         paginationValidator.validate(pagination, Account.class, errors);
         if (errors.hasErrors()) {
             return ResponseEntity.badRequest().body(new ErrorResponse(HttpStatus.BAD_REQUEST, "invalid parameter value", errors));
         }
-        PagedModel<QueryUsersResource> queryUsersResources = assembler.toModel(accountService.findAll(pagination.getPageable()),
-                account -> new QueryUsersResource(modelMapper.map(account, GetUserResponse.class)));
-        queryUsersResources.add(linkTo(AccountApiController.class).slash("/docs/account.html").withRel("document"));
-        return ResponseEntity.ok(queryUsersResources);
+        Page<Account> page = accountService.findAll(pagination.getPageable());
+        if (page.getNumberOfElements() < 1) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(new ErrorResponse(HttpStatus.NOT_FOUND, page.getTotalElements() < 1 ? "content of all pages does not exist" : "content of current page does not exist"));
+        }
+        PaginationResource<QueryUsersResource> resource = new PaginationResource<>(page, account -> new QueryUsersResource(modelMapper.map(account, GetUserResponse.class)));
+        resource.addPaginationLink(pagination, linkTo(methodOn(AccountApiController.class).queryUsers(null, null)));
+        resource.add(linkTo(AccountApiController.class).slash("/docs/account.html").withRel("document"));
+        return ResponseEntity.ok(resource);
     }
 
     /**
@@ -208,7 +213,7 @@ public class AccountApiController {
 
     // ==========================================================================================================================================
     // Domain
-    @Data
+    @Getter @Setter
     public static class LoginRequest {
         @NotBlank
         private String username;
@@ -216,7 +221,7 @@ public class AccountApiController {
         private String password;
     }
 
-    @Data
+    @Getter @Setter
     public static class LoginResponse {
         private String sessionId;
         public LoginResponse(String sessionId) {
@@ -224,7 +229,7 @@ public class AccountApiController {
         }
     }
 
-    @Data
+    @Getter @Setter
     public static class GenerateUserRequest {
         @NotBlank
         private String email;
@@ -234,7 +239,7 @@ public class AccountApiController {
         private Set<Role> roles;
     }
 
-    @Data
+    @Getter @Setter
     public static class UpdateUserRequest {
         @NotBlank
         private String password;
@@ -242,7 +247,7 @@ public class AccountApiController {
         private Set<Role> roles;
     }
 
-    @Data
+    @Getter @Setter
     public static class GetUserResponse {
         private Long id;
         private String email;
@@ -255,7 +260,7 @@ public class AccountApiController {
     public static class QueryUsersResource extends EntityModel<GetUserResponse> {
         public QueryUsersResource(GetUserResponse content, Link... links) {
             super(content, links);
-            add(linkTo(methodOn(AccountApiController.class).queryUsers(null, null, null)).withSelfRel().withType("GET"));
+            add(linkTo(methodOn(AccountApiController.class).queryUsers( null, null)).withSelfRel().withType("GET"));
             add(linkTo(methodOn(AccountApiController.class).getUser(content.getId(), null)).withRel("getUser").withType("GET"));
             add(linkTo(methodOn(AccountApiController.class).updateUser(content.getId(), null, null, null)).withRel("updateUser").withType("PATCH"));
             add(linkTo(methodOn(AccountApiController.class).mergeUser(content.getId(), null, null, null)).withRel("mergeUser").withType("PUT"));

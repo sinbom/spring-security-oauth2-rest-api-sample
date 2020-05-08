@@ -124,7 +124,6 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
         mockMvc.perform(get("/api/v1/users")
                 .with(user(properties.getAdminEmail()).password(properties.getAdminPassword()))
                 .accept(MediaTypes.HAL_JSON)
-                .queryParam("page", "1")
                 .queryParam("size", "10")
                 .queryParam("sort", "id,email,desc"))
                 .andExpect(status().isOk())
@@ -150,19 +149,19 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
                                 headerWithName("X-Frame-Options").description("X-Frame-Options")
                         ),
                         responseFields(
-                                fieldWithPath("_embedded.getUserResponseList[*].id").description("account id"),
-                                fieldWithPath("_embedded.getUserResponseList[*].email").description("account email"),
-                                fieldWithPath("_embedded.getUserResponseList[*].roles").description("account roles"),
-                                fieldWithPath("_embedded.getUserResponseList[*]._links.self.href").description("self link"),
-                                fieldWithPath("_embedded.getUserResponseList[*]._links.getUser.href").description("getUser link"),
-                                fieldWithPath("_embedded.getUserResponseList[*]._links.updateUser.href").description("updateUser link"),
-                                fieldWithPath("_embedded.getUserResponseList[*]._links.mergeUser.href").description("mergeUser link"),
-                                fieldWithPath("_embedded.getUserResponseList[*]._links.deleteUser.href").description("deleteUser link"),
-                                fieldWithPath("_embedded.getUserResponseList[*]._links.self.type").description("self link http method type"),
-                                fieldWithPath("_embedded.getUserResponseList[*]._links.getUser.type").description("getUser link http method type"),
-                                fieldWithPath("_embedded.getUserResponseList[*]._links.updateUser.type").description("updateUser link http method type"),
-                                fieldWithPath("_embedded.getUserResponseList[*]._links.mergeUser.type").description("mergeUser link http method type"),
-                                fieldWithPath("_embedded.getUserResponseList[*]._links.deleteUser.type").description("deleteUser link http method type"),
+                                fieldWithPath("_contents[*].id").description("account id"),
+                                fieldWithPath("_contents[*].email").description("account email"),
+                                fieldWithPath("_contents[*].roles").description("account roles"),
+                                fieldWithPath("_contents[*]._links.self.href").description("self link"),
+                                fieldWithPath("_contents[*]._links.getUser.href").description("getUser link"),
+                                fieldWithPath("_contents[*]._links.updateUser.href").description("updateUser link"),
+                                fieldWithPath("_contents[*]._links.mergeUser.href").description("mergeUser link"),
+                                fieldWithPath("_contents[*]._links.deleteUser.href").description("deleteUser link"),
+                                fieldWithPath("_contents[*]._links.self.type").description("self link http method type"),
+                                fieldWithPath("_contents[*]._links.getUser.type").description("getUser link http method type"),
+                                fieldWithPath("_contents[*]._links.updateUser.type").description("updateUser link http method type"),
+                                fieldWithPath("_contents[*]._links.mergeUser.type").description("mergeUser link http method type"),
+                                fieldWithPath("_contents[*]._links.deleteUser.type").description("deleteUser link http method type"),
                                 fieldWithPath("_links.first.href").description("first page link"),
                                 fieldWithPath("_links.prev.href").description("prev page link"),
                                 fieldWithPath("_links.self.href").description("self link"),
@@ -179,12 +178,27 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
     }
 
     /**
+     * 유저 정보 리스트 요청 페이지 데이터 없어서 못 얻는 경우
+     * @throws Exception
+     */
+    @Test
+    public void queryUsers_V1_NotFound_404() throws Exception {
+         mockMvc.perform(get("/api/v1/users")
+                .with(user(properties.getAdminEmail()).password(properties.getAdminPassword()))
+                .accept(MediaTypes.HAL_JSON)
+                .queryParam("page", "9999")
+                .queryParam("size", "10"))
+                .andExpect(status().isNotFound())
+                .andDo(print());
+    }
+
+    /**
      * 유저 정보 리스트 잘못된 엑세스 토큰으로 못 얻는 경우
      * @throws Exception
      */
     @Test
     public void queryUsers_V1_Invalid_Params_400() throws Exception {
-        String[] pages = {"1-0", "06", "-98"};
+        String[] pages = {"1-0", "0", "-98"};
         String[] sizes = {"asd", "08", "--12"};
         String[] sorts = {"zxczxczxc,zxc", "zxczxczxc", "id,qwe"};
 

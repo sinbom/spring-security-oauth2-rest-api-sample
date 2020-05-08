@@ -1,7 +1,9 @@
 package me.nuguri.auth.controller.api;
 
 import lombok.Data;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import me.nuguri.auth.annotation.AuthenticationUser;
 import me.nuguri.auth.domain.ErrorResponse;
 import me.nuguri.auth.entity.Account;
@@ -44,7 +46,7 @@ public class ClientApiController {
         return ResponseEntity.ok(new GenerateClientResponse(client));
     }
 
-    @Data
+    @Getter @Setter
     public static class GenerateClientRequest {
         @NotEmpty
         private List<String> resourceIds;
@@ -67,7 +69,7 @@ public class ClientApiController {
         }
     }
 
-    @Data
+    @Getter @Setter
     public static class GenerateClientResponse {
         private String clientId;
         private String clientSecret;
