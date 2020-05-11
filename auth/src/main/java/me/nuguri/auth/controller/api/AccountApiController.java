@@ -4,6 +4,7 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import me.nuguri.auth.annotation.AuthenticationUser;
+import me.nuguri.auth.annotation.HasAuthority;
 import me.nuguri.auth.domain.ErrorResponse;
 import me.nuguri.auth.domain.Pagination;
 import me.nuguri.auth.domain.PaginationResource;
@@ -107,15 +108,13 @@ public class AccountApiController {
      * @return
      */
     @GetMapping(value = "/api/v1/user/{id}", produces = MediaTypes.HAL_JSON_VALUE)
+    @HasAuthority
     public ResponseEntity<?> getUser(@PathVariable Long id, @AuthenticationUser Account loginAccount) {
-        if (hasAuthority(loginAccount, id)) {
-            try {
-                return ResponseEntity.ok(new GetUserResource(modelMapper.map(accountService.find(id), GetUserResponse.class)));
-            } catch (UserNotExistException e) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponse(HttpStatus.NOT_FOUND, "not exist account of id"));
-            }
+        try {
+            return ResponseEntity.ok(new GetUserResource(modelMapper.map(accountService.find(id), GetUserResponse.class)));
+        } catch (UserNotExistException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponse(HttpStatus.NOT_FOUND, "not exist account of id"));
         }
-        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new ErrorResponse(HttpStatus.FORBIDDEN, "have no authority"));
     }
 
     /**
@@ -149,6 +148,7 @@ public class AccountApiController {
      * @return
      */
     @PatchMapping(value = "/api/v1/user/{id}")
+    @HasAuthority
     public ResponseEntity<?> updateUser(@PathVariable Long id, @RequestBody UpdateUserRequest request, Errors errors, @AuthenticationUser Account loginAccount) {
         Account account = modelMapper.map(request, Account.class);
         account.setId(id);
@@ -156,14 +156,11 @@ public class AccountApiController {
         if (errors.hasErrors()) {
             return ResponseEntity.badRequest().body(new ErrorResponse(HttpStatus.BAD_REQUEST, "invalid value", errors));
         }
-        if (hasAuthority(loginAccount, id)) {
-            try {
-                return ResponseEntity.ok(new UpdateUserResource(modelMapper.map(accountService.update(account), GetUserResponse.class)));
-            } catch (Exception e) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponse(HttpStatus.NOT_FOUND, "not exist account of id"));
-            }
+        try {
+            return ResponseEntity.ok(new UpdateUserResource(modelMapper.map(accountService.update(account), GetUserResponse.class)));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponse(HttpStatus.NOT_FOUND, "not exist account of id"));
         }
-        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new ErrorResponse(HttpStatus.FORBIDDEN, "have no authority"));
     }
 
     /**
@@ -175,6 +172,7 @@ public class AccountApiController {
      * @return
      */
     @PutMapping(value = "/api/v1/user/{id}")
+    @HasAuthority
     public ResponseEntity<?> mergeUser(@PathVariable Long id, @RequestBody @Valid UpdateUserRequest request, Errors errors, @AuthenticationUser Account loginAccount) {
         Account account = modelMapper.map(request, Account.class);
         account.setId(id);
@@ -182,14 +180,11 @@ public class AccountApiController {
         if (errors.hasErrors()) {
             return ResponseEntity.badRequest().body(new ErrorResponse(HttpStatus.BAD_REQUEST, "invalid value", errors));
         }
-        if (hasAuthority(loginAccount, id)) {
-            try {
-                return ResponseEntity.ok(new MergeUserResource(modelMapper.map(accountService.merge(account), GetUserResponse.class)));
-            } catch (UserNotExistException e) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponse(HttpStatus.NOT_FOUND, "not exist account of id"));
-            }
+        try {
+            return ResponseEntity.ok(new MergeUserResource(modelMapper.map(accountService.merge(account), GetUserResponse.class)));
+        } catch (UserNotExistException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponse(HttpStatus.NOT_FOUND, "not exist account of id"));
         }
-        return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
     }
 
     /**
@@ -199,30 +194,14 @@ public class AccountApiController {
      * @return
      */
     @DeleteMapping(value = "/api/v1/user/{id}")
+    @HasAuthority
     public ResponseEntity<?> deleteUser(@PathVariable Long id, @AuthenticationUser Account loginAccount) {
-        if (hasAuthority(loginAccount, id)) {
-            try {
-                return ResponseEntity.ok(new DeleteUserResource(modelMapper.map(accountService.delete(id), GetUserResponse.class)));
-            } catch (UserNotExistException e) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponse(HttpStatus.NOT_FOUND, "not exist account of id"));
-            }
+        try {
+            return ResponseEntity.ok(new DeleteUserResource(modelMapper.map(accountService.delete(id), GetUserResponse.class)));
+        } catch (UserNotExistException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponse(HttpStatus.NOT_FOUND, "not exist account of id"));
         }
-        return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
     }
-
-    // ==========================================================================================================================================
-    // Common Method
-
-    /**
-     * 현재 로그인된 계정의 식별키와 CRUD 하고자 하는 식별키가 동일하거나 로그인 계정이 관리자 권한인지 확인
-     * @param loginAccount 현재 로그인 된 계정(세션)
-     * @param id 식별키
-     * @return
-     */
-    private boolean hasAuthority(Account loginAccount, Long id) {
-        return loginAccount.getId().equals(id) || loginAccount.getRoles().stream().anyMatch(r -> r.equals(Role.ADMIN));
-    }
-    // ==========================================================================================================================================
 
     // ==========================================================================================================================================
     // Domain

@@ -298,8 +298,8 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
     @Test
     @DisplayName("유저 정보 잘못된 식별자로 얻지 못하는 경우")
     public void getUser_V1_Invalid_400() throws Exception {
+        setAdminAuthentication();
         mockMvc.perform(get("/api/v1/user/{id}", "asdasd")
-                .with(user(properties.getAdminEmail()).password(properties.getAdminPassword()))
                 .accept(MediaTypes.HAL_JSON))
                 .andDo(print())
                 .andExpect(status().isBadRequest());
@@ -609,7 +609,7 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
     }
 
     @Test
-    @DisplayName("유저 정보 없어서 수정하지 않고 생성하는 경우")
+    @DisplayName("유저 정보 전체 수정 권한 없어서 실패하는 경우")
     public void mergeUser_V1_Success_403() throws Exception {
         setUserAuthentication();
 
@@ -717,7 +717,6 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
     public void deleteUser_V1_Forbidden_403() throws Exception {
         setUserAuthentication();
         Account account = accountService.find(properties.getAdminEmail());
-
         mockMvc.perform(delete("/api/v1/user/{id}", account.getId())
                 .accept(MediaTypes.HAL_JSON))
                 .andDo(print())
@@ -728,7 +727,6 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
     @DisplayName("유저 정보 존재 하지 않아서 실패하는 경우")
     public void deleteUser_V1_Forbidden_404() throws Exception {
         setAdminAuthentication();
-
         mockMvc.perform(delete("/api/v1/user/{id}", "123123123123")
                 .accept(MediaTypes.HAL_JSON))
                 .andDo(print())
@@ -739,7 +737,6 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
     @DisplayName("유저 정보 잘못된 입력 값으로 실패하는 경우")
     public void deleteUser_V1_Invalid_400() throws Exception {
         setAdminAuthentication();
-
         mockMvc.perform(delete("/api/v1/user/{id}", "asdasd")
                 .accept(MediaTypes.HAL_JSON))
                 .andDo(print())

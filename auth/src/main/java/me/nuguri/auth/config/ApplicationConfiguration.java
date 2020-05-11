@@ -3,21 +3,14 @@ package me.nuguri.auth.config;
 import lombok.RequiredArgsConstructor;
 import me.nuguri.auth.domain.AccountAdapter;
 import me.nuguri.auth.enums.GrantType;
-import org.codehaus.jackson.map.ObjectMapper;
 import org.modelmapper.ModelMapper;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Primary;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.common.DefaultOAuth2AccessToken;
-import org.springframework.security.oauth2.provider.approval.ApprovalStore;
-import org.springframework.security.oauth2.provider.approval.JdbcApprovalStore;
-import org.springframework.security.oauth2.provider.token.AuthorizationServerTokenServices;
-import org.springframework.security.oauth2.provider.token.DefaultTokenServices;
 import org.springframework.security.oauth2.provider.token.TokenEnhancer;
 import org.springframework.security.oauth2.provider.token.TokenStore;
-import org.springframework.security.oauth2.provider.token.store.InMemoryTokenStore;
 import org.springframework.security.oauth2.provider.token.store.JdbcTokenStore;
 
 import javax.sql.DataSource;
@@ -34,9 +27,6 @@ public class ApplicationConfiguration {
     public ModelMapper modelMapper() {
         return new ModelMapper();
     }
-
-    @Bean
-    public ObjectMapper objectMapper() { return new ObjectMapper(); }
 
     @Bean
     public PasswordEncoder passwordEncoder() {
