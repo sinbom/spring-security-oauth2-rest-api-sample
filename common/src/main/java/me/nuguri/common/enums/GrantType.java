@@ -1,4 +1,4 @@
-package me.nuguri.auth.enums;
+package me.nuguri.common.enums;
 
 /**
  * 권한 부여 방식

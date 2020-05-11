@@ -2,7 +2,7 @@ package me.nuguri.auth.config;
 
 import lombok.RequiredArgsConstructor;
 import me.nuguri.auth.domain.AccountAdapter;
-import me.nuguri.auth.enums.GrantType;
+import me.nuguri.common.enums.GrantType;
 import org.modelmapper.ModelMapper;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

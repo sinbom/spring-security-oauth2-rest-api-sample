@@ -1,9 +1,8 @@
-package me.nuguri.auth.serializer;
+package me.nuguri.common.serializer;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.SerializerProvider;
-import org.springframework.boot.jackson.JsonComponent;
 import org.springframework.validation.Errors;
 
 import java.io.IOException;
@@ -11,7 +10,6 @@ import java.io.IOException;
 /**
  * Errors 구현체 JSON Parsing 시 해당 Serializer 사용하여 Parsing
  */
-@JsonComponent
 public class ErrorsSerializer extends JsonSerializer<Errors> {
 
     @Override

@@ -4,9 +4,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import me.nuguri.auth.annotation.HasAuthority;
 import me.nuguri.auth.domain.AccountAdapter;
-import me.nuguri.auth.domain.ErrorResponse;
 import me.nuguri.auth.entity.Account;
-import me.nuguri.auth.enums.Role;
+import me.nuguri.common.domain.ErrorResponse;
+import me.nuguri.common.enums.Role;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
@@ -17,7 +17,6 @@ import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.time.LocalDateTime;
 import java.util.Map;
 
 @Component

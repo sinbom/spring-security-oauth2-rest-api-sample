@@ -1,4 +1,4 @@
-package me.nuguri.auth.domain;
+package me.nuguri.common.domain;
 
 import lombok.Data;
 import org.springframework.data.domain.PageRequest;

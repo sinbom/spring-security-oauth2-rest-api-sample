@@ -1,8 +1,7 @@
 package me.nuguri.auth.controller.api;
 
 import me.nuguri.auth.common.BaseIntegrationTest;
-import me.nuguri.auth.enums.GrantType;
-import org.junit.jupiter.api.Disabled;
+import me.nuguri.common.enums.GrantType;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.json.JacksonJsonParser;

@@ -1,13 +1,12 @@
-package me.nuguri.auth.validator;
+package me.nuguri.common.validator;
 
-import me.nuguri.auth.domain.Pagination;
+import me.nuguri.common.domain.Pagination;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.springframework.validation.Errors;
 
 import java.util.stream.Stream;
 
-@Component
 public class PaginationValidator {
 
     /**

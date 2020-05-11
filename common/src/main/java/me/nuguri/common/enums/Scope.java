@@ -1,4 +1,4 @@
-package me.nuguri.auth.enums;
+package me.nuguri.common.enums;
 
 /**
  * 접근 범위

@@ -1,4 +1,4 @@
-package me.nuguri.auth.domain;
+package me.nuguri.common.domain;
 
 import lombok.Getter;
 import lombok.Setter;

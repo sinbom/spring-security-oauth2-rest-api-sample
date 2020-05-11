@@ -2,7 +2,7 @@ package me.nuguri.auth.controller.api;
 
 import me.nuguri.auth.common.BaseIntegrationTest;
 import me.nuguri.auth.entity.Account;
-import me.nuguri.auth.enums.Role;
+import me.nuguri.common.enums.Role;
 import me.nuguri.auth.service.AccountService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.DisplayName;

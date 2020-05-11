@@ -1,6 +1,8 @@
-package me.nuguri.auth.domain;
+package me.nuguri.common.domain;
 
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import lombok.Data;
+import me.nuguri.common.serializer.ErrorsSerializer;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.Errors;
 
@@ -17,6 +19,7 @@ public class ErrorResponse {
 
     private String message;
 
+    @JsonSerialize(using = ErrorsSerializer.class)
     private Errors errors;
 
     public ErrorResponse(HttpStatus httpStatus, String message) {

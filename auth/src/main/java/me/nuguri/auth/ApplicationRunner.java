@@ -1,14 +1,14 @@
 package me.nuguri.auth;
 
 import lombok.RequiredArgsConstructor;
-import me.nuguri.auth.property.AuthServerConfigProperties;
-import me.nuguri.auth.enums.GrantType;
-import me.nuguri.auth.enums.Role;
-import me.nuguri.auth.enums.Scope;
 import me.nuguri.auth.entity.Account;
 import me.nuguri.auth.entity.Client;
+import me.nuguri.auth.property.AuthServerConfigProperties;
 import me.nuguri.auth.repository.AccountRepository;
 import me.nuguri.auth.repository.ClientRepository;
+import me.nuguri.common.enums.GrantType;
+import me.nuguri.common.enums.Role;
+import me.nuguri.common.enums.Scope;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
