@@ -20,4 +20,13 @@ public class AuthorService {
         return authorRepository.findAll(pageable);
     }
 
+    @Transactional(readOnly = true)
+    public Author find(Long id) {
+        return authorRepository.findById(id).orElseThrow(RuntimeException::new);
+    }
+
+    public Author generate(Author author) {
+        return authorRepository.save(author);
+    }
+
 }

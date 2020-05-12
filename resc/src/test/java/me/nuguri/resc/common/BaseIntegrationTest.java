@@ -1,5 +1,6 @@
 package me.nuguri.resc.common;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import me.nuguri.resc.config.RestDocsConfiguration;
 import me.nuguri.resc.property.ResourceServerConfigProperties;
 import org.junit.Ignore;
@@ -41,6 +42,9 @@ public abstract class BaseIntegrationTest {
 
     @Autowired
     protected ResourceServerConfigProperties resourceServerConfigProperties;
+
+    @Autowired
+    protected ObjectMapper objectMapper;
 
     protected String getAccessToken() {
         HttpHeaders headers = new HttpHeaders();
