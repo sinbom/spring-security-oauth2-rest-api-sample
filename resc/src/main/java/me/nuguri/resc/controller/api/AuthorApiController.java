@@ -1,7 +1,6 @@
 package me.nuguri.resc.controller.api;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import lombok.Data;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
@@ -14,20 +13,16 @@ import me.nuguri.resc.entity.Book;
 import me.nuguri.resc.service.AuthorService;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
-import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.Link;
 import org.springframework.hateoas.MediaTypes;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.oauth2.provider.OAuth2Authentication;
 import org.springframework.stereotype.Component;
 import org.springframework.validation.Errors;
 import org.springframework.web.bind.annotation.*;
 
-import javax.security.sasl.AuthorizeCallback;
 import javax.validation.Valid;
-import javax.xml.ws.Response;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
