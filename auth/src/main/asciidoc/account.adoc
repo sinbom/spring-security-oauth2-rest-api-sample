@@ -15,14 +15,7 @@ api;
 [[resources-index]]
 == 인덱스
 
-account API는 계정 관련 CRUD 서비스를 제공한다.
-
-[[login-api]]
-=== 로그인 세션 아이디 발급 - API 방식
-
-`POST` 요청을 사용하여 세션 아이디를 발급받을 수 있다.
-
-operation::login-api[snippets='curl-request,http-request,request-headers,request-body,http-response,response-headers,response-fields']
+account REST API는 계정 관련 CRUD 서비스를 제공한다.
 
 [[query-users]]
 === 계정 리스트 페이징 조회

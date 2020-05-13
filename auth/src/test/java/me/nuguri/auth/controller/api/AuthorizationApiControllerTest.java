@@ -24,18 +24,8 @@ public class AuthorizationApiControllerTest extends BaseIntegrationTest {
     @Test
     @DisplayName("인증 서버 엑세스 토큰 정상적으로 만료되는 경우")
     public void revokeAccessToken_Success_200() throws Exception {
-        String access_token = (String) new JacksonJsonParser()
-                .parseMap(mockMvc.perform(post("/oauth/token")
-                        .with(httpBasic(properties.getClientId(), properties.getClientSecret()))
-                        .param("username", properties.getAdminEmail())
-                        .param("password", properties.getAdminPassword())
-                        .param("grant_type", GrantType.PASSWORD.toString()))
-                        .andReturn()
-                        .getResponse()
-                        .getContentAsString()).get("access_token");
-
         mockMvc.perform(post("/oauth/revoke_token")
-                .header(HttpHeaders.AUTHORIZATION, access_token))
+                .header(HttpHeaders.AUTHORIZATION, getAccessToken(properties.getAdminEmail(), properties.getAdminPassword())))
                 .andExpect(status().isOk())
                 .andDo(print())
                 .andDo(document("revoke-access_token",
@@ -59,7 +49,7 @@ public class AuthorizationApiControllerTest extends BaseIntegrationTest {
                                 fieldWithPath("id").description("account id")
                         )
                 )
-        );
+                );
     }
 
     @Test
@@ -90,18 +80,8 @@ public class AuthorizationApiControllerTest extends BaseIntegrationTest {
     @Test
     @DisplayName("인증 서버 엑세스 토큰을 전달해 현재 토큰의 유저 정보를 성공적으로 조회하는 경우")
     public void getMe_Success_200() throws Exception {
-        String access_token = (String) new JacksonJsonParser()
-                .parseMap(mockMvc.perform(post("/oauth/token")
-                        .with(httpBasic(properties.getClientId(), properties.getClientSecret()))
-                        .param("username", properties.getAdminEmail())
-                        .param("password", properties.getAdminPassword())
-                        .param("grant_type", GrantType.PASSWORD.toString()))
-                        .andReturn()
-                        .getResponse()
-                        .getContentAsString()).get("access_token");
-
         mockMvc.perform(get("/oauth/me")
-                .header(HttpHeaders.AUTHORIZATION, access_token))
+                .header(HttpHeaders.AUTHORIZATION, getAccessToken(properties.getAdminEmail(), properties.getAdminPassword())))
                 .andExpect(status().isOk())
                 .andDo(print())
                 .andDo(document("get-me",
@@ -148,5 +128,24 @@ public class AuthorizationApiControllerTest extends BaseIntegrationTest {
                 .andExpect(jsonPath("message").exists());
     }
 
+    /**
+     * Password 방식 엑세스 토큰 요청 후 토큰 반환 공통 로직
+     * @param username 이메일
+     * @param password 비밀번호
+     * @return 엑세스 토큰
+     * @throws Exception
+     */
+    private String getAccessToken(String username, String password) throws Exception {
+        return (String) new JacksonJsonParser()
+                .parseMap(mockMvc.perform(post("/oauth/token")
+                        .with(httpBasic(properties.getClientId(), properties.getClientSecret()))
+                        .param("username", username)
+                        .param("password", password)
+                        .param("grant_type", GrantType.PASSWORD.toString()))
+                        .andReturn()
+                        .getResponse()
+                        .getContentAsString())
+                .get("access_token");
+    }
 
 }

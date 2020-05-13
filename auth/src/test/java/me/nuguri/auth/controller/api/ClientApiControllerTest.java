@@ -11,6 +11,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.post;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -21,7 +22,6 @@ public class ClientApiControllerTest extends BaseIntegrationTest {
     @Test
     @DisplayName("클라이언트 생성 성공적인 경우")
     public void generateClient_V1_Success_200() throws Exception {
-        setUserAuthentication();
         ClientApiController.GenerateClientRequest request = new ClientApiController.GenerateClientRequest();
         String redirectUri = "https://www.naver.com";
         request.setRedirectUri(redirectUri);
@@ -29,8 +29,9 @@ public class ClientApiControllerTest extends BaseIntegrationTest {
         request.setResourceIds(resourceIds);
 
         mockMvc.perform(post("/api/v1/client")
-        .contentType(MediaType.APPLICATION_JSON)
-        .content(objectMapper.writeValueAsString(request)))
+                .with(httpBasic(properties.getUserEmail(), properties.getUserPassword()))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("redirectUri").value(redirectUri))

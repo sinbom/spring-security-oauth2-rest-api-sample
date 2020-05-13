@@ -9,8 +9,6 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
@@ -30,26 +28,9 @@ public abstract class BaseIntegrationTest {
     protected MockMvc mockMvc;
 
     @Autowired
-    private AuthenticationManager authenticationManager;
-
-    @Autowired
     protected AuthServerConfigProperties properties;
 
     @Autowired
     protected ObjectMapper objectMapper;
-
-    protected void setAdminAuthentication() {
-        setAuthentication(properties.getAdminEmail(), properties.getAdminPassword());
-    }
-
-    protected void setUserAuthentication() {
-        setAuthentication(properties.getUserEmail(), properties.getUserPassword());
-    }
-
-    private void setAuthentication(String username, String password) {
-        SecurityContextHolder
-                .getContext()
-                .setAuthentication(authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(username, password)));
-    }
 
 }
