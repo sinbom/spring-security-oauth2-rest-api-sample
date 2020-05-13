@@ -44,27 +44,26 @@ public abstract class BaseIntegrationTest {
     protected ObjectMapper objectMapper;
 
     protected String getAccessToken() {
-        HttpHeaders headers = new HttpHeaders();
         MultiValueMap<String, String> map = new LinkedMultiValueMap<>();
-        headers.setBasicAuth(resourceServerConfigProperties.getClientId(), resourceServerConfigProperties.getClientSecret());
         map.add("grant_type", "client_credentials");
-        HttpEntity<MultiValueMap<String, String>> httpEntity = new HttpEntity<>(map, headers);
-        return parseAccessToken(restTemplate.exchange(resourceServerConfigProperties.getAccessTokenUrl(), HttpMethod.POST, httpEntity, String.class).getBody());
+        return requestAccessToken(map);
     }
 
     protected String getAccessToken(String email, String password) {
-        HttpHeaders headers = new HttpHeaders();
         MultiValueMap<String, String> map = new LinkedMultiValueMap<>();
-        headers.setBasicAuth(resourceServerConfigProperties.getClientId(), resourceServerConfigProperties.getClientSecret());
         map.add("grant_type", "password");
         map.add("username", email);
         map.add("password", password);
-        HttpEntity<MultiValueMap<String, String>> httpEntity = new HttpEntity<>(map, headers);
-        return parseAccessToken(restTemplate.exchange(resourceServerConfigProperties.getAccessTokenUrl(), HttpMethod.POST, httpEntity, String.class).getBody());
+        return requestAccessToken(map);
     }
 
-    private String parseAccessToken(String body) {
-        return (String) new JacksonJsonParser().parseMap(body).get("access_token");
+    private String requestAccessToken(MultiValueMap<String, String> map) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBasicAuth(resourceServerConfigProperties.getClientId(), resourceServerConfigProperties.getClientSecret());
+        HttpEntity<MultiValueMap<String, String>> httpEntity = new HttpEntity<>(map, headers);
+        return (String) new JacksonJsonParser()
+                .parseMap(restTemplate.exchange(resourceServerConfigProperties.getAccessTokenUrl(), HttpMethod.POST, httpEntity, String.class).getBody())
+                .get("access_token");
     }
 
 }
