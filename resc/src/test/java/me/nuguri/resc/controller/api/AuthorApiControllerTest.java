@@ -12,6 +12,7 @@ import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.MediaTypes;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 
 import java.time.LocalDate;
@@ -33,7 +34,7 @@ public class AuthorApiControllerTest extends BaseIntegrationTest {
     private AuthorRepository authorRepository;
 
     /**
-     * 테스트 메소드 실행 전, 저자와 책 엔티티 연관관계를 설정하고 영속화 시키는 메소드
+     * 테스트 메소드 실행 전, 저자와 책 엔티티 연관관계를 설정하고 영속화
      */
     @BeforeEach
     public void beforeEach() {
@@ -66,6 +67,7 @@ public class AuthorApiControllerTest extends BaseIntegrationTest {
     @Test
     @DisplayName("저자 목록 페이징 조회 성공적인 경우")
     public void queryAuthors_V1_Success_200() throws Exception {
+        mockRestTemplate(HttpStatus.OK);
         mockMvc.perform(get("/api/v1/authors")
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + getAccessToken())
                 .accept(MediaTypes.HAL_JSON)
@@ -79,6 +81,7 @@ public class AuthorApiControllerTest extends BaseIntegrationTest {
     @Test
     @DisplayName("저자 목록 페이징 조회 잘못된 엑세스 토큰으로 실패하는경우")
     public void queryAuthors_V1_Unauthorized_401() throws Exception {
+        mockRestTemplate(HttpStatus.UNAUTHORIZED);
         mockMvc.perform(get("/api/v1/authors")
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + "invalid")
                 .accept(MediaTypes.HAL_JSON)
@@ -93,6 +96,7 @@ public class AuthorApiControllerTest extends BaseIntegrationTest {
     @DisplayName("저자 목록 페이징 조회 잘못된 파라미터로 실패하는 경우")
     @CsvSource(value = {"1-0:0:-98", "asd:08:-12", "zxczxczxc,zxc:zxczxczxc:id,qwe"}, delimiter = ':')
     public void queryAuthors_V1_Invalid_400() throws Exception {
+        mockRestTemplate(HttpStatus.OK);
         mockMvc.perform(get("/api/v1/authors")
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + getAccessToken())
                 .accept(MediaTypes.HAL_JSON)
@@ -106,6 +110,7 @@ public class AuthorApiControllerTest extends BaseIntegrationTest {
     @Test
     @DisplayName("저자 목록 페이징 조회 컨텐츠 없는 페이지 요청으로 실패하는 경우")
     public void queryAuthors_V1_Notfound404() throws Exception {
+        mockRestTemplate(HttpStatus.OK);
         mockMvc.perform(get("/api/v1/authors")
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + getAccessToken())
                 .accept(MediaTypes.HAL_JSON)
@@ -117,6 +122,7 @@ public class AuthorApiControllerTest extends BaseIntegrationTest {
     @Test
     @DisplayName("저자 조회 성공적인 경우")
     public void getAuthor_V1_Success_200() throws Exception {
+        mockRestTemplate(HttpStatus.OK);
         Author author = generateAuthor();
         mockMvc.perform(get("/api/v1/author/{id}", author.getId())
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + getAccessToken())
@@ -128,6 +134,7 @@ public class AuthorApiControllerTest extends BaseIntegrationTest {
     @Test
     @DisplayName("저자 조회 잘못된 엑세스 토큰을 실패하는 경우")
     public void getAuthor_V1_Unauthorized_401() throws Exception {
+        mockRestTemplate(HttpStatus.UNAUTHORIZED);
         Author author = generateAuthor();
         mockMvc.perform(get("/api/v1/author/{id}", author.getId())
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + "InvalidToken")
@@ -139,6 +146,7 @@ public class AuthorApiControllerTest extends BaseIntegrationTest {
     @Test
     @DisplayName("저자 조회 잘못된 입력 값으로 실패하는 경우")
     public void getAuthor_V1_Invalid_400() throws Exception {
+        mockRestTemplate(HttpStatus.OK);
         mockMvc.perform(get("/api/v1/author/{id}", "asdsda")
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + getAccessToken())
                 .accept(MediaTypes.HAL_JSON))
@@ -148,7 +156,8 @@ public class AuthorApiControllerTest extends BaseIntegrationTest {
 
     @Test
     @DisplayName("저자 조회 존재하지 않아서 실패하는 경우")
-    public void getAuthor_V1_Notfound_404() throws Exception {
+    public void getAuthor_V1_NotFound_404() throws Exception {
+        mockRestTemplate(HttpStatus.OK);
         mockMvc.perform(get("/api/v1/author/{id}", 123123)
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + getAccessToken())
                 .accept(MediaTypes.HAL_JSON))
@@ -159,6 +168,7 @@ public class AuthorApiControllerTest extends BaseIntegrationTest {
     @Test
     @DisplayName("저자 생성 성공적인 경우")
     public void generateAuthor_V1_Success_201() throws Exception {
+        mockRestTemplate(HttpStatus.OK);
         AuthorApiController.GenerateAuthorRequest request = new AuthorApiController.GenerateAuthorRequest();
         request.setName("Test Author");
         request.setBirth(LocalDate.of(1996, 9, 17));
@@ -176,6 +186,7 @@ public class AuthorApiControllerTest extends BaseIntegrationTest {
     @Test
     @DisplayName("저자 생성 잘못된 엑세스 토큰으로 실패하는 경우")
     public void generateAuthor_V1_Unauthorized_401() throws Exception {
+        mockRestTemplate(HttpStatus.UNAUTHORIZED);
         AuthorApiController.GenerateAuthorRequest request = new AuthorApiController.GenerateAuthorRequest();
         request.setName("Test Author");
         request.setBirth(LocalDate.of(1996, 9, 17));
@@ -193,6 +204,7 @@ public class AuthorApiControllerTest extends BaseIntegrationTest {
     @Test
     @DisplayName("저자 생성 잘못된 입력 값으로 실패하는 경우")
     public void generateAuthor_V1_Invalid_400() throws Exception {
+        mockRestTemplate(HttpStatus.OK);
         AuthorApiController.GenerateAuthorRequest request = new AuthorApiController.GenerateAuthorRequest();
         request.setName("Test Author");
         request.setBirth(LocalDate.now());
