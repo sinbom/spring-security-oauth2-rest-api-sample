@@ -86,12 +86,22 @@ public abstract class BaseIntegrationTest {
         }
     }
 
+    /**
+     * client_credentials 방식 엑세스 토큰 발급 요청 외부 API 호출
+     * @return 엑세스 토큰
+     */
     protected String getAccessToken() {
         MultiValueMap<String, String> map = new LinkedMultiValueMap<>();
         map.add("grant_type", "client_credentials");
         return requestAccessToken(map);
     }
 
+    /**
+     * Password 방식 엑세스 토큰 발급 요청 외부 API 호출
+     * @param email 이메일
+     * @param password 비밀번호
+     * @return 엑세스 토큰
+     */
     protected String getAccessToken(String email, String password) {
         MultiValueMap<String, String> map = new LinkedMultiValueMap<>();
         map.add("grant_type", "password");
@@ -100,6 +110,11 @@ public abstract class BaseIntegrationTest {
         return requestAccessToken(map);
     }
 
+    /**
+     * 엑세스 토큰 발급 요청 외부 API 호출
+     * @param map 요청 파라미터
+     * @return 엑세스 토큰
+     */
     private String requestAccessToken(MultiValueMap<String, String> map) {
         HttpHeaders headers = new HttpHeaders();
         headers.setBasicAuth(properties.getClientId(), properties.getClientSecret());
