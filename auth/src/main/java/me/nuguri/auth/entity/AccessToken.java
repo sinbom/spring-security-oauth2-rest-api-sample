@@ -12,12 +12,9 @@ import javax.persistence.Table;
  */
 @Entity
 @Table(name = "oauth_access_token")
-@NoArgsConstructor
-@AllArgsConstructor
 @Getter
 @Setter
 @EqualsAndHashCode(of ="client_id")
-@Builder
 public class AccessToken {
 
     @Id

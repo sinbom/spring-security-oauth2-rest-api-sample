@@ -3,19 +3,19 @@ package me.nuguri.auth.entity;
 import lombok.*;
 
 import javax.persistence.*;
+import java.io.Serializable;
 
 /**
  * 클라이언트 엔티티
  */
 @Entity
 @Table(name = "oauth_client_details")
-@NoArgsConstructor
-@AllArgsConstructor
 @Getter
 @Setter
 @EqualsAndHashCode(of ="clientId")
-@Builder
-public class Client {
+public class Client implements Serializable {
+
+    private static final long serialVersionUID = 1L;
 
     /** 클라이언트 Id */
     @Id
@@ -63,5 +63,10 @@ public class Client {
     /** 클라이언트 등록 계정 */
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
     private Account account;
+
+    public void addAccount(Account account) {
+        this.account = account;
+        this.account.getClients().add(this);
+    }
 
 }

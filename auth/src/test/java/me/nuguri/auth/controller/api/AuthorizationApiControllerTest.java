@@ -2,6 +2,7 @@ package me.nuguri.auth.controller.api;
 
 import me.nuguri.auth.common.BaseIntegrationTest;
 import me.nuguri.common.enums.GrantType;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.json.JacksonJsonParser;
@@ -20,6 +21,14 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @DisplayName("Oauth2 API 테스트")
 public class AuthorizationApiControllerTest extends BaseIntegrationTest {
+
+    /**
+     * 테스트 계정 및 클라이언트 생성
+     */
+    @BeforeEach
+    public void beforeEach() {
+        generateTestEntities();
+    }
 
     @Test
     @DisplayName("인증 서버 엑세스 토큰 정상적으로 만료되는 경우")

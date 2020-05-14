@@ -5,6 +5,7 @@ import me.nuguri.common.enums.Role;
 
 import javax.persistence.*;
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -12,12 +13,9 @@ import java.util.Set;
  * 계정 엔티티
  */
 @Entity
-@NoArgsConstructor
-@AllArgsConstructor
 @Getter
 @Setter
 @EqualsAndHashCode(of ="id")
-@Builder
 public class Account implements Serializable {
 
     /** PK */
@@ -40,6 +38,6 @@ public class Account implements Serializable {
 
     /** 등록 클라이언트 */
     @OneToMany(mappedBy = "account", cascade = CascadeType.ALL)
-    private List<Client> clients;
+    private List<Client> clients = new ArrayList<>();
 
 }

@@ -28,7 +28,6 @@ import org.springframework.web.client.RestTemplate;
 @AutoConfigureMockMvc
 @Disabled
 @Transactional
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public abstract class BaseIntegrationTest {
 
     @Autowired

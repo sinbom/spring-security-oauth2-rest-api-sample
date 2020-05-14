@@ -7,9 +7,6 @@ import javax.persistence.*;
 @Entity
 @Getter
 @Setter
-@Builder
-@AllArgsConstructor
-@NoArgsConstructor
 @EqualsAndHashCode(of = "id", callSuper = false)
 public class CategoryBook extends BaseEntity {
 

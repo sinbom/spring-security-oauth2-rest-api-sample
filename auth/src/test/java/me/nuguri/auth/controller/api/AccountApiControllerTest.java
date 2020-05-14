@@ -2,17 +2,15 @@ package me.nuguri.auth.controller.api;
 
 import me.nuguri.auth.common.BaseIntegrationTest;
 import me.nuguri.auth.entity.Account;
-import me.nuguri.auth.service.AccountService;
 import me.nuguri.common.enums.Role;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.MediaTypes;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
-import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -38,16 +36,25 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @DisplayName("계정 API 테스트")
 public class AccountApiControllerTest extends BaseIntegrationTest {
 
-    @Autowired
-    private AccountService accountService;
-
-    @Autowired
-    private PasswordEncoder passwordEncoder;
+    /**
+     * 테스트 계정 및 클라이언트 생성
+     */
+    @BeforeEach
+    public void beforeEach() {
+        generateTestEntities();
+        IntStream.range(0, 30).forEach(n -> {
+                    Account account = new Account();
+                    account.setEmail(UUID.randomUUID().toString() + "@test.com");
+                    account.setPassword("test");
+                    account.setRoles(new HashSet<>(Arrays.asList(Role.USER)));
+                    accountService.generate(account);
+                }
+        );
+    }
 
     @Test
     @DisplayName("유저 정보 리스트 성공적으로 얻는 경우")
     public void queryUsers_V1_Success_200() throws Exception {
-        generateUser30();
         mockMvc.perform(get("/api/v1/users")
                 .with(httpBasic(properties.getAdminEmail(), properties.getAdminPassword()))
                 .accept(MediaTypes.HAL_JSON)
@@ -100,8 +107,8 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
                                 fieldWithPath("page.totalPages").description("total page count"),
                                 fieldWithPath("page.number").description("current page number")
                         )
-                )
-        );
+                        )
+                );
     }
 
     @Test
@@ -129,30 +136,24 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
     @DisplayName("유저 정보 리스트 잘못된 엑세스 토큰으로 못 얻는 경우")
     @CsvSource(value = {"1-0:0:-98", "asd:08:-12", "zxczxczxc,zxc:zxczxczxc:id,qwe"}, delimiter = ':')
     public void queryUsers_V1_Invalid_Params_400(String page, String size, String sort) throws Exception {
-            mockMvc.perform(get("/api/v1/users")
-                    .with(httpBasic(properties.getAdminEmail(), properties.getAdminPassword()))
-                    .accept(MediaTypes.HAL_JSON)
-                    .queryParam("page", page)
-                    .queryParam("size", size)
-                    .queryParam("sort", sort))
-                    .andDo(print())
-                    .andExpect(jsonPath("timestamp").exists())
-                    .andExpect(jsonPath("status").exists())
-                    .andExpect(jsonPath("error").exists())
-                    .andExpect(jsonPath("message").exists())
-                    .andExpect(status().isBadRequest());
+        mockMvc.perform(get("/api/v1/users")
+                .with(httpBasic(properties.getAdminEmail(), properties.getAdminPassword()))
+                .accept(MediaTypes.HAL_JSON)
+                .queryParam("page", page)
+                .queryParam("size", size)
+                .queryParam("sort", sort))
+                .andDo(print())
+                .andExpect(jsonPath("timestamp").exists())
+                .andExpect(jsonPath("status").exists())
+                .andExpect(jsonPath("error").exists())
+                .andExpect(jsonPath("message").exists())
+                .andExpect(status().isBadRequest());
     }
 
     @Test
     @DisplayName("관리자가 유저 정보 성공적으로 얻는 경우")
     public void getUser_V1_Admin_Success_200() throws Exception {
-        Account account = accountService.generate(Account.builder()
-                .email("test@test.com")
-                .password("test")
-                .roles(new HashSet<>(Arrays.asList(Role.USER)))
-                .build());
-
-        mockMvc.perform(get("/api/v1/user/{id}", account.getId())
+        mockMvc.perform(get("/api/v1/user/{id}", accountService.find(properties.getUserEmail()).getId())
                 .with(httpBasic(properties.getAdminEmail(), properties.getAdminPassword()))
                 .accept(MediaTypes.HAL_JSON))
                 .andDo(print())
@@ -193,15 +194,14 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
                                 fieldWithPath("email").description("account email"),
                                 fieldWithPath("roles").description("account roles")
                         )
-                )
-        );
+                        )
+                );
     }
 
     @Test
     @DisplayName("사용자 자신의 유저 정보 성공적으로 얻는 경우")
     public void getUser_V1_User_Success_200() throws Exception {
-        Account account = accountService.find(properties.getUserEmail());
-        mockMvc.perform(get("/api/v1/user/{id}", account.getId())
+        mockMvc.perform(get("/api/v1/user/{id}", accountService.find(properties.getUserEmail()).getId())
                 .with(httpBasic(properties.getUserEmail(), properties.getUserPassword()))
                 .accept(MediaTypes.HAL_JSON))
                 .andDo(print())
@@ -211,12 +211,12 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
     @Test
     @DisplayName("사용자가 자신의 유저 정보가 아닌 다른 정보를 얻지 못하는 경우")
     public void getUser_V1_User_Forbidden_403() throws Exception {
-        Account account = accountService.generate(Account.builder()
-                .email("bvcncvbncvnbt@test.com")
-                .password("test")
-                .roles(new HashSet<>(Arrays.asList(Role.USER)))
-                .build());
-        mockMvc.perform(get("/api/v1/user/{id}", account.getId())
+        Account account = new Account();
+        account.setEmail("bvcncvbncvnbt@test.com");
+        account.setPassword("test");
+        account.setRoles(new HashSet<>(Arrays.asList(Role.USER)));
+
+        mockMvc.perform(get("/api/v1/user/{id}", accountService.generate(account).getId())
                 .with(httpBasic(properties.getUserEmail(), properties.getUserPassword()))
                 .accept(MediaTypes.HAL_JSON))
                 .andDo(print())
@@ -254,7 +254,7 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
     @Test
     @DisplayName("유저 정보 생성 성공적인 경우")
     public void generateUser_V1_Success_201() throws Exception {
-        AccountApiController.GenerateUserRequest request =  new AccountApiController.GenerateUserRequest();
+        AccountApiController.GenerateUserRequest request = new AccountApiController.GenerateUserRequest();
         request.setEmail("test200@naver.com");
         request.setPassword("123123");
         request.setRoles(new HashSet<>(Arrays.asList(Role.USER)));
@@ -304,14 +304,14 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
                                 fieldWithPath("email").description("account email"),
                                 fieldWithPath("roles").description("account roles")
                         )
-                )
-        );
+                        )
+                );
     }
 
     @Test
     @DisplayName("유저 정보 생성 잘못된 입력 정보로 실패하는 경우")
     public void generateUser_V1_Invalid_400() throws Exception {
-        AccountApiController.GenerateUserRequest request =  new AccountApiController.GenerateUserRequest();
+        AccountApiController.GenerateUserRequest request = new AccountApiController.GenerateUserRequest();
         request.setEmail("isNotEmailType");
         request.setPassword("1234");
 
@@ -333,16 +333,12 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
     public void generateUser_V1_Already_Exist_400() throws Exception {
         String email = "already@test.com";
 
-        AccountApiController.GenerateUserRequest request =  new AccountApiController.GenerateUserRequest();
+        AccountApiController.GenerateUserRequest request = new AccountApiController.GenerateUserRequest();
         request.setEmail(email);
         request.setPassword("124331");
         request.setRoles(new HashSet<>(Arrays.asList(Role.USER)));
 
-        accountService.generate(Account.builder()
-                .email(email)
-                .password("124332")
-                .roles(new HashSet<>(Arrays.asList(Role.USER)))
-                .build());
+        accountService.generate(modelMapper.map(request, Account.class));
 
         mockMvc.perform(post("/api/v1/user")
                 .with(httpBasic(properties.getAdminEmail(), properties.getAdminPassword()))
@@ -360,7 +356,6 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
     @Test
     @DisplayName("유저 정보 부분 수정 성공적인 경우")
     public void updateUser_V1_Success_200() throws Exception {
-        Account account = accountService.find(properties.getUserEmail());
         String password = "123123";
         Set<Role> roles = new HashSet<>(Arrays.asList(Role.ADMIN));
 
@@ -368,7 +363,7 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
         request.setPassword(password);
         request.setRoles(roles);
 
-        mockMvc.perform(patch("/api/v1/user/{id}", account.getId())
+        mockMvc.perform(patch("/api/v1/user/{id}", accountService.find(properties.getUserEmail()).getId())
                 .with(httpBasic(properties.getAdminEmail(), properties.getAdminPassword()))
                 .content(objectMapper.writeValueAsString(request))
                 .accept(MediaTypes.HAL_JSON)
@@ -413,8 +408,9 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
                                 fieldWithPath("email").description("account email"),
                                 fieldWithPath("roles").description("account roles")
                         )
-                )
-        );;
+                        )
+                );
+        ;
 
         Account updated = accountService.find(properties.getUserEmail());
         assertThat(passwordEncoder.matches(password, updated.getPassword())).isTrue();
@@ -440,12 +436,10 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
     @Test
     @DisplayName("유저 정보 부분 수정 잘못된 입력 값으로 실패하는 경우")
     public void updateUser_V1_Invalid_400() throws Exception {
-        Account account = accountService.find(properties.getUserEmail());
-
         AccountApiController.UpdateUserRequest request = new AccountApiController.UpdateUserRequest();
         request.setPassword("1");
 
-        mockMvc.perform(patch("/api/v1/user/{id}", account.getId())
+        mockMvc.perform(patch("/api/v1/user/{id}", accountService.find(properties.getUserEmail()).getId())
                 .with(httpBasic(properties.getAdminEmail(), properties.getAdminPassword()))
                 .content(objectMapper.writeValueAsString(request))
                 .accept(MediaTypes.HAL_JSON)
@@ -457,13 +451,11 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
     @Test
     @DisplayName("유저 정보 부분 수정 권한 없어서 실패하는 경우")
     public void updateUser_V1_Forbidden_403() throws Exception {
-        Account account = accountService.find(properties.getAdminEmail());
-
         AccountApiController.UpdateUserRequest request = new AccountApiController.UpdateUserRequest();
         request.setPassword("1123123");
         request.setRoles(new HashSet<>(Arrays.asList(Role.USER)));
 
-        mockMvc.perform(patch("/api/v1/user/{id}", account.getId())
+        mockMvc.perform(patch("/api/v1/user/{id}", accountService.find(properties.getAdminEmail()).getId())
                 .with(httpBasic(properties.getUserEmail(), properties.getUserPassword()))
                 .content(objectMapper.writeValueAsString(request))
                 .accept(MediaTypes.HAL_JSON)
@@ -475,7 +467,6 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
     @Test
     @DisplayName("유저 정보 전체 수정 성공하는 경우")
     public void mergeUser_V1_Success_200() throws Exception {
-        Account account = accountService.find(properties.getUserEmail());
         String password = "1123123";
         Set<Role> roles = new HashSet<>(Arrays.asList(Role.ADMIN, Role.USER));
 
@@ -483,7 +474,7 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
         request.setPassword(password);
         request.setRoles(roles);
 
-        mockMvc.perform(put("/api/v1/user/{id}", account.getId())
+        mockMvc.perform(put("/api/v1/user/{id}", accountService.find(properties.getUserEmail()).getId())
                 .with(httpBasic(properties.getAdminEmail(), properties.getAdminPassword()))
                 .content(objectMapper.writeValueAsString(request))
                 .accept(MediaTypes.HAL_JSON)
@@ -527,8 +518,8 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
                                 fieldWithPath("email").description("account email"),
                                 fieldWithPath("roles").description("account roles")
                         )
-                )
-        );
+                        )
+                );
 
         Account merge = accountService.find(properties.getUserEmail());
         assertThat(passwordEncoder.matches(password, merge.getPassword())).isTrue();
@@ -538,13 +529,11 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
     @Test
     @DisplayName("유저 정보 전체 수정 권한 없어서 실패하는 경우")
     public void mergeUser_V1_Success_403() throws Exception {
-        Account account = accountService.find(properties.getAdminEmail());
-
         AccountApiController.UpdateUserRequest request = new AccountApiController.UpdateUserRequest();
         request.setPassword("1123123");
         request.setRoles(new HashSet<>(Arrays.asList(Role.USER)));
 
-        mockMvc.perform(put("/api/v1/user/{id}", account.getId())
+        mockMvc.perform(put("/api/v1/user/{id}", accountService.find(properties.getAdminEmail()).getId())
                 .with(httpBasic(properties.getUserEmail(), properties.getUserPassword()))
                 .content(objectMapper.writeValueAsString(request))
                 .accept(MediaTypes.HAL_JSON)
@@ -572,12 +561,11 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
     @Test
     @DisplayName("유저 정보 전체 수정 잘못된 입력 값으로 실패하는 경우")
     public void mergeUser_V1_Invalid_400() throws Exception {
-        Account account = accountService.find(properties.getUserEmail());
         AccountApiController.UpdateUserRequest request = new AccountApiController.UpdateUserRequest();
         request.setPassword("1");
         request.setRoles(new HashSet<>(Arrays.asList(Role.ADMIN)));
 
-        mockMvc.perform(put("/api/v1/user/{id}", account.getId())
+        mockMvc.perform(put("/api/v1/user/{id}", accountService.find(properties.getUserEmail()).getId())
                 .with(httpBasic(properties.getAdminEmail(), properties.getAdminPassword()))
                 .content(objectMapper.writeValueAsString(request))
                 .accept(MediaTypes.HAL_JSON)
@@ -589,9 +577,7 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
     @Test
     @DisplayName("유저 정보 삭제 성공적인 경우")
     public void deleteUser_V1_Success_200() throws Exception {
-        Account account = accountService.find(properties.getUserEmail());
-
-        mockMvc.perform(delete("/api/v1/user/{id}", account.getId())
+        mockMvc.perform(delete("/api/v1/user/{id}", accountService.find(properties.getUserEmail()).getId())
                 .with(httpBasic(properties.getAdminEmail(), properties.getAdminPassword()))
                 .accept(MediaTypes.HAL_JSON))
                 .andDo(print())
@@ -639,8 +625,7 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
     @Test
     @DisplayName("유저 정보 삭제 권한 없어서 실패하는 경우")
     public void deleteUser_V1_Forbidden_403() throws Exception {
-        Account account = accountService.find(properties.getAdminEmail());
-        mockMvc.perform(delete("/api/v1/user/{id}", account.getId())
+        mockMvc.perform(delete("/api/v1/user/{id}", accountService.find(properties.getAdminEmail()).getId())
                 .with(httpBasic(properties.getUserEmail(), properties.getUserPassword()))
                 .accept(MediaTypes.HAL_JSON))
                 .andDo(print())
@@ -665,19 +650,6 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
                 .accept(MediaTypes.HAL_JSON))
                 .andDo(print())
                 .andExpect(status().isBadRequest());
-    }
-
-    /**
-     * 테스트 계정 30개 생성
-     */
-    private void generateUser30() {
-        IntStream.range(0, 30).forEach(n ->
-                accountService.generate(Account.builder()
-                        .email(UUID.randomUUID().toString() + "@test.com")
-                        .password("test")
-                        .roles(new HashSet<>(Arrays.asList(Role.USER)))
-                        .build())
-        );
     }
 
 }

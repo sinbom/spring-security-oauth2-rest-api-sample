@@ -10,9 +10,6 @@ import java.util.List;
 @Entity
 @Getter
 @Setter
-@Builder
-@AllArgsConstructor
-@NoArgsConstructor
 @EqualsAndHashCode(of = "id", callSuper = false)
 public class Book extends BaseEntity {
 
@@ -33,11 +30,6 @@ public class Book extends BaseEntity {
     public void addAuthor(Author author) {
         this.author = author;
         author.getBooks().add(this);
-    }
-
-    public void addCategoryBooks(CategoryBook categoryBook) {
-        this.categoryBooks.add(categoryBook);
-        categoryBook.setBook(this);
     }
 
 }

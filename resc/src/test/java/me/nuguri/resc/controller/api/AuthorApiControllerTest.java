@@ -3,9 +3,12 @@ package me.nuguri.resc.controller.api;
 import me.nuguri.resc.common.BaseIntegrationTest;
 import me.nuguri.resc.entity.Author;
 import me.nuguri.resc.entity.Book;
-import me.nuguri.resc.service.AuthorService;
+import me.nuguri.resc.repository.AuthorRepository;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.MediaTypes;
 import org.springframework.http.HttpHeaders;
@@ -13,6 +16,9 @@ import org.springframework.http.MediaType;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.IntStream;
 
 import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.get;
@@ -24,7 +30,38 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 public class AuthorApiControllerTest extends BaseIntegrationTest {
 
     @Autowired
-    private AuthorService authorService;
+    private AuthorRepository authorRepository;
+
+    /**
+     * 테스트 메소드 실행 전, 저자와 책 엔티티 연관관계를 설정하고 영속화 시키는 메소드
+     */
+    @BeforeEach
+    public void beforeEach() {
+        List<Author> authorList = new ArrayList<>();
+        String[] authorNames = {"홍길동", "아무개", "김똥개", "신나라", "박대기"};
+        LocalDate[] authorBirth = {LocalDate.of(1946, 9, 17), LocalDate.of(1926, 5, 21)
+                , LocalDate.of(1996, 10, 25), LocalDate.of(1920, 6, 13), LocalDate.of(1965, 4,2)};
+        LocalDate[] authorDeath = {LocalDate.of(2018, 12, 1), LocalDate.of(2006, 4, 19)
+                , LocalDate.of(2020, 2, 14), LocalDate.of(1987, 7, 11), LocalDate.of(1999, 9, 12)};
+
+        for (int i = 0; i < authorNames.length; i++) {
+            Author author = new Author();
+            author.setName(authorNames[i]);
+            author.setBirth(authorBirth[i]);
+            author.setDeath(authorDeath[i]);
+            authorList.add(author);
+        }
+
+        long min = LocalDate.of(1900, 1, 1).toEpochDay();
+        long max = LocalDate.now().toEpochDay();
+        for (int i = 0; i < 200; i++) {
+            Book book = new Book();
+            book.setName("Test Book " + i);
+            book.setPubDate(LocalDate.ofEpochDay(ThreadLocalRandom.current().nextLong(min, max)));
+            book.addAuthor(authorList.get(new Random().nextInt(authorList.size())));
+        }
+        authorRepository.saveAll(authorList);
+    }
 
     @Test
     @DisplayName("저자 목록 페이징 조회 성공적인 경우")
@@ -52,8 +89,9 @@ public class AuthorApiControllerTest extends BaseIntegrationTest {
                 .andDo(print());
     }
 
-    @Test
+    @ParameterizedTest(name = "{index}. {displayName} parameter(page: {0} / size: {1} / sort : {2}")
     @DisplayName("저자 목록 페이징 조회 잘못된 파라미터로 실패하는 경우")
+    @CsvSource(value = {"1-0:0:-98", "asd:08:-12", "zxczxczxc,zxc:zxczxczxc:id,qwe"}, delimiter = ':')
     public void queryAuthors_V1_Invalid_400() throws Exception {
         mockMvc.perform(get("/api/v1/authors")
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + getAccessToken())
@@ -174,24 +212,19 @@ public class AuthorApiControllerTest extends BaseIntegrationTest {
      * @return 저자 엔티티
      */
     private Author generateAuthor() {
-        Author author = Author.builder()
-                .name("Test Author")
-                .birth(LocalDate.of(1996, 9, 17))
-                .death(LocalDate.now())
-                .books(new ArrayList<>())
-                .build();
+        Author author = new Author();
+        author.setName("Test Author");
+        author.setBirth(LocalDate.of(1996, 9, 17));
+        author.setDeath(LocalDate.now());
 
         IntStream.range(1, 5).forEach(n -> {
-            Book.builder()
-                .name("Test Book" + n)
-                .pubDate(LocalDate.now())
-                .build()
-                .addAuthor(author);
+            Book book = new Book();
+            book.setName("Test Book" + n);
+            book.setPubDate(LocalDate.now());
+            book.addAuthor(author);
         });
 
-        return authorService.generate(author);
+        return authorRepository.save(author);
     }
-
-
 
 }

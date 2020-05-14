@@ -3,6 +3,8 @@ server:
   port: 8600
 
 spring:
+  profiles:
+    active: local
   #  jackson:
   #    deserialization:
   #      FAIL_ON_UNKNOWN_PROPERTIES: true

@@ -10,9 +10,6 @@ import java.util.List;
 @Entity
 @Getter
 @Setter
-@Builder
-@AllArgsConstructor
-@NoArgsConstructor
 @EqualsAndHashCode(of = "id", callSuper = false)
 public class Author extends BaseEntity {
 
@@ -28,10 +25,5 @@ public class Author extends BaseEntity {
 
     @OneToMany(mappedBy = "author", cascade = CascadeType.ALL)
     private List<Book> books = new ArrayList<>();
-
-    public void addBook(Book book) {
-        this.books.add(book);
-        book.setAuthor(this);
-    }
 
 }

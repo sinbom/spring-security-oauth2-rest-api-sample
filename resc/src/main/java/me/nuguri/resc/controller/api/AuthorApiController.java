@@ -18,6 +18,7 @@ import org.springframework.hateoas.Link;
 import org.springframework.hateoas.MediaTypes;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.oauth2.provider.OAuth2Authentication;
 import org.springframework.stereotype.Component;
 import org.springframework.validation.Errors;
 import org.springframework.web.bind.annotation.*;
@@ -42,6 +43,11 @@ public class AuthorApiController {
     private final ModelMapper modelMapper;
 
     private final AuthorValidator authorValidator;
+
+    @GetMapping("/api/test")
+    public ResponseEntity<?> test(OAuth2Authentication authentication) {
+        return ResponseEntity.ok(authentication);
+    }
 
     @GetMapping(value = "/api/v1/authors", produces = MediaTypes.HAL_JSON_VALUE)
     public ResponseEntity<?> queryAuthors(Pagination pagination, Errors errors) {
@@ -82,9 +88,20 @@ public class AuthorApiController {
                 .body(new GetAuthorResponse(authorService.generate(author)));
     }
 
-//    @PatchMapping("/api/v1/author/{id}")
-//    @PutMapping("/api/v1/author/{id}")
-//    @DeleteMapping("/api/v1/author/{id}")
+    @PatchMapping("/api/v1/author/{id}")
+    public ResponseEntity<?> updateAuthor() {
+        return ResponseEntity.ok().build();
+    }
+
+    @PutMapping("/api/v1/author/{id}")
+    public ResponseEntity<?> mergeAuthor() {
+        return ResponseEntity.ok().build();
+    }
+
+    @DeleteMapping("/api/v1/author/{id}")
+    public ResponseEntity<?> deleteAuthor() {
+        return ResponseEntity.ok().build();
+    }
 
     // ==========================================================================================================================================
     // Resource

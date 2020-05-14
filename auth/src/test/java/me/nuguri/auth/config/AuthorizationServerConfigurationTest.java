@@ -2,6 +2,7 @@ package me.nuguri.auth.config;
 
 import me.nuguri.auth.common.BaseIntegrationTest;
 import me.nuguri.common.enums.GrantType;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.json.JacksonJsonParser;
@@ -10,7 +11,6 @@ import org.springframework.mock.web.MockHttpSession;
 import org.springframework.test.web.servlet.ResultActions;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.restdocs.headers.HeaderDocumentation.*;
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
 import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.get;
@@ -20,13 +20,20 @@ import static org.springframework.restdocs.payload.PayloadDocumentation.response
 import static org.springframework.restdocs.request.RequestDocumentation.parameterWithName;
 import static org.springframework.restdocs.request.RequestDocumentation.requestParameters;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @DisplayName("Oauth2 인증 서버 설정 테스트")
 public class AuthorizationServerConfigurationTest  extends BaseIntegrationTest {
+
+    /**
+     * 테스트 계정 및 클라이언트 생성
+     */
+    @BeforeEach
+    public void beforeEach() {
+        generateTestEntities();
+    }
 
     @Test
     @DisplayName("인증 서버 엑세스 토큰 유효한 경우")
@@ -364,7 +371,7 @@ public class AuthorizationServerConfigurationTest  extends BaseIntegrationTest {
                 .with(httpBasic(properties.getClientId(), properties.getClientSecret()))
                 .param("username", email)
                 .param("password", password)
-                .param("grant_type", GrantType.PASSWORD.toString()));
+                .param("grant_type", GrantType.PASSWORD.toString())).andDo(print());
     }
 
     /**

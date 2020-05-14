@@ -3,6 +3,8 @@ server:
   port: 9600
 
 spring:
+  profiles:
+    active: local
   devtools:
     livereload:
       enabled: true

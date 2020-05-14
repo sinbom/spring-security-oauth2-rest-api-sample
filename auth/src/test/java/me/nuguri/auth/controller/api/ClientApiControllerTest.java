@@ -1,10 +1,9 @@
 package me.nuguri.auth.controller.api;
 
 import me.nuguri.auth.common.BaseIntegrationTest;
-import org.codehaus.jackson.map.ObjectMapper;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 
 import java.util.Arrays;
@@ -18,6 +17,14 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @DisplayName("클라이언트 API 테스트")
 public class ClientApiControllerTest extends BaseIntegrationTest {
+
+    /**
+     * 테스트 계정 및 클라이언트 생성
+     */
+    @BeforeEach
+    public void beforeEach() {
+        generateTestEntities();
+    }
 
     @Test
     @DisplayName("클라이언트 생성 성공적인 경우")

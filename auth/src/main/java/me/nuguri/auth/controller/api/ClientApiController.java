@@ -45,30 +45,32 @@ public class ClientApiController {
         return ResponseEntity.ok(new GenerateClientResponse(client));
     }
 
-    @Getter @Setter
+    @Getter
+    @Setter
     public static class GenerateClientRequest {
         @NotEmpty
         private List<String> resourceIds;
         @NotBlank
-
         private String redirectUri;
+
         private Client toClient(Account account) {
-            return Client.builder()
-                    .clientId(UUID.randomUUID().toString())
-                    .clientSecret(UUID.randomUUID().toString())
-                    .grantTypes(String.join(",", GrantType.AUTHORIZATION_CODE.toString(), GrantType.IMPLICIT.toString()))
-                    .authorities(account.getRoles().stream().map(Role::toString).collect(Collectors.joining(",")))
-                    .scope(account.getRoles().stream().anyMatch(Role.ADMIN::equals) ? Scope.READ + "," + Scope.WRITE : Scope.READ.toString())
-                    .accessTokenValidity(600)
-                    .refreshTokenValidity(3600)
-                    .redirectUri(redirectUri)
-                    .resourceIds(String.join(",", resourceIds))
-                    .account(account)
-                    .build();
+            Client client = new Client();
+            client.setClientId(UUID.randomUUID().toString());
+            client.setClientSecret(UUID.randomUUID().toString());
+            client.setGrantTypes(String.join(",", GrantType.AUTHORIZATION_CODE.toString(), GrantType.IMPLICIT.toString()));
+            client.setAuthorities(account.getRoles().stream().map(Role::toString).collect(Collectors.joining(",")));
+            client.setScope(account.getRoles().stream().anyMatch(Role.ADMIN::equals) ? Scope.READ + "," + Scope.WRITE : Scope.READ.toString());
+            client.setAccessTokenValidity(600);
+            client.setRefreshTokenValidity(3600);
+            client.setRedirectUri(redirectUri);
+            client.setResourceIds(String.join(",", resourceIds));
+            client.setAccount(account);
+            return client;
         }
     }
 
-    @Getter @Setter
+    @Getter
+    @Setter
     public static class GenerateClientResponse {
         private String clientId;
         private String clientSecret;
@@ -79,6 +81,7 @@ public class ClientApiController {
         private Integer accessTokenValidity;
         private Integer refreshTokenValidity;
         private String redirectUri;
+
         public GenerateClientResponse(Client client) {
             this.clientId = client.getClientId();
             this.clientSecret = client.getClientSecret();
