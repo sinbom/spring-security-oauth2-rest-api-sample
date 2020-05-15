@@ -21,6 +21,10 @@ import org.springframework.hateoas.MediaTypes;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.annotation.Secured;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.provider.OAuth2Authentication;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.springframework.validation.Errors;
@@ -29,6 +33,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotEmpty;
+import java.security.Principal;
 import java.util.Set;
 
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
@@ -53,7 +58,7 @@ public class AccountApiController {
      * @return
      */
     @GetMapping(value = "/api/v1/users", produces = MediaTypes.HAL_JSON_VALUE)
-    @Secured("ROLE_ADMIN")
+    @PreAuthorize("#oauth2.clientHasRole('ADMIN') and #oauth2.hasScope('read')")
     public ResponseEntity<?> queryUsers(Pagination pagination, Errors errors) {
         paginationValidator.validate(pagination, Account.class, errors);
         if (errors.hasErrors()) {
@@ -77,6 +82,7 @@ public class AccountApiController {
      * @return
      */
     @GetMapping(value = "/api/v1/user/{id}", produces = MediaTypes.HAL_JSON_VALUE)
+    @PreAuthorize("#oauth2.hasScope('read')")
     @HasAuthority
     public ResponseEntity<?> getUser(@PathVariable Long id, @AuthenticationUser Account loginAccount) {
         try {
@@ -93,6 +99,7 @@ public class AccountApiController {
      * @return
      */
     @PostMapping(value = "/api/v1/user", produces = MediaTypes.HAL_JSON_VALUE)
+    @PreAuthorize("#oauth2.hasScope('write')")
     public ResponseEntity<?> generateUser(@RequestBody @Valid GenerateUserRequest request, Errors errors) {
         Account account = modelMapper.map(request, Account.class);
         accountValidator.validate(account, errors);
@@ -117,6 +124,7 @@ public class AccountApiController {
      * @return
      */
     @PatchMapping(value = "/api/v1/user/{id}")
+    @PreAuthorize("#oauth2.hasScope('write')")
     @HasAuthority
     public ResponseEntity<?> updateUser(@PathVariable Long id, @RequestBody UpdateUserRequest request, Errors errors, @AuthenticationUser Account loginAccount) {
         Account account = modelMapper.map(request, Account.class);
@@ -141,6 +149,7 @@ public class AccountApiController {
      * @return
      */
     @PutMapping(value = "/api/v1/user/{id}")
+    @PreAuthorize("#oauth2.hasScope('write')")
     @HasAuthority
     public ResponseEntity<?> mergeUser(@PathVariable Long id, @RequestBody @Valid UpdateUserRequest request, Errors errors, @AuthenticationUser Account loginAccount) {
         Account account = modelMapper.map(request, Account.class);
@@ -163,6 +172,7 @@ public class AccountApiController {
      * @return
      */
     @DeleteMapping(value = "/api/v1/user/{id}")
+    @PreAuthorize("#oauth2.hasScope('write')")
     @HasAuthority
     public ResponseEntity<?> deleteUser(@PathVariable Long id, @AuthenticationUser Account loginAccount) {
         try {

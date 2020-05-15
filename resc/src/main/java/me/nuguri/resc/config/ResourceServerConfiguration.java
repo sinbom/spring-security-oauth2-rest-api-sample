@@ -1,6 +1,7 @@
 package me.nuguri.resc.config;
 
 import lombok.RequiredArgsConstructor;
+import me.nuguri.common.enums.Role;
 import me.nuguri.resc.property.ResourceServerConfigProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -26,10 +27,13 @@ public class ResourceServerConfiguration extends ResourceServerConfigurerAdapter
 
     @Override
     public void configure(HttpSecurity http) throws Exception {
-        http.authorizeRequests()
-                .mvcMatchers("/api/test").permitAll()
+        http
+                .authorizeRequests()
+                .mvcMatchers("/api/test").access("#oauth2.clientHasRole('ADMIN')")
                 .mvcMatchers(HttpMethod.GET, "/api/**").access("#oauth2.hasScope('read')")
-                .mvcMatchers("/api/**").access("#oauth2.hasScope('write')");
+                .mvcMatchers("/api/**").access("#oauth2.hasScope('write')")
+                .anyRequest().authenticated();
+        http.logout().disable();
         http.exceptionHandling().accessDeniedHandler(new OAuth2AccessDeniedHandler());
     }
 

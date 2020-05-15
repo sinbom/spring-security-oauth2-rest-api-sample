@@ -68,7 +68,7 @@ public abstract class BaseIntegrationTest {
         Client client = new Client();
         client.setClientId(properties.getClientId());
         client.setClientSecret(passwordEncoder.encode(properties.getClientSecret()));
-        client.setResourceIds("nuguri");
+        client.setResourceIds("account");
         client.setScope(String.join(",", Scope.READ.toString(), Scope.WRITE.toString()));
         client.setGrantTypes(String.join(",", GrantType.PASSWORD.toString(), GrantType.AUTHORIZATION_CODE.toString(),
                 GrantType.IMPLICIT.toString(), GrantType.CLIENT_CREDENTIALS.toString(), GrantType.REFRESH_TOKEN.toString()));

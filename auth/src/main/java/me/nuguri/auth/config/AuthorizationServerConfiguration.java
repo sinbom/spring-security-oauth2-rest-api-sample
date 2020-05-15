@@ -3,48 +3,58 @@ package me.nuguri.auth.config;
 import lombok.RequiredArgsConstructor;
 import me.nuguri.auth.property.AuthServerConfigProperties;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.config.annotation.configurers.ClientDetailsServiceConfigurer;
 import org.springframework.security.oauth2.config.annotation.web.configuration.AuthorizationServerConfigurerAdapter;
 import org.springframework.security.oauth2.config.annotation.web.configuration.EnableAuthorizationServer;
+import org.springframework.security.oauth2.config.annotation.web.configuration.EnableResourceServer;
+import org.springframework.security.oauth2.config.annotation.web.configuration.ResourceServerConfigurerAdapter;
 import org.springframework.security.oauth2.config.annotation.web.configurers.AuthorizationServerEndpointsConfigurer;
 import org.springframework.security.oauth2.config.annotation.web.configurers.AuthorizationServerSecurityConfigurer;
+import org.springframework.security.oauth2.config.annotation.web.configurers.ResourceServerSecurityConfigurer;
+import org.springframework.security.oauth2.provider.error.OAuth2AccessDeniedHandler;
 import org.springframework.security.oauth2.provider.token.TokenEnhancer;
 import org.springframework.security.oauth2.provider.token.TokenStore;
 
 import javax.sql.DataSource;
 
 @Configuration
-@EnableAuthorizationServer
-@RequiredArgsConstructor
-public class AuthorizationServerConfiguration extends AuthorizationServerConfigurerAdapter {
+public class AuthorizationServerConfiguration {
 
-    private final PasswordEncoder passwordEncoder;
+    @Configuration
+    @EnableAuthorizationServer
+    @EnableResourceServer
+    @RequiredArgsConstructor
+    public static class AuthorizationConfiguration extends AuthorizationServerConfigurerAdapter {
+        private final PasswordEncoder passwordEncoder;
 
-    private final TokenStore tokenStore;
+        private final TokenStore tokenStore;
 
-    private final DataSource dataSource;
+        private final DataSource dataSource;
 
-    private final TokenEnhancer tokenEnhancer;
+        private final TokenEnhancer tokenEnhancer;
 
-    private final AuthenticationManager authenticationManager;
+        private final AuthenticationManager authenticationManager;
 
-    private final UserDetailsService userDetailsService;
+        private final UserDetailsService userDetailsService;
 
-    private final AuthServerConfigProperties authServerConfigProperties;
+        private final AuthServerConfigProperties authServerConfigProperties;
 
-    @Override
-    public void configure(AuthorizationServerSecurityConfigurer security) throws Exception {
-        security.passwordEncoder(passwordEncoder)
-                .tokenKeyAccess("permitAll()")
-                .checkTokenAccess("permitAll()");
-    }
+        @Override
+        public void configure(AuthorizationServerSecurityConfigurer security) throws Exception {
+            security.passwordEncoder(passwordEncoder)
+                    .tokenKeyAccess("permitAll()")
+                    .checkTokenAccess("permitAll()");
+        }
 
-    @Override
-    public void configure(ClientDetailsServiceConfigurer clients) throws Exception {
-        clients.jdbc(dataSource);
+        @Override
+        public void configure(ClientDetailsServiceConfigurer clients) throws Exception {
+            clients.jdbc(dataSource);
     /*
         인메모리 클라이언트 세팅
         clients.inMemory()
@@ -57,14 +67,42 @@ public class AuthorizationServerConfiguration extends AuthorizationServerConfigu
                 .accessTokenValiditySeconds(60 * 10)
                 .refreshTokenValiditySeconds(60 * 10 * 6);
     */
+        }
+
+        @Override
+        public void configure(AuthorizationServerEndpointsConfigurer endpoints) throws Exception {
+            endpoints.tokenStore(tokenStore)
+                    .tokenEnhancer(tokenEnhancer)
+                    .userDetailsService(userDetailsService)
+                    .authenticationManager(authenticationManager);
+        }
+
     }
 
-    @Override
-    public void configure(AuthorizationServerEndpointsConfigurer endpoints) throws Exception {
-        endpoints.tokenStore(tokenStore)
-                .tokenEnhancer(tokenEnhancer)
-                .userDetailsService(userDetailsService)
-                .authenticationManager(authenticationManager);
+    @Configuration
+    @EnableResourceServer
+    @EnableGlobalMethodSecurity(prePostEnabled = true)
+    @Order(1)
+    @RequiredArgsConstructor
+    public static class ResourceConfiguration extends ResourceServerConfigurerAdapter {
+
+        @Override
+        public void configure(ResourceServerSecurityConfigurer resources) throws Exception {
+            resources.resourceId("account");
+        }
+
+        @Override
+        public void configure(HttpSecurity http) throws Exception {
+            http
+                    .requestMatchers()
+                    .mvcMatchers("/api/**")
+                    .and()
+                    .authorizeRequests()
+                    .anyRequest().authenticated();
+            http.csrf().disable();
+            http.exceptionHandling().accessDeniedHandler(new OAuth2AccessDeniedHandler());
+        }
+
     }
 
 }

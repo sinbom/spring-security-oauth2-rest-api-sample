@@ -33,7 +33,7 @@ public class ApplicationRunner implements org.springframework.boot.ApplicationRu
     @Override
     public void run(ApplicationArguments args) throws Exception {
         if (profile.equals("local")) {
-            log.info("[active profile is " + profile + "] => do persist test entities");
+            log.info("[log] [active profile is " + profile + "] => do persist test entities");
             Random random = new Random();
             List<Author> authorList = new ArrayList<>();
             String[] authorNames = {"홍길동", "아무개", "김똥개", "신나라", "박대기"};
@@ -110,7 +110,7 @@ public class ApplicationRunner implements org.springframework.boot.ApplicationRu
                 }
             }
         } else {
-            log.info("[active profile is " + profile + "] => do not persist test entities");
+            log.info("[log] [active profile is " + profile + "] => do not persist test entities");
         }
     }
 }

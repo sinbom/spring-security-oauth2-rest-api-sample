@@ -9,6 +9,7 @@ import me.nuguri.common.domain.ErrorResponse;
 import me.nuguri.common.enums.Role;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.provider.token.TokenStore;
 import org.springframework.stereotype.Component;
 import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.HandlerMapping;
@@ -24,6 +25,8 @@ import java.util.Map;
 public class AuthorityCheckInterceptor extends HandlerInterceptorAdapter {
 
     private final ObjectMapper objectMapper;
+
+    private final TokenStore tokenStore;
 
     /**
      * 현재 로그인된 계정의 식별키와 CRUD 하고자 하는 식별키가 동일하거나 로그인 계정이 관리자 권한인지 확인

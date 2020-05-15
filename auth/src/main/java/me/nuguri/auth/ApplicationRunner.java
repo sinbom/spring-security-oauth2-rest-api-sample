@@ -35,7 +35,7 @@ public class ApplicationRunner implements org.springframework.boot.ApplicationRu
     @Override
     public void run(ApplicationArguments args) {
         if (profile.equals("local")) {
-            log.info("[active profile is " + profile + "] => do persist test entities");
+            log.info("[log] [active profile is " + profile + "] => do persist test entities");
 
             Account admin = new Account();
             admin.setEmail(properties.getAdminEmail());
@@ -50,7 +50,7 @@ public class ApplicationRunner implements org.springframework.boot.ApplicationRu
             Client client = new Client();
             client.setClientId(properties.getClientId());
             client.setClientSecret(passwordEncoder.encode(properties.getClientSecret()));
-            client.setResourceIds("nuguri");
+            client.setResourceIds("account,nuguri");
             client.setScope(String.join(",", Scope.READ.toString(), Scope.WRITE.toString()));
             client.setGrantTypes(String.join(",", GrantType.PASSWORD.toString(), GrantType.AUTHORIZATION_CODE.toString(),
                     GrantType.IMPLICIT.toString(), GrantType.CLIENT_CREDENTIALS.toString(), GrantType.REFRESH_TOKEN.toString()));
@@ -61,7 +61,7 @@ public class ApplicationRunner implements org.springframework.boot.ApplicationRu
             accountService.generate(admin);
             accountService.generate(user);
         } else {
-            log.info("[active profile is " + profile + "] => do not persist test entities");
+            log.info("[log] [active profile is " + profile + "] => do not persist test entities");
         }
     }
 

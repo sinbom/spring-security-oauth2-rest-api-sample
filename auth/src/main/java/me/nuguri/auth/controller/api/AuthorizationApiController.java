@@ -3,7 +3,10 @@ package me.nuguri.auth.controller.api;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
+import me.nuguri.auth.annotation.AuthorizationAccessToken;
 import me.nuguri.auth.annotation.AuthorizationBearerToken;
+import me.nuguri.auth.entity.Account;
+import me.nuguri.auth.exception.UserNotExistException;
 import me.nuguri.auth.service.AccountService;
 import me.nuguri.common.domain.ErrorResponse;
 import me.nuguri.common.enums.Role;
@@ -11,6 +14,7 @@ import org.modelmapper.ModelMapper;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.oauth2.common.DefaultOAuth2AccessToken;
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
 import org.springframework.security.oauth2.provider.token.TokenStore;
 import org.springframework.util.StringUtils;
@@ -18,6 +22,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.security.Principal;
+import java.util.Map;
 import java.util.Set;
 
 @RestController
@@ -36,16 +42,9 @@ public class AuthorizationApiController {
      * @return 토큰 정보
      */
     @PostMapping(value = "/oauth/revoke_token", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<?> revokeToken(@AuthorizationBearerToken String token) {
-        if (StringUtils.isEmpty(token)) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ErrorResponse(HttpStatus.UNAUTHORIZED, "no bearer token in authorization header"));
-        }
-        OAuth2AccessToken oAuth2AccessToken = tokenStore.readAccessToken(token);
-        if (oAuth2AccessToken == null) {
-            return ResponseEntity.badRequest().body(new ErrorResponse(HttpStatus.BAD_REQUEST, "invalid token"));
-        }
-        tokenStore.removeAccessToken(oAuth2AccessToken);
-        return ResponseEntity.ok(oAuth2AccessToken);
+    public ResponseEntity<?> revokeToken(@AuthorizationAccessToken DefaultOAuth2AccessToken token) {
+        tokenStore.removeAccessToken(token);
+        return ResponseEntity.ok(token);
     }
 
     /**
@@ -54,15 +53,12 @@ public class AuthorizationApiController {
      * @return
      */
     @GetMapping(value = "/oauth/me", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<?> getMe(@AuthorizationBearerToken String token) {
-        if (StringUtils.isEmpty(token)) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ErrorResponse(HttpStatus.UNAUTHORIZED, "no bearer token in authorization header"));
+    public ResponseEntity<?> getMe(@AuthorizationAccessToken DefaultOAuth2AccessToken token) {
+        try {
+            return ResponseEntity.ok(modelMapper.map(accountService.find((Long) token.getAdditionalInformation().get("id")), GetMeResponse.class));
+        } catch (UserNotExistException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponse(HttpStatus.NOT_FOUND, "not exist account of access token"));
         }
-        OAuth2AccessToken oAuth2AccessToken = tokenStore.readAccessToken(token);
-        if (oAuth2AccessToken == null) {
-            return ResponseEntity.badRequest().body(new ErrorResponse(HttpStatus.BAD_REQUEST, "invalid token"));
-        }
-        return ResponseEntity.ok(modelMapper.map(accountService.find((Long) oAuth2AccessToken.getAdditionalInformation().get("id")), GetMeResponse.class));
     }
 
     // ==========================================================================================================================================
