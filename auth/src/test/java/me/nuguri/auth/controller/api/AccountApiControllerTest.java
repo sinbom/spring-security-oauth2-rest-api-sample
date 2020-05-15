@@ -28,7 +28,6 @@ import static org.springframework.restdocs.payload.PayloadDocumentation.fieldWit
 import static org.springframework.restdocs.payload.PayloadDocumentation.responseFields;
 import static org.springframework.restdocs.request.RequestDocumentation.parameterWithName;
 import static org.springframework.restdocs.request.RequestDocumentation.pathParameters;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -56,7 +55,8 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
     @DisplayName("유저 정보 리스트 성공적으로 얻는 경우")
     public void queryUsers_V1_Success_200() throws Exception {
         mockMvc.perform(get("/api/v1/users")
-                .with(httpBasic(properties.getAdminEmail(), properties.getAdminPassword()))
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " +
+                        getAccessToken(properties.getAdminEmail(), properties.getAdminPassword(), properties.getClientId(), properties.getClientSecret()))
                 .accept(MediaTypes.HAL_JSON)
                 .queryParam("size", "10")
                 .queryParam("sort", "id,email,desc"))
@@ -115,7 +115,8 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
     @DisplayName("유저 정보 리스트 관리자 권한 없어서 못 얻는 경우")
     public void queryUsers_V1_Forbidden_403() throws Exception {
         mockMvc.perform(get("/api/v1/users")
-                .with(httpBasic(properties.getUserEmail(), properties.getUserPassword()))
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " +
+                        getAccessToken(properties.getUserEmail(), properties.getUserPassword(), "test", "test"))
                 .accept(MediaTypes.HAL_JSON))
                 .andExpect(status().isForbidden())
                 .andDo(print());
@@ -126,18 +127,20 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
     public void queryUsers_V1_NotFound_404() throws Exception {
         mockMvc.perform(get("/api/v1/users")
                 .queryParam("page", "18723671")
-                .with(httpBasic(properties.getAdminEmail(), properties.getAdminPassword()))
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " +
+                        getAccessToken(properties.getAdminEmail(), properties.getAdminPassword(), properties.getClientId(), properties.getClientSecret()))
                 .accept(MediaTypes.HAL_JSON))
                 .andExpect(status().isNotFound())
                 .andDo(print());
     }
 
     @ParameterizedTest(name = "{index}. {displayName} parameter(page: {0} / size: {1} / sort : {2}")
-    @DisplayName("유저 정보 리스트 잘못된 엑세스 토큰으로 못 얻는 경우")
+    @DisplayName("유저 정보 리스트 잘못된 파라미터로 못 얻는 경우")
     @CsvSource(value = {"1-0:0:-98", "asd:08:-12", "zxczxczxc,zxc:zxczxczxc:id,qwe"}, delimiter = ':')
     public void queryUsers_V1_Invalid_Params_400(String page, String size, String sort) throws Exception {
         mockMvc.perform(get("/api/v1/users")
-                .with(httpBasic(properties.getAdminEmail(), properties.getAdminPassword()))
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " +
+                        getAccessToken(properties.getAdminEmail(), properties.getAdminPassword(), properties.getClientId(), properties.getClientSecret()))
                 .accept(MediaTypes.HAL_JSON)
                 .queryParam("page", page)
                 .queryParam("size", size)
@@ -154,7 +157,8 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
     @DisplayName("관리자가 유저 정보 성공적으로 얻는 경우")
     public void getUser_V1_Admin_Success_200() throws Exception {
         mockMvc.perform(get("/api/v1/user/{id}", accountService.find(properties.getUserEmail()).getId())
-                .with(httpBasic(properties.getAdminEmail(), properties.getAdminPassword()))
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " +
+                        getAccessToken(properties.getAdminEmail(), properties.getAdminPassword(), properties.getClientId(), properties.getClientSecret()))
                 .accept(MediaTypes.HAL_JSON))
                 .andDo(print())
                 .andExpect(status().isOk())
@@ -202,7 +206,8 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
     @DisplayName("사용자 자신의 유저 정보 성공적으로 얻는 경우")
     public void getUser_V1_User_Success_200() throws Exception {
         mockMvc.perform(get("/api/v1/user/{id}", accountService.find(properties.getUserEmail()).getId())
-                .with(httpBasic(properties.getUserEmail(), properties.getUserPassword()))
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " +
+                        getAccessToken(properties.getAdminEmail(), properties.getAdminPassword(), properties.getClientId(), properties.getClientSecret()))
                 .accept(MediaTypes.HAL_JSON))
                 .andDo(print())
                 .andExpect(status().isOk());
@@ -217,7 +222,8 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
         account.setRoles(new HashSet<>(Arrays.asList(Role.USER)));
 
         mockMvc.perform(get("/api/v1/user/{id}", accountService.generate(account).getId())
-                .with(httpBasic(properties.getUserEmail(), properties.getUserPassword()))
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " +
+                        getAccessToken(properties.getUserEmail(), properties.getUserPassword(), "test", "test"))
                 .accept(MediaTypes.HAL_JSON))
                 .andDo(print())
                 .andExpect(jsonPath("timestamp").exists())
@@ -231,7 +237,8 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
     @DisplayName("유저 정보 잘못된 식별자로 얻지 못하는 경우")
     public void getUser_V1_Invalid_400() throws Exception {
         mockMvc.perform(get("/api/v1/user/{id}", "asdasd")
-                .with(httpBasic(properties.getAdminEmail(), properties.getAdminPassword()))
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " +
+                        getAccessToken(properties.getAdminEmail(), properties.getAdminPassword(), properties.getClientId(), properties.getClientSecret()))
                 .accept(MediaTypes.HAL_JSON))
                 .andDo(print())
                 .andExpect(status().isBadRequest());
@@ -241,7 +248,8 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
     @DisplayName("유저 정보 존재하지 않는 식별자로 얻지 못하는 경우")
     public void getUser_No_Exist_404() throws Exception {
         mockMvc.perform(get("/api/v1/user/{id}", "1928361836")
-                .with(httpBasic(properties.getAdminEmail(), properties.getAdminPassword()))
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " +
+                        getAccessToken(properties.getAdminEmail(), properties.getAdminPassword(), properties.getClientId(), properties.getClientSecret()))
                 .accept(MediaTypes.HAL_JSON))
                 .andDo(print())
                 .andExpect(jsonPath("timestamp").exists())
@@ -260,7 +268,8 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
         request.setRoles(new HashSet<>(Arrays.asList(Role.USER)));
 
         mockMvc.perform(post("/api/v1/user")
-                .with(httpBasic(properties.getAdminEmail(), properties.getAdminPassword()))
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " +
+                        getAccessToken(properties.getAdminEmail(), properties.getAdminPassword(), properties.getClientId(), properties.getClientSecret()))
                 .accept(MediaTypes.HAL_JSON)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
@@ -316,7 +325,8 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
         request.setPassword("1234");
 
         mockMvc.perform(post("/api/v1/user")
-                .with(httpBasic(properties.getAdminEmail(), properties.getAdminPassword()))
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " +
+                        getAccessToken(properties.getAdminEmail(), properties.getAdminPassword(), properties.getClientId(), properties.getClientSecret()))
                 .accept(MediaTypes.HAL_JSON)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
@@ -341,7 +351,8 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
         accountService.generate(modelMapper.map(request, Account.class));
 
         mockMvc.perform(post("/api/v1/user")
-                .with(httpBasic(properties.getAdminEmail(), properties.getAdminPassword()))
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " +
+                        getAccessToken(properties.getAdminEmail(), properties.getAdminPassword(), properties.getClientId(), properties.getClientSecret()))
                 .accept(MediaTypes.HAL_JSON)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
@@ -364,7 +375,8 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
         request.setRoles(roles);
 
         mockMvc.perform(patch("/api/v1/user/{id}", accountService.find(properties.getUserEmail()).getId())
-                .with(httpBasic(properties.getAdminEmail(), properties.getAdminPassword()))
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " +
+                        getAccessToken(properties.getAdminEmail(), properties.getAdminPassword(), properties.getClientId(), properties.getClientSecret()))
                 .content(objectMapper.writeValueAsString(request))
                 .accept(MediaTypes.HAL_JSON)
                 .contentType(MediaType.APPLICATION_JSON))
@@ -425,7 +437,8 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
         request.setRoles(new HashSet<>(Arrays.asList(Role.ADMIN)));
 
         mockMvc.perform(patch("/api/v1/user/{id}", "198237981")
-                .with(httpBasic(properties.getAdminEmail(), properties.getAdminPassword()))
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " +
+                        getAccessToken(properties.getAdminEmail(), properties.getAdminPassword(), properties.getClientId(), properties.getClientSecret()))
                 .content(objectMapper.writeValueAsString(request))
                 .accept(MediaTypes.HAL_JSON)
                 .contentType(MediaType.APPLICATION_JSON))
@@ -440,7 +453,8 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
         request.setPassword("1");
 
         mockMvc.perform(patch("/api/v1/user/{id}", accountService.find(properties.getUserEmail()).getId())
-                .with(httpBasic(properties.getAdminEmail(), properties.getAdminPassword()))
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " +
+                        getAccessToken(properties.getAdminEmail(), properties.getAdminPassword(), properties.getClientId(), properties.getClientSecret()))
                 .content(objectMapper.writeValueAsString(request))
                 .accept(MediaTypes.HAL_JSON)
                 .contentType(MediaType.APPLICATION_JSON))
@@ -456,7 +470,8 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
         request.setRoles(new HashSet<>(Arrays.asList(Role.USER)));
 
         mockMvc.perform(patch("/api/v1/user/{id}", accountService.find(properties.getAdminEmail()).getId())
-                .with(httpBasic(properties.getUserEmail(), properties.getUserPassword()))
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " +
+                        getAccessToken(properties.getUserEmail(), properties.getUserPassword(), "test", "test"))
                 .content(objectMapper.writeValueAsString(request))
                 .accept(MediaTypes.HAL_JSON)
                 .contentType(MediaType.APPLICATION_JSON))
@@ -475,7 +490,8 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
         request.setRoles(roles);
 
         mockMvc.perform(put("/api/v1/user/{id}", accountService.find(properties.getUserEmail()).getId())
-                .with(httpBasic(properties.getAdminEmail(), properties.getAdminPassword()))
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " +
+                        getAccessToken(properties.getAdminEmail(), properties.getAdminPassword(), properties.getClientId(), properties.getClientSecret()))
                 .content(objectMapper.writeValueAsString(request))
                 .accept(MediaTypes.HAL_JSON)
                 .contentType(MediaType.APPLICATION_JSON))
@@ -534,7 +550,8 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
         request.setRoles(new HashSet<>(Arrays.asList(Role.USER)));
 
         mockMvc.perform(put("/api/v1/user/{id}", accountService.find(properties.getAdminEmail()).getId())
-                .with(httpBasic(properties.getUserEmail(), properties.getUserPassword()))
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " +
+                        getAccessToken(properties.getUserEmail(), properties.getUserPassword(), "test", "test"))
                 .content(objectMapper.writeValueAsString(request))
                 .accept(MediaTypes.HAL_JSON)
                 .contentType(MediaType.APPLICATION_JSON))
@@ -550,7 +567,8 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
         request.setRoles(new HashSet<>(Arrays.asList(Role.ADMIN)));
 
         mockMvc.perform(put("/api/v1/user/{id}", "198237981")
-                .with(httpBasic(properties.getAdminEmail(), properties.getAdminPassword()))
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " +
+                        getAccessToken(properties.getAdminEmail(), properties.getAdminPassword(), properties.getClientId(), properties.getClientSecret()))
                 .content(objectMapper.writeValueAsString(request))
                 .accept(MediaTypes.HAL_JSON)
                 .contentType(MediaType.APPLICATION_JSON))
@@ -566,7 +584,8 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
         request.setRoles(new HashSet<>(Arrays.asList(Role.ADMIN)));
 
         mockMvc.perform(put("/api/v1/user/{id}", accountService.find(properties.getUserEmail()).getId())
-                .with(httpBasic(properties.getAdminEmail(), properties.getAdminPassword()))
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " +
+                        getAccessToken(properties.getAdminEmail(), properties.getAdminPassword(), properties.getClientId(), properties.getClientSecret()))
                 .content(objectMapper.writeValueAsString(request))
                 .accept(MediaTypes.HAL_JSON)
                 .contentType(MediaType.APPLICATION_JSON))
@@ -578,7 +597,8 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
     @DisplayName("유저 정보 삭제 성공적인 경우")
     public void deleteUser_V1_Success_200() throws Exception {
         mockMvc.perform(delete("/api/v1/user/{id}", accountService.find(properties.getUserEmail()).getId())
-                .with(httpBasic(properties.getAdminEmail(), properties.getAdminPassword()))
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " +
+                        getAccessToken(properties.getAdminEmail(), properties.getAdminPassword(), properties.getClientId(), properties.getClientSecret()))
                 .accept(MediaTypes.HAL_JSON))
                 .andDo(print())
                 .andExpect(status().isOk())
@@ -626,7 +646,8 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
     @DisplayName("유저 정보 삭제 권한 없어서 실패하는 경우")
     public void deleteUser_V1_Forbidden_403() throws Exception {
         mockMvc.perform(delete("/api/v1/user/{id}", accountService.find(properties.getAdminEmail()).getId())
-                .with(httpBasic(properties.getUserEmail(), properties.getUserPassword()))
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " +
+                        getAccessToken(properties.getUserEmail(), properties.getUserPassword(), "test", "test"))
                 .accept(MediaTypes.HAL_JSON))
                 .andDo(print())
                 .andExpect(status().isForbidden());
@@ -636,7 +657,8 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
     @DisplayName("유저 정보 존재 하지 않아서 실패하는 경우")
     public void deleteUser_V1_Forbidden_404() throws Exception {
         mockMvc.perform(delete("/api/v1/user/{id}", "123123123123")
-                .with(httpBasic(properties.getAdminEmail(), properties.getAdminPassword()))
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " +
+                        getAccessToken(properties.getAdminEmail(), properties.getAdminPassword(), properties.getClientId(), properties.getClientSecret()))
                 .accept(MediaTypes.HAL_JSON))
                 .andDo(print())
                 .andExpect(status().isNotFound());
@@ -646,7 +668,8 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
     @DisplayName("유저 정보 잘못된 입력 값으로 실패하는 경우")
     public void deleteUser_V1_Invalid_400() throws Exception {
         mockMvc.perform(delete("/api/v1/user/{id}", "asdasd")
-                .with(httpBasic(properties.getAdminEmail(), properties.getAdminPassword()))
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " +
+                        getAccessToken(properties.getAdminEmail(), properties.getAdminPassword(), properties.getClientId(), properties.getClientSecret()))
                 .accept(MediaTypes.HAL_JSON))
                 .andDo(print())
                 .andExpect(status().isBadRequest());

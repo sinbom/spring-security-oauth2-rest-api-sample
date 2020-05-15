@@ -4,6 +4,8 @@ import me.nuguri.auth.common.BaseIntegrationTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.hateoas.MediaTypes;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 
 import java.util.Arrays;
@@ -36,8 +38,10 @@ public class ClientApiControllerTest extends BaseIntegrationTest {
         request.setResourceIds(resourceIds);
 
         mockMvc.perform(post("/api/v1/client")
-                .with(httpBasic(properties.getUserEmail(), properties.getUserPassword()))
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " +
+                        getAccessToken(properties.getAdminEmail(), properties.getAdminPassword(), properties.getClientId(), properties.getClientSecret()))
                 .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaTypes.HAL_JSON)
                 .content(objectMapper.writeValueAsString(request)))
                 .andDo(print())
                 .andExpect(status().isOk())

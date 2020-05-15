@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import me.nuguri.auth.property.AuthServerConfigProperties;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -24,13 +25,14 @@ import org.springframework.security.oauth2.provider.token.TokenStore;
 import javax.sql.DataSource;
 
 @Configuration
+@EnableAuthorizationServer
+@EnableResourceServer
 public class AuthorizationServerConfiguration {
 
     @Configuration
-    @EnableAuthorizationServer
-    @EnableResourceServer
     @RequiredArgsConstructor
     public static class AuthorizationConfiguration extends AuthorizationServerConfigurerAdapter {
+
         private final PasswordEncoder passwordEncoder;
 
         private final TokenStore tokenStore;
@@ -80,7 +82,6 @@ public class AuthorizationServerConfiguration {
     }
 
     @Configuration
-    @EnableResourceServer
     @EnableGlobalMethodSecurity(prePostEnabled = true)
     @Order(1)
     @RequiredArgsConstructor
@@ -98,6 +99,7 @@ public class AuthorizationServerConfiguration {
                     .mvcMatchers("/api/**")
                     .and()
                     .authorizeRequests()
+                    .mvcMatchers(HttpMethod.POST, "/api/**/user").permitAll()
                     .anyRequest().authenticated();
             http.csrf().disable();
             http.exceptionHandling().accessDeniedHandler(new OAuth2AccessDeniedHandler());

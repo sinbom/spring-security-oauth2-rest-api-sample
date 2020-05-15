@@ -5,6 +5,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import me.nuguri.auth.annotation.AuthenticationUser;
 import me.nuguri.auth.annotation.HasAuthority;
+import me.nuguri.auth.annotation.Oauth2Authentication;
+import me.nuguri.auth.domain.AccountAdapter;
 import me.nuguri.auth.entity.Account;
 import me.nuguri.auth.exception.UserNotExistException;
 import me.nuguri.auth.service.AccountService;
@@ -19,6 +21,7 @@ import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.Link;
 import org.springframework.hateoas.MediaTypes;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -78,13 +81,12 @@ public class AccountApiController {
     /**
      * 유저 정보 조회
      * @param id 식별키
-     * @param loginAccount 현재 로그인 된 계정(세션)
      * @return
      */
     @GetMapping(value = "/api/v1/user/{id}", produces = MediaTypes.HAL_JSON_VALUE)
     @PreAuthorize("#oauth2.hasScope('read')")
     @HasAuthority
-    public ResponseEntity<?> getUser(@PathVariable Long id, @AuthenticationUser Account loginAccount) {
+    public ResponseEntity<?> getUser(@PathVariable Long id) {
         try {
             return ResponseEntity.ok(new GetUserResource(modelMapper.map(accountService.find(id), GetUserResponse.class)));
         } catch (UserNotExistException e) {
@@ -99,7 +101,6 @@ public class AccountApiController {
      * @return
      */
     @PostMapping(value = "/api/v1/user", produces = MediaTypes.HAL_JSON_VALUE)
-    @PreAuthorize("#oauth2.hasScope('write')")
     public ResponseEntity<?> generateUser(@RequestBody @Valid GenerateUserRequest request, Errors errors) {
         Account account = modelMapper.map(request, Account.class);
         accountValidator.validate(account, errors);
@@ -120,13 +121,12 @@ public class AccountApiController {
      * @param id 식별키
      * @param request password 비밀번호, roles 권한
      * @param errors 에러
-     * @param loginAccount 현재 로그인 된 계정(세션)
      * @return
      */
     @PatchMapping(value = "/api/v1/user/{id}")
     @PreAuthorize("#oauth2.hasScope('write')")
     @HasAuthority
-    public ResponseEntity<?> updateUser(@PathVariable Long id, @RequestBody UpdateUserRequest request, Errors errors, @AuthenticationUser Account loginAccount) {
+    public ResponseEntity<?> updateUser(@PathVariable Long id, @RequestBody UpdateUserRequest request, Errors errors) {
         Account account = modelMapper.map(request, Account.class);
         account.setId(id);
         accountValidator.validate(account, errors);
@@ -145,13 +145,12 @@ public class AccountApiController {
      * @param id 식별키
      * @param request password 비밀번호, roles 권한
      * @param errors 에러
-     * @param loginAccount 현재 로그인 된 계정(세션)
      * @return
      */
     @PutMapping(value = "/api/v1/user/{id}")
     @PreAuthorize("#oauth2.hasScope('write')")
     @HasAuthority
-    public ResponseEntity<?> mergeUser(@PathVariable Long id, @RequestBody @Valid UpdateUserRequest request, Errors errors, @AuthenticationUser Account loginAccount) {
+    public ResponseEntity<?> mergeUser(@PathVariable Long id, @RequestBody @Valid UpdateUserRequest request, Errors errors) {
         Account account = modelMapper.map(request, Account.class);
         account.setId(id);
         accountValidator.validate(account, errors);
@@ -168,13 +167,12 @@ public class AccountApiController {
     /**
      * 유저 정보 삭제
      * @param id 식별키
-     * @param loginAccount 현재 로그인 된 계정(세션)
      * @return
      */
     @DeleteMapping(value = "/api/v1/user/{id}")
     @PreAuthorize("#oauth2.hasScope('write')")
     @HasAuthority
-    public ResponseEntity<?> deleteUser(@PathVariable Long id, @AuthenticationUser Account loginAccount) {
+    public ResponseEntity<?> deleteUser(@PathVariable Long id) {
         try {
             return ResponseEntity.ok(new DeleteUserResource(modelMapper.map(accountService.delete(id), GetUserResponse.class)));
         } catch (UserNotExistException e) {
@@ -232,10 +230,10 @@ public class AccountApiController {
         public QueryUsersResource(GetUserResponse content, Link... links) {
             super(content, links);
             add(linkTo(methodOn(AccountApiController.class).queryUsers( null, null)).withSelfRel().withType("GET"));
-            add(linkTo(methodOn(AccountApiController.class).getUser(content.getId(), null)).withRel("getUser").withType("GET"));
-            add(linkTo(methodOn(AccountApiController.class).updateUser(content.getId(), null, null, null)).withRel("updateUser").withType("PATCH"));
-            add(linkTo(methodOn(AccountApiController.class).mergeUser(content.getId(), null, null, null)).withRel("mergeUser").withType("PUT"));
-            add(linkTo(methodOn(AccountApiController.class).deleteUser(content.getId(), null)).withRel("deleteUser").withType("DELETE"));
+            add(linkTo(methodOn(AccountApiController.class).getUser(content.getId())).withRel("getUser").withType("GET"));
+            add(linkTo(methodOn(AccountApiController.class).updateUser(content.getId(), null, null)).withRel("updateUser").withType("PATCH"));
+            add(linkTo(methodOn(AccountApiController.class).mergeUser(content.getId(), null, null)).withRel("mergeUser").withType("PUT"));
+            add(linkTo(methodOn(AccountApiController.class).deleteUser(content.getId())).withRel("deleteUser").withType("DELETE"));
         }
     }
 
@@ -243,10 +241,10 @@ public class AccountApiController {
         public GetUserResource(GetUserResponse content, Link... links) {
             super(content, links);
             add(linkTo(AccountApiController.class).slash("/docs/account.html").withRel("document"));
-            add(linkTo(methodOn(AccountApiController.class).getUser(content.getId(), null)).withSelfRel().withType("GET"));
-            add(linkTo(methodOn(AccountApiController.class).updateUser(content.getId(), null, null, null)).withRel("updateUser").withType("PATCH"));
-            add(linkTo(methodOn(AccountApiController.class).mergeUser(content.getId(), null, null, null)).withRel("mergeUser").withType("PUT"));
-            add(linkTo(methodOn(AccountApiController.class).deleteUser(content.getId(), null)).withRel("deleteUser").withType("DELETE"));
+            add(linkTo(methodOn(AccountApiController.class).getUser(content.getId())).withSelfRel().withType("GET"));
+            add(linkTo(methodOn(AccountApiController.class).updateUser(content.getId(), null, null)).withRel("updateUser").withType("PATCH"));
+            add(linkTo(methodOn(AccountApiController.class).mergeUser(content.getId(), null, null)).withRel("mergeUser").withType("PUT"));
+            add(linkTo(methodOn(AccountApiController.class).deleteUser(content.getId())).withRel("deleteUser").withType("DELETE"));
         }
     }
 
@@ -255,10 +253,10 @@ public class AccountApiController {
             super(content, links);
             add(linkTo(AccountApiController.class).slash("/docs/account.html").withRel("document"));
             add(linkTo(methodOn(AccountApiController.class).generateUser(null, null)).withSelfRel().withType("POST"));
-            add(linkTo(methodOn(AccountApiController.class).getUser(content.getId(), null)).withRel("getUser").withType("GET"));
-            add(linkTo(methodOn(AccountApiController.class).updateUser(content.getId(), null, null, null)).withRel("updateUser").withType("PATCH"));
-            add(linkTo(methodOn(AccountApiController.class).mergeUser(content.getId(), null, null, null)).withRel("mergeUser").withType("PUT"));
-            add(linkTo(methodOn(AccountApiController.class).deleteUser(content.getId(), null)).withRel("deleteUser").withType("DELETE"));
+            add(linkTo(methodOn(AccountApiController.class).getUser(content.getId())).withRel("getUser").withType("GET"));
+            add(linkTo(methodOn(AccountApiController.class).updateUser(content.getId(), null, null)).withRel("updateUser").withType("PATCH"));
+            add(linkTo(methodOn(AccountApiController.class).mergeUser(content.getId(), null, null)).withRel("mergeUser").withType("PUT"));
+            add(linkTo(methodOn(AccountApiController.class).deleteUser(content.getId())).withRel("deleteUser").withType("DELETE"));
         }
     }
 
@@ -266,10 +264,10 @@ public class AccountApiController {
         public UpdateUserResource(GetUserResponse content, Link... links) {
             super(content, links);
             add(linkTo(AccountApiController.class).slash("/docs/account.html").withRel("document"));
-            add(linkTo(methodOn(AccountApiController.class).updateUser(content.getId(), null, null, null)).withSelfRel().withType("PATCH"));
-            add(linkTo(methodOn(AccountApiController.class).getUser(content.getId(), null)).withRel("getUser").withType("GET"));
-            add(linkTo(methodOn(AccountApiController.class).mergeUser(content.getId(), null, null, null)).withRel("mergeUser").withType("PUT"));
-            add(linkTo(methodOn(AccountApiController.class).deleteUser(content.getId(), null)).withRel("deleteUser").withType("DELETE"));
+            add(linkTo(methodOn(AccountApiController.class).updateUser(content.getId(), null, null)).withSelfRel().withType("PATCH"));
+            add(linkTo(methodOn(AccountApiController.class).getUser(content.getId())).withRel("getUser").withType("GET"));
+            add(linkTo(methodOn(AccountApiController.class).mergeUser(content.getId(), null, null)).withRel("mergeUser").withType("PUT"));
+            add(linkTo(methodOn(AccountApiController.class).deleteUser(content.getId())).withRel("deleteUser").withType("DELETE"));
         }
     }
 
@@ -277,10 +275,10 @@ public class AccountApiController {
         public MergeUserResource(GetUserResponse content, Link... links) {
             super(content, links);
             add(linkTo(AccountApiController.class).slash("/docs/account.html").withRel("document"));
-            add(linkTo(methodOn(AccountApiController.class).mergeUser(content.getId(), null, null, null)).withSelfRel().withType("PUT"));
-            add(linkTo(methodOn(AccountApiController.class).getUser(content.getId(), null)).withRel("getUser").withType("GET"));
-            add(linkTo(methodOn(AccountApiController.class).updateUser(content.getId(), null, null, null)).withRel("updateUser").withType("PATCH"));
-            add(linkTo(methodOn(AccountApiController.class).deleteUser(content.getId(), null)).withRel("deleteUser").withType("DELETE"));
+            add(linkTo(methodOn(AccountApiController.class).mergeUser(content.getId(), null, null)).withSelfRel().withType("PUT"));
+            add(linkTo(methodOn(AccountApiController.class).getUser(content.getId())).withRel("getUser").withType("GET"));
+            add(linkTo(methodOn(AccountApiController.class).updateUser(content.getId(), null, null)).withRel("updateUser").withType("PATCH"));
+            add(linkTo(methodOn(AccountApiController.class).deleteUser(content.getId())).withRel("deleteUser").withType("DELETE"));
         }
     }
 
@@ -288,10 +286,10 @@ public class AccountApiController {
         public DeleteUserResource(GetUserResponse content, Link... links) {
             super(content, links);
             add(linkTo(AccountApiController.class).slash("/docs/account.html").withRel("document"));
-            add(linkTo(methodOn(AccountApiController.class).deleteUser(content.getId(), null)).withSelfRel().withType("DELETE"));
-            add(linkTo(methodOn(AccountApiController.class).getUser(content.getId(), null)).withRel("getUser").withType("GET"));
-            add(linkTo(methodOn(AccountApiController.class).mergeUser(content.getId(), null, null, null)).withRel("mergeUser").withType("PUT"));
-            add(linkTo(methodOn(AccountApiController.class).updateUser(content.getId(), null, null, null)).withRel("updateUser").withType("PATCH"));
+            add(linkTo(methodOn(AccountApiController.class).deleteUser(content.getId())).withSelfRel().withType("DELETE"));
+            add(linkTo(methodOn(AccountApiController.class).getUser(content.getId())).withRel("getUser").withType("GET"));
+            add(linkTo(methodOn(AccountApiController.class).mergeUser(content.getId(), null, null)).withRel("mergeUser").withType("PUT"));
+            add(linkTo(methodOn(AccountApiController.class).updateUser(content.getId(), null, null)).withRel("updateUser").withType("PATCH"));
         }
     }
     // ==========================================================================================================================================

@@ -5,7 +5,6 @@ import lombok.extern.slf4j.Slf4j;
 import me.nuguri.auth.entity.Account;
 import me.nuguri.auth.entity.Client;
 import me.nuguri.auth.property.AuthServerConfigProperties;
-import me.nuguri.auth.repository.ClientRepository;
 import me.nuguri.auth.service.AccountService;
 import me.nuguri.common.enums.GrantType;
 import me.nuguri.common.enums.Role;

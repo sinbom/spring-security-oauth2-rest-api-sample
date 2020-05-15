@@ -1,11 +1,9 @@
 package me.nuguri.auth.controller.api;
 
 import me.nuguri.auth.common.BaseIntegrationTest;
-import me.nuguri.common.enums.GrantType;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.json.JacksonJsonParser;
 import org.springframework.http.HttpHeaders;
 
 import static org.springframework.restdocs.headers.HeaderDocumentation.*;
@@ -14,7 +12,6 @@ import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuild
 import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.post;
 import static org.springframework.restdocs.payload.PayloadDocumentation.fieldWithPath;
 import static org.springframework.restdocs.payload.PayloadDocumentation.responseFields;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -34,7 +31,8 @@ public class AuthorizationApiControllerTest extends BaseIntegrationTest {
     @DisplayName("인증 서버 엑세스 토큰 정상적으로 만료되는 경우")
     public void revokeAccessToken_Success_200() throws Exception {
         mockMvc.perform(post("/oauth/revoke_token")
-                .header(HttpHeaders.AUTHORIZATION, getAccessToken(properties.getAdminEmail(), properties.getAdminPassword())))
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " +
+                        getAccessToken(properties.getAdminEmail(), properties.getAdminPassword(), properties.getClientId(), properties.getClientSecret())))
                 .andExpect(status().isOk())
                 .andDo(print())
                 .andDo(document("revoke-access_token",
@@ -75,11 +73,11 @@ public class AuthorizationApiControllerTest extends BaseIntegrationTest {
 
     @Test
     @DisplayName("인증 서버 엑세스 토큰 부정확하거나 존재하지 않는 엑세스 토큰 입력으로 만료하지 못하는 경우")
-    public void revokeAccessToken_Invalid_AccessToken_400() throws Exception {
+    public void revokeAccessToken_Invalid_AccessToken_401() throws Exception {
         mockMvc.perform(post("/oauth/revoke_token")
                 .header(HttpHeaders.AUTHORIZATION, "invalid_token_!(@*#&!"))
                 .andDo(print())
-                .andExpect(status().isBadRequest())
+                .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("timestamp").exists())
                 .andExpect(jsonPath("status").exists())
                 .andExpect(jsonPath("error").exists())
@@ -90,7 +88,8 @@ public class AuthorizationApiControllerTest extends BaseIntegrationTest {
     @DisplayName("인증 서버 엑세스 토큰을 전달해 현재 토큰의 유저 정보를 성공적으로 조회하는 경우")
     public void getMe_Success_200() throws Exception {
         mockMvc.perform(get("/oauth/me")
-                .header(HttpHeaders.AUTHORIZATION, getAccessToken(properties.getAdminEmail(), properties.getAdminPassword())))
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " +
+                        getAccessToken(properties.getAdminEmail(), properties.getAdminPassword(), properties.getClientId(), properties.getClientSecret())))
                 .andExpect(status().isOk())
                 .andDo(print())
                 .andDo(document("get-me",
@@ -125,36 +124,16 @@ public class AuthorizationApiControllerTest extends BaseIntegrationTest {
     }
 
     @Test
-    @DisplayName("잘못된 인증 서버 엑세스 토큰으 전달해서 유저 정보를 조회하지 못하는 경우")
-    public void getMe_Invalid_AccessToken_400() throws Exception {
+    @DisplayName("잘못된 인증 서버 엑세스 토큰을 전달해서 유저 정보를 조회하지 못하는 경우")
+    public void getMe_Invalid_AccessToken_401() throws Exception {
         mockMvc.perform(get("/oauth/me")
                 .header(HttpHeaders.AUTHORIZATION, "invalid_token_!(@*#&!"))
-                .andExpect(status().isBadRequest())
+                .andExpect(status().isUnauthorized())
                 .andDo(print())
                 .andExpect(jsonPath("timestamp").exists())
                 .andExpect(jsonPath("status").exists())
                 .andExpect(jsonPath("error").exists())
                 .andExpect(jsonPath("message").exists());
-    }
-
-    /**
-     * Password 방식 엑세스 토큰 요청 후 토큰 반환 공통 로직
-     * @param username 이메일
-     * @param password 비밀번호
-     * @return 엑세스 토큰
-     * @throws Exception
-     */
-    private String getAccessToken(String username, String password) throws Exception {
-        return (String) new JacksonJsonParser()
-                .parseMap(mockMvc.perform(post("/oauth/token")
-                        .with(httpBasic(properties.getClientId(), properties.getClientSecret()))
-                        .param("username", username)
-                        .param("password", password)
-                        .param("grant_type", GrantType.PASSWORD.toString()))
-                        .andReturn()
-                        .getResponse()
-                        .getContentAsString())
-                .get("access_token");
     }
 
 }

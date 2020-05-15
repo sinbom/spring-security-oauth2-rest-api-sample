@@ -19,6 +19,7 @@ import static org.springframework.restdocs.payload.PayloadDocumentation.fieldWit
 import static org.springframework.restdocs.payload.PayloadDocumentation.responseFields;
 import static org.springframework.restdocs.request.RequestDocumentation.parameterWithName;
 import static org.springframework.restdocs.request.RequestDocumentation.requestParameters;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -39,7 +40,7 @@ public class AuthorizationServerConfigurationTest  extends BaseIntegrationTest {
     @DisplayName("인증 서버 엑세스 토큰 유효한 경우")
     public void checkAccessToken_Success_200() throws Exception {
         mockMvc.perform(post("/oauth/check_token")
-                .param("token", getAccessToken(properties.getAdminEmail(), properties.getAdminPassword())))
+                .param("token", getAccessToken(properties.getAdminEmail(), properties.getAdminPassword(), properties.getClientId(), properties.getClientSecret())))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("active").exists())
                 .andExpect(jsonPath("active").value(true))
@@ -79,9 +80,10 @@ public class AuthorizationServerConfigurationTest  extends BaseIntegrationTest {
     @Test
     @DisplayName("인증 서버 엑세스 토큰 유효하지 않는 경우")
     public void checkAccessToken_Invalid_AccessToken_400() throws Exception {
-        String access_token = getAccessToken(properties.getAdminEmail(), properties.getAdminPassword());
+        String access_token = getAccessToken(properties.getAdminEmail(), properties.getAdminPassword(), properties.getClientId(), properties.getClientSecret());
         mockMvc.perform(post("/oauth/revoke_token")
-                .header(HttpHeaders.AUTHORIZATION, "Bearer " + access_token));
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " +
+                        access_token));
         mockMvc.perform(post("/oauth/check_token")
                 .param("token", access_token))
                 .andExpect(status().isBadRequest());
@@ -99,6 +101,7 @@ public class AuthorizationServerConfigurationTest  extends BaseIntegrationTest {
                 .andDo(print())
                 .andDo(r -> {
                     mockMvc.perform(post("/oauth/authorize")
+                            .with(csrf())
                             .session((MockHttpSession) r.getRequest().getSession())
                             .param("response_type", "code")
                             .param("client_id", properties.getClientId())
@@ -140,6 +143,7 @@ public class AuthorizationServerConfigurationTest  extends BaseIntegrationTest {
                 .andDo(print())
                 .andDo(r -> {
                     String redirectedUrl = mockMvc.perform(post("/oauth/authorize")
+                            .with(csrf())
                             .session((MockHttpSession) r.getRequest().getSession())
                             .param("response_type", "token")
                             .param("client_id", properties.getClientId())
@@ -372,22 +376,6 @@ public class AuthorizationServerConfigurationTest  extends BaseIntegrationTest {
                 .param("username", email)
                 .param("password", password)
                 .param("grant_type", GrantType.PASSWORD.toString())).andDo(print());
-    }
-
-    /**
-     * Password 방식 엑세스 토큰 요청 후 토큰 반환 공통 로직
-     * @param username 이메일
-     * @param password 비밀번호
-     * @return 엑세스 토큰
-     * @throws Exception
-     */
-    private String getAccessToken(String username, String password) throws Exception {
-        return (String) new JacksonJsonParser()
-                .parseMap(getAccessTokenPasswordGrantTypeResponse(username, password)
-                        .andReturn()
-                        .getResponse()
-                        .getContentAsString())
-                .get("access_token");
     }
 
     /**

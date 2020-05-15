@@ -11,9 +11,11 @@ import me.nuguri.common.enums.Scope;
 import org.junit.jupiter.api.Disabled;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.json.JacksonJsonParser;
 import org.springframework.boot.test.autoconfigure.restdocs.AutoConfigureRestDocs;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.json.JacksonTester;
 import org.springframework.context.annotation.Import;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.annotation.DirtiesContext;
@@ -25,6 +27,9 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.UUID;
 import java.util.stream.IntStream;
+
+import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.post;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic;
 
 @SpringBootTest
 @ActiveProfiles("test")
@@ -76,8 +81,38 @@ public abstract class BaseIntegrationTest {
         client.setAuthorities(String.join(",", Role.ADMIN.toString(), Role.USER.toString()));
         client.addAccount(admin);
 
+        Client client2 = new Client();
+        client2.setClientId("test");
+        client2.setClientSecret(passwordEncoder.encode("test"));
+        client2.setResourceIds("account");
+        client2.setScope(String.join(",", Scope.READ.toString()));
+        client2.setGrantTypes(String.join(",", GrantType.PASSWORD.toString(), GrantType.CLIENT_CREDENTIALS.toString()));
+        client2.setRedirectUri(properties.getRedirectUri());
+        client2.setAuthorities(String.join(",", Role.USER.toString()));
+        client2.addAccount(user);
+
         accountService.generate(admin);
         accountService.generate(user);
+    }
+
+    /**
+     * Password 방식 엑세스 토큰 요청 후 토큰 반환 공통 로직
+     * @param username 이메일
+     * @param password 비밀번호
+     * @return 엑세스 토큰
+     * @throws Exception
+     */
+    protected String getAccessToken(String username, String password, String clientId, String clientSecret) throws Exception {
+        return (String) new JacksonJsonParser()
+                .parseMap(mockMvc.perform(post("/oauth/token")
+                        .with(httpBasic(clientId, clientSecret))
+                        .param("username", username)
+                        .param("password", password)
+                        .param("grant_type", GrantType.PASSWORD.toString()))
+                        .andReturn()
+                        .getResponse()
+                        .getContentAsString())
+                .get("access_token");
     }
 
 }

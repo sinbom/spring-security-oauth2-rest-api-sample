@@ -11,6 +11,7 @@ import me.nuguri.common.domain.ErrorResponse;
 import me.nuguri.common.enums.GrantType;
 import me.nuguri.common.enums.Role;
 import me.nuguri.common.enums.Scope;
+import org.springframework.hateoas.MediaTypes;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -33,7 +34,7 @@ public class ClientApiController {
 
     private final ClientService clientService;
 
-    @PostMapping(value = "/api/v1/client", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping(value = "/api/v1/client", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaTypes.HAL_JSON_VALUE)
     public ResponseEntity<?> generateClient(@RequestBody @Valid GenerateClientRequest request, Errors errors, @AuthenticationUser Account loginAccount) {
         if (errors.hasErrors()) {
             return ResponseEntity.badRequest().body(new ErrorResponse(HttpStatus.BAD_REQUEST, "invalid value", errors));

@@ -8,6 +8,8 @@ import me.nuguri.auth.entity.Account;
 import me.nuguri.common.domain.ErrorResponse;
 import me.nuguri.common.enums.Role;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.provider.token.TokenStore;
 import org.springframework.stereotype.Component;
