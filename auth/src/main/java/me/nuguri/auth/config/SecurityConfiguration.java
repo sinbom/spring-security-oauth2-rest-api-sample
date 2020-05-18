@@ -16,6 +16,7 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.web.authentication.SavedRequestAwareAuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationFailureHandler;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.logout.SimpleUrlLogoutSuccessHandler;
@@ -26,10 +27,9 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.time.LocalDateTime;
 
-// TODO 추후 인증 서버, 로그인 서버 분리해서 Redis 세션 클러스터링 사용하기
 @Configuration
 @EnableWebSecurity
-@Order(10)
+@Order(1)
 @RequiredArgsConstructor
 @Slf4j
 public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
@@ -51,6 +51,9 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http
+                .requestMatchers()
+                .regexMatchers("^(?!/api/).*$")
+                .and()
                 .authorizeRequests()
                 .antMatchers(HttpMethod.GET, "/", "/main", "/oauth/me").permitAll()
                 .antMatchers("/oauth/revoke_token").permitAll()
@@ -61,7 +64,7 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
         http.httpBasic();
         http
                 .formLogin()
-                .successHandler(new SimpleUrlAuthenticationSuccessHandler() {
+                .successHandler(new SavedRequestAwareAuthenticationSuccessHandler() {
                     @Override
                     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
                         super.onAuthenticationSuccess(request, response, authentication);

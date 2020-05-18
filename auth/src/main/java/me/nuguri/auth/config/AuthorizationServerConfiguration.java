@@ -83,7 +83,7 @@ public class AuthorizationServerConfiguration {
 
     @Configuration
     @EnableGlobalMethodSecurity(prePostEnabled = true)
-    @Order(1)
+    @Order(100)
     @RequiredArgsConstructor
     public static class ResourceConfiguration extends ResourceServerConfigurerAdapter {
 
@@ -101,6 +101,8 @@ public class AuthorizationServerConfiguration {
                     .authorizeRequests()
                     .mvcMatchers(HttpMethod.POST, "/api/**/user").permitAll()
                     .anyRequest().authenticated();
+            http.sessionManagement().disable();
+            http.logout().disable();
             http.csrf().disable();
             http.exceptionHandling().accessDeniedHandler(new OAuth2AccessDeniedHandler());
         }

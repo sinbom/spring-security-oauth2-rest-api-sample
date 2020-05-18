@@ -16,6 +16,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.UUID;
 
 @Component
 @RequiredArgsConstructor
@@ -31,17 +32,22 @@ public class ApplicationRunner implements org.springframework.boot.ApplicationRu
     @Value("${spring.profiles.active}")
     private String profile;
 
+    @Value("${spring.jpa.hibernate.ddl-auto}")
+    private String ddlAuto;
+
     @Override
     public void run(ApplicationArguments args) {
-        if (profile.equals("local")) {
+        if (profile.equals("local") && ddlAuto.equals("create")) {
             log.info("[log] [active profile is " + profile + "] => do persist test entities");
 
             Account admin = new Account();
+            admin.setName("관리자");
             admin.setEmail(properties.getAdminEmail());
             admin.setPassword(properties.getAdminPassword());
             admin.setRoles(new HashSet<>(Arrays.asList(Role.ADMIN, Role.USER)));
 
             Account user = new Account();
+            user.setName("사용자");
             user.setEmail(properties.getUserEmail());
             user.setPassword(properties.getUserPassword());
             user.setRoles(new HashSet<>(Arrays.asList(Role.USER)));

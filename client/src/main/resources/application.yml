@@ -1,10 +1,12 @@
 # Server Setting
 server:
-  port: 9600
+  port: 7600
+  servlet:
+    session:
+      cookie:
+        name: client-session-id
 
 spring:
-  profiles:
-    active: local
   devtools:
     livereload:
       enabled: true
@@ -15,14 +17,14 @@ spring:
 
   # DB Connection Setting
   datasource:
-    url: jdbc:mysql://localhost:3306/oauth?serverTimezone=UTC&useSSL=false
+    url: jdbc:mysql://localhost:3306/client?serverTimezone=UTC&useSSL=false
     username: root
     password: 1234
     driver-class-name: com.mysql.cj.jdbc.Driver
   # JPA Setting
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: create
       use-new-id-generator-mappings: false
     properties:
       hibernate:
@@ -40,15 +42,15 @@ logging:
           descriptor:
             sql:
               BasicBinder: TRACE
-      springframework:
-        security: DEBUG
+#      springframework:
+#        security: DEBUG
 
-# configuration properties
-auth:
-  client-id: nuguri
-  client-secret: bom
-  redirect-uri: http://localhost:${server.port}/main
-  admin-email: admin@naver.com
-  admin-password: 1234
-  user-email: user@naver.com
-  user-password: 1234
+# properties
+oauth:
+  nuguri:
+    loginUrl: "http://localhost:9600/oauth/authorize"
+    tokenUrl: "http://localhost:9600/oauth/token"
+    infoUrl: "http://localhost:9600/oauth/me"
+    clientId: "07e879ba-2e23-4fcb-a794-7017c4984517"
+    clientSecret: "447f2e88-ff7a-4004-ae00-f50d3d6d58f3"
+    redirectUri: "http://localhost:7600/nuguri/login"

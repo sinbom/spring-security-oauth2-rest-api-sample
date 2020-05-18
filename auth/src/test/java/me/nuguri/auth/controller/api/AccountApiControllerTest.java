@@ -19,6 +19,8 @@ import java.util.UUID;
 import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.restdocs.headers.HeaderDocumentation.*;
 import static org.springframework.restdocs.hypermedia.HypermediaDocumentation.linkWithRel;
 import static org.springframework.restdocs.hypermedia.HypermediaDocumentation.links;
@@ -43,6 +45,7 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
         generateTestEntities();
         IntStream.range(0, 30).forEach(n -> {
                     Account account = new Account();
+                    account.setName("테스트" + n);
                     account.setEmail(UUID.randomUUID().toString() + "@test.com");
                     account.setPassword("test");
                     account.setRoles(new HashSet<>(Arrays.asList(Role.USER)));
@@ -85,6 +88,7 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
                         responseFields(
                                 fieldWithPath("_contents[*].id").description("account id"),
                                 fieldWithPath("_contents[*].email").description("account email"),
+                                fieldWithPath("_contents[*].name").description("account name"),
                                 fieldWithPath("_contents[*].roles").description("account roles"),
                                 fieldWithPath("_contents[*]._links.self.href").description("self link"),
                                 fieldWithPath("_contents[*]._links.getUser.href").description("getUser link"),
@@ -196,6 +200,7 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
                                 fieldWithPath("_links.deleteUser.type").description("delete user link  http method type"),
                                 fieldWithPath("id").description("account id"),
                                 fieldWithPath("email").description("account email"),
+                                fieldWithPath("name").description("account name"),
                                 fieldWithPath("roles").description("account roles")
                         )
                         )
@@ -217,6 +222,7 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
     @DisplayName("사용자가 자신의 유저 정보가 아닌 다른 정보를 얻지 못하는 경우")
     public void getUser_V1_User_Forbidden_403() throws Exception {
         Account account = new Account();
+        account.setName("테스트");
         account.setEmail("bvcncvbncvnbt@test.com");
         account.setPassword("test");
         account.setRoles(new HashSet<>(Arrays.asList(Role.USER)));
@@ -263,6 +269,7 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
     @DisplayName("유저 정보 생성 성공적인 경우")
     public void generateUser_V1_Success_201() throws Exception {
         AccountApiController.GenerateUserRequest request = new AccountApiController.GenerateUserRequest();
+        request.setName("생성성공");
         request.setEmail("test200@naver.com");
         request.setPassword("123123");
         request.setRoles(new HashSet<>(Arrays.asList(Role.USER)));
@@ -311,6 +318,7 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
                                 fieldWithPath("_links.deleteUser.type").description("delete user link  http method type"),
                                 fieldWithPath("id").description("account id"),
                                 fieldWithPath("email").description("account email"),
+                                fieldWithPath("name").description("account name"),
                                 fieldWithPath("roles").description("account roles")
                         )
                         )
@@ -321,6 +329,7 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
     @DisplayName("유저 정보 생성 잘못된 입력 정보로 실패하는 경우")
     public void generateUser_V1_Invalid_400() throws Exception {
         AccountApiController.GenerateUserRequest request = new AccountApiController.GenerateUserRequest();
+        request.setName("테스트");
         request.setEmail("isNotEmailType");
         request.setPassword("1234");
 
@@ -344,6 +353,7 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
         String email = "already@test.com";
 
         AccountApiController.GenerateUserRequest request = new AccountApiController.GenerateUserRequest();
+        request.setName("테스트");
         request.setEmail(email);
         request.setPassword("124331");
         request.setRoles(new HashSet<>(Arrays.asList(Role.USER)));
@@ -367,10 +377,12 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
     @Test
     @DisplayName("유저 정보 부분 수정 성공적인 경우")
     public void updateUser_V1_Success_200() throws Exception {
+        String name = "테스트";
         String password = "123123";
         Set<Role> roles = new HashSet<>(Arrays.asList(Role.ADMIN));
 
         AccountApiController.UpdateUserRequest request = new AccountApiController.UpdateUserRequest();
+        request.setName(name);
         request.setPassword(password);
         request.setRoles(roles);
 
@@ -418,6 +430,7 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
                                 fieldWithPath("_links.deleteUser.type").description("delete user link  http method type"),
                                 fieldWithPath("id").description("account id"),
                                 fieldWithPath("email").description("account email"),
+                                fieldWithPath("name").description("account name"),
                                 fieldWithPath("roles").description("account roles")
                         )
                         )
@@ -425,14 +438,16 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
         ;
 
         Account updated = accountService.find(properties.getUserEmail());
-        assertThat(passwordEncoder.matches(password, updated.getPassword())).isTrue();
-        assertThat(roles).isEqualTo(updated.getRoles());
+        assertEquals(name, updated.getName());
+        assertTrue(passwordEncoder.matches(password, updated.getPassword()));
+        assertEquals(roles, updated.getRoles());
     }
 
     @Test
     @DisplayName("유저 정보 부분 수정 유저 정보 존재하지 않는 경우")
     public void updateUser_V1_NotFound_404() throws Exception {
         AccountApiController.UpdateUserRequest request = new AccountApiController.UpdateUserRequest();
+        request.setName("테스트");
         request.setPassword("1123123");
         request.setRoles(new HashSet<>(Arrays.asList(Role.ADMIN)));
 
@@ -482,10 +497,12 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
     @Test
     @DisplayName("유저 정보 전체 수정 성공하는 경우")
     public void mergeUser_V1_Success_200() throws Exception {
+        String name = "수정성공";
         String password = "1123123";
         Set<Role> roles = new HashSet<>(Arrays.asList(Role.ADMIN, Role.USER));
 
         AccountApiController.UpdateUserRequest request = new AccountApiController.UpdateUserRequest();
+        request.setName(name);
         request.setPassword(password);
         request.setRoles(roles);
 
@@ -532,20 +549,23 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
                                 fieldWithPath("_links.deleteUser.type").description("delete user link  http method type"),
                                 fieldWithPath("id").description("account id"),
                                 fieldWithPath("email").description("account email"),
+                                fieldWithPath("name").description("account name"),
                                 fieldWithPath("roles").description("account roles")
                         )
                         )
                 );
 
         Account merge = accountService.find(properties.getUserEmail());
-        assertThat(passwordEncoder.matches(password, merge.getPassword())).isTrue();
-        assertThat(roles).isEqualTo(merge.getRoles());
+        assertEquals(name, merge.getName());
+        assertTrue(passwordEncoder.matches(password, merge.getPassword()));
+        assertEquals(roles, merge.getRoles());
     }
 
     @Test
     @DisplayName("유저 정보 전체 수정 권한 없어서 실패하는 경우")
     public void mergeUser_V1_Success_403() throws Exception {
         AccountApiController.UpdateUserRequest request = new AccountApiController.UpdateUserRequest();
+        request.setName("테스트");
         request.setPassword("1123123");
         request.setRoles(new HashSet<>(Arrays.asList(Role.USER)));
 
@@ -563,6 +583,7 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
     @DisplayName("유저 정보 전체 수정 유저 정보 존재하지 않는 경우")
     public void mergeUser_V1_NotFound_404() throws Exception {
         AccountApiController.UpdateUserRequest request = new AccountApiController.UpdateUserRequest();
+        request.setName("테스트");
         request.setPassword("1123123");
         request.setRoles(new HashSet<>(Arrays.asList(Role.ADMIN)));
 
@@ -580,6 +601,7 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
     @DisplayName("유저 정보 전체 수정 잘못된 입력 값으로 실패하는 경우")
     public void mergeUser_V1_Invalid_400() throws Exception {
         AccountApiController.UpdateUserRequest request = new AccountApiController.UpdateUserRequest();
+        request.setName("테스트");
         request.setPassword("1");
         request.setRoles(new HashSet<>(Arrays.asList(Role.ADMIN)));
 
@@ -636,6 +658,7 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
                                 fieldWithPath("_links.mergeUser.type").description("merge user link  http method type"),
                                 fieldWithPath("id").description("account id"),
                                 fieldWithPath("email").description("account email"),
+                                fieldWithPath("name").description("account name"),
                                 fieldWithPath("roles").description("account roles")
                         )
                         )

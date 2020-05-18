@@ -183,27 +183,13 @@ public class AccountApiController {
     // ==========================================================================================================================================
     // Domain
     @Getter @Setter
-    public static class LoginRequest {
-        @NotBlank
-        private String username;
-        @NotBlank
-        private String password;
-    }
-
-    @Getter @Setter
-    public static class LoginResponse {
-        private String sessionId;
-        public LoginResponse(String sessionId) {
-            this.sessionId = sessionId;
-        }
-    }
-
-    @Getter @Setter
     public static class GenerateUserRequest {
         @NotBlank
         private String email;
         @NotBlank
         private String password;
+        @NotBlank
+        private String name;
         @NotEmpty
         private Set<Role> roles;
     }
@@ -212,6 +198,8 @@ public class AccountApiController {
     public static class UpdateUserRequest {
         @NotBlank
         private String password;
+        @NotBlank
+        private String name;
         @NotEmpty
         private Set<Role> roles;
     }
@@ -220,6 +208,7 @@ public class AccountApiController {
     public static class GetUserResponse {
         private Long id;
         private String email;
+        private String name;
         private Set<Role> roles;
     }
     // ==========================================================================================================================================

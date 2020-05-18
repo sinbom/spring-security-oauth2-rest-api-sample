@@ -106,6 +106,7 @@ public class AuthorizationApiControllerTest extends BaseIntegrationTest {
                         ),
                         responseFields(
                                 fieldWithPath("email").description("account email"),
+                                fieldWithPath("name").description("account name"),
                                 fieldWithPath("roles").description("account roles")
                         )
                 ));

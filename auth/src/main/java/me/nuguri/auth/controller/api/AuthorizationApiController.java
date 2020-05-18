@@ -56,6 +56,7 @@ public class AuthorizationApiController {
     @Getter @Setter
     public static class GetMeResponse {
         private String email;
+        private String name;
         private Set<Role> roles;
     }
     // ==========================================================================================================================================

@@ -63,6 +63,9 @@ public class AccountService implements UserDetailsService {
         if (!StringUtils.isEmpty(account.getPassword())) {
             update.setPassword(passwordEncoder.encode(account.getPassword()));
         }
+        if (!StringUtils.isEmpty(account.getName())) {
+            update.setName(account.getName());
+        }
         if (!account.getRoles().isEmpty()) {
             update.setRoles(account.getRoles());
         }

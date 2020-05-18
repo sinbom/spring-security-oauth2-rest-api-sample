@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Client Main</title>
+</head>
+<body>
+<h1>User Page</h1>
+<h2 sec:authorize="isAuthenticated()"><span sec:authentication="name" th:remove="tag"></span></h2>
+</body>
+</html>

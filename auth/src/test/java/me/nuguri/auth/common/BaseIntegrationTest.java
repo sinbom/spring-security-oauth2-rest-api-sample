@@ -61,11 +61,13 @@ public abstract class BaseIntegrationTest {
 
     protected void generateTestEntities() {
         Account admin = new Account();
+        admin.setName("관리자");
         admin.setEmail(properties.getAdminEmail());
         admin.setPassword(properties.getAdminPassword());
         admin.setRoles(new HashSet<>(Arrays.asList(Role.ADMIN, Role.USER)));
 
         Account user = new Account();
+        user.setName("사용자");
         user.setEmail(properties.getUserEmail());
         user.setPassword(properties.getUserPassword());
         user.setRoles(new HashSet<>(Arrays.asList(Role.USER)));

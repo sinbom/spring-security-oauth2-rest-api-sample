@@ -4,6 +4,7 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import me.nuguri.auth.annotation.AuthenticationUser;
+import me.nuguri.auth.domain.AccountAdapter;
 import me.nuguri.auth.entity.Account;
 import me.nuguri.auth.entity.Client;
 import me.nuguri.auth.service.ClientService;
@@ -15,6 +16,7 @@ import org.springframework.hateoas.MediaTypes;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.oauth2.provider.OAuth2Authentication;
 import org.springframework.validation.Errors;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -35,11 +37,11 @@ public class ClientApiController {
     private final ClientService clientService;
 
     @PostMapping(value = "/api/v1/client", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaTypes.HAL_JSON_VALUE)
-    public ResponseEntity<?> generateClient(@RequestBody @Valid GenerateClientRequest request, Errors errors, @AuthenticationUser Account loginAccount) {
+    public ResponseEntity<?> generateClient(@RequestBody @Valid GenerateClientRequest request, Errors errors, OAuth2Authentication authentication) {
         if (errors.hasErrors()) {
             return ResponseEntity.badRequest().body(new ErrorResponse(HttpStatus.BAD_REQUEST, "invalid value", errors));
         }
-        Client client = request.toClient(loginAccount);
+        Client client = request.toClient(((AccountAdapter) authentication.getPrincipal()).getAccount());
         String clientSecret = client.getClientSecret();
         client = clientService.generate(client);
         client.setClientSecret(clientSecret);
@@ -58,9 +60,9 @@ public class ClientApiController {
             Client client = new Client();
             client.setClientId(UUID.randomUUID().toString());
             client.setClientSecret(UUID.randomUUID().toString());
-            client.setGrantTypes(String.join(",", GrantType.AUTHORIZATION_CODE.toString(), GrantType.IMPLICIT.toString()));
-            client.setAuthorities(account.getRoles().stream().map(Role::toString).collect(Collectors.joining(",")));
-            client.setScope(account.getRoles().stream().anyMatch(Role.ADMIN::equals) ? Scope.READ + "," + Scope.WRITE : Scope.READ.toString());
+            client.setGrantTypes(String.join(",", GrantType.AUTHORIZATION_CODE.toString()));
+            client.setAuthorities(Role.USER.toString());
+            client.setScope(String.join(",", Scope.READ.toString(), Scope.WRITE.toString()));
             client.setAccessTokenValidity(600);
             client.setRefreshTokenValidity(3600);
             client.setRedirectUri(redirectUri);

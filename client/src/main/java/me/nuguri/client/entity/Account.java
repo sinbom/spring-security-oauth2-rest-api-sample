@@ -1,6 +1,8 @@
-package me.nuguri.auth.entity;
+package me.nuguri.client.entity;
 
-import lombok.*;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
 import me.nuguri.common.enums.Role;
 
 import javax.persistence.*;
@@ -39,8 +41,5 @@ public class Account implements Serializable {
     @Enumerated(EnumType.STRING)
     private Set<Role> roles;
 
-    /** 등록 클라이언트 */
-    @OneToMany(mappedBy = "account", cascade = CascadeType.ALL)
-    private List<Client> clients = new ArrayList<>();
 
 }
