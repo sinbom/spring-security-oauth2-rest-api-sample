@@ -206,7 +206,7 @@ public class AuthorApiControllerTest extends BaseIntegrationTest {
     public void generateAuthor_V1_Invalid_400() throws Exception {
         mockRestTemplate(HttpStatus.OK);
         AuthorApiController.GenerateAuthorRequest request = new AuthorApiController.GenerateAuthorRequest();
-        request.setName("Test Author");
+        request.setName("");
         request.setBirth(LocalDate.now());
         request.setDeath(LocalDate.of(1996, 9, 17));
 

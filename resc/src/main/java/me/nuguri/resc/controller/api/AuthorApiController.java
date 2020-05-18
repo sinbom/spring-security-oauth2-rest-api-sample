@@ -24,6 +24,8 @@ import org.springframework.validation.Errors;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -43,11 +45,6 @@ public class AuthorApiController {
     private final ModelMapper modelMapper;
 
     private final AuthorValidator authorValidator;
-
-    @GetMapping("/api/test")
-    public ResponseEntity<?> test(OAuth2Authentication authentication) {
-        return ResponseEntity.ok(authentication);
-    }
 
     @GetMapping(value = "/api/v1/authors", produces = MediaTypes.HAL_JSON_VALUE)
     public ResponseEntity<?> queryAuthors(Pagination pagination, Errors errors) {
@@ -147,9 +144,12 @@ public class AuthorApiController {
 
     @Getter @Setter
     public static class GenerateAuthorRequest {
+        @NotBlank
         private String name;
+        @NotNull
         @JsonFormat(pattern = "yyyy-MM-dd")
         private LocalDate birth;
+        @NotNull
         @JsonFormat(pattern = "yyyy-MM-dd")
         private LocalDate death;
     }
@@ -167,8 +167,10 @@ public class AuthorApiController {
         public void validate(Author author, Errors errors) {
             LocalDate birth = author.getBirth();
             LocalDate death = author.getDeath();
-            if (death.isBefore(birth)) {
-                errors.reject("wrongValue", "birth is must be before death");
+            if (birth != null && death != null) {
+                if (death.isBefore(birth)) {
+                    errors.reject("wrongValue", "birth is must be before death");
+                }
             }
         }
     }

@@ -45,11 +45,12 @@ public class AuthorizationServerConfiguration {
 
         private final UserDetailsService userDetailsService;
 
-        private final AuthServerConfigProperties authServerConfigProperties;
+        private final AuthServerConfigProperties properties;
 
         @Override
         public void configure(AuthorizationServerSecurityConfigurer security) throws Exception {
-            security.passwordEncoder(passwordEncoder)
+            security
+                    .passwordEncoder(passwordEncoder)
                     .tokenKeyAccess("permitAll()")
                     .checkTokenAccess("permitAll()");
         }
@@ -57,23 +58,22 @@ public class AuthorizationServerConfiguration {
         @Override
         public void configure(ClientDetailsServiceConfigurer clients) throws Exception {
             clients.jdbc(dataSource);
-    /*
-        인메모리 클라이언트 세팅
+/*        인메모리 클라이언트 세팅
         clients.inMemory()
-                .withClient(authServerConfigProperties.getClientId())
-                .secret(passwordEncoder.encode(authServerConfigProperties.getClientSecret()))
+                .withClient(properties.getClientId())
+                .secret(passwordEncoder.encode(properties.getClientSecret()))
                 .scopes(Scope.READ.toString(), Scope.WRITE.toString())
                 .authorizedGrantTypes(GrantType.PASSWORD.toString(), GrantType.AUTHORIZATION_CODE.toString(),
                         GrantType.IMPLICIT.toString(), GrantType.CLIENT_CREDENTIALS.toString(), GrantType.REFRESH_TOKEN.toString())
-                .redirectUris(authServerConfigProperties.getRedirectUri())
+                .redirectUris(properties.getRedirectUri())
                 .accessTokenValiditySeconds(60 * 10)
-                .refreshTokenValiditySeconds(60 * 10 * 6);
-    */
+                .refreshTokenValiditySeconds(60 * 10 * 6);*/
         }
 
         @Override
         public void configure(AuthorizationServerEndpointsConfigurer endpoints) throws Exception {
-            endpoints.tokenStore(tokenStore)
+            endpoints
+                    .tokenStore(tokenStore)
                     .tokenEnhancer(tokenEnhancer)
                     .userDetailsService(userDetailsService)
                     .authenticationManager(authenticationManager);

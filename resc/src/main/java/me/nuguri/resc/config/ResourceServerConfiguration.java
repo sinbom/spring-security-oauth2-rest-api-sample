@@ -29,9 +29,8 @@ public class ResourceServerConfiguration extends ResourceServerConfigurerAdapter
     public void configure(HttpSecurity http) throws Exception {
         http
                 .authorizeRequests()
-                .mvcMatchers("/api/test").access("#oauth2.clientHasRole('ADMIN')")
                 .mvcMatchers(HttpMethod.GET, "/api/**").access("#oauth2.hasScope('read')")
-                .mvcMatchers("/api/**").access("#oauth2.hasScope('write')")
+                .mvcMatchers("/api/**").access("(hasRole('ADMIN') or #oauth2.clientHasRole('ADMIN')) and #oauth2.hasScope('write')")
                 .anyRequest().authenticated();
         http.logout().disable();
         http.exceptionHandling().accessDeniedHandler(new OAuth2AccessDeniedHandler());

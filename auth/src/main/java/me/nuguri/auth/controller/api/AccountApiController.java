@@ -61,7 +61,7 @@ public class AccountApiController {
      * @return
      */
     @GetMapping(value = "/api/v1/users", produces = MediaTypes.HAL_JSON_VALUE)
-    @PreAuthorize("#oauth2.clientHasRole('ADMIN') and #oauth2.hasScope('read')")
+    @PreAuthorize("(hasRole('ADMIN') or #oauth2.clientHasRole('ADMIN')) and #oauth2.hasScope('read')")
     public ResponseEntity<?> queryUsers(Pagination pagination, Errors errors) {
         paginationValidator.validate(pagination, Account.class, errors);
         if (errors.hasErrors()) {

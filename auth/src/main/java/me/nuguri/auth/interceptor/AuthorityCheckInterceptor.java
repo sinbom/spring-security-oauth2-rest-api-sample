@@ -28,8 +28,6 @@ public class AuthorityCheckInterceptor extends HandlerInterceptorAdapter {
 
     private final ObjectMapper objectMapper;
 
-    private final TokenStore tokenStore;
-
     /**
      * 현재 로그인된 계정의 식별키와 CRUD 하고자 하는 식별키가 동일하거나 로그인 계정이 관리자 권한인지 확인
      * @param request 요청
@@ -40,23 +38,30 @@ public class AuthorityCheckInterceptor extends HandlerInterceptorAdapter {
      */
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
-        if (((HandlerMethod) handler).getMethodAnnotation(HasAuthority.class) == null) {
+        if (handler instanceof HandlerMethod) {
+            if (((HandlerMethod) handler).getMethodAnnotation(HasAuthority.class) == null) {
+                return true;
+            } else {
+                Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+                if (principal instanceof AccountAdapter) {
+                    Account account = ((AccountAdapter) principal).getAccount();
+                    Map<?, ?> map = (Map<?, ?>) request.getAttribute(HandlerMapping.URI_TEMPLATE_VARIABLES_ATTRIBUTE);
+                    if (map.get("id").equals(account.getId() + "") || account.getRoles().stream().anyMatch(r -> r.equals(Role.ADMIN))) {
+                        return true;
+                    } else {
+                        response.setStatus(HttpStatus.FORBIDDEN.value());
+                        response.getWriter().write(objectMapper.writeValueAsString(new ErrorResponse(HttpStatus.FORBIDDEN, "have no authority")));
+                        return false;
+                    }
+                } else {
+                    response.setStatus(HttpStatus.UNAUTHORIZED.value());
+                    response.getWriter().write(objectMapper.writeValueAsString(new ErrorResponse(HttpStatus.FORBIDDEN, "unauthorized")));
+                    return false;
+                }
+            }
+        } else {
             return true;
         }
-        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        if (principal instanceof AccountAdapter) {
-            Account account = ((AccountAdapter) principal).getAccount();
-            Map<?, ?> map = (Map<?, ?>) request.getAttribute(HandlerMapping.URI_TEMPLATE_VARIABLES_ATTRIBUTE);
-            if (map.get("id").equals(account.getId() + "") || account.getRoles().stream().anyMatch(r -> r.equals(Role.ADMIN))) {
-                return true;
-            }
-            response.setStatus(HttpStatus.FORBIDDEN.value());
-            response.getWriter().write(objectMapper.writeValueAsString(new ErrorResponse(HttpStatus.FORBIDDEN, "have no authority")));
-            return false;
-        }
-        response.setStatus(HttpStatus.UNAUTHORIZED.value());
-        response.getWriter().write(objectMapper.writeValueAsString(new ErrorResponse(HttpStatus.FORBIDDEN, "unauthorized")));
-        return false;
     }
 
     @Override
