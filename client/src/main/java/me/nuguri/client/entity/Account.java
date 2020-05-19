@@ -3,6 +3,7 @@ package me.nuguri.client.entity;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
+import me.nuguri.client.enums.LoginType;
 import me.nuguri.common.enums.Role;
 
 import javax.persistence.*;
@@ -33,13 +34,21 @@ public class Account implements Serializable {
     @Column(nullable = false)
     private String password;
 
+    /** 이름, 닉네임 */
     @Column(nullable = false)
     private String name;
+
+    /** 로그인 타입 */
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, updatable = false)
+    private LoginType loginType;
 
     /** 권한 */
     @ElementCollection
     @Enumerated(EnumType.STRING)
     private Set<Role> roles;
+
+
 
 
 }

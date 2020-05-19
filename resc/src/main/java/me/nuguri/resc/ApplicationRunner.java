@@ -30,9 +30,12 @@ public class ApplicationRunner implements org.springframework.boot.ApplicationRu
     @Value("${spring.profiles.active}")
     private String profile;
 
+    @Value("${spring.jpa.hibernate.ddl-auto}")
+    private String ddlAuto;
+
     @Override
     public void run(ApplicationArguments args) throws Exception {
-        if (profile.equals("local")) {
+        if (profile.equals("local") && ddlAuto.equals("create")) {
             log.info("[log] [active profile is " + profile + "] => do persist test entities");
             Random random = new Random();
             List<Author> authorList = new ArrayList<>();

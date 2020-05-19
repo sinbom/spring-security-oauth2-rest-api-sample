@@ -55,6 +55,7 @@ public class AuthorizationApiController {
     // Domain
     @Getter @Setter
     public static class GetMeResponse {
+        private Long id;
         private String email;
         private String name;
         private Set<Role> roles;

@@ -13,10 +13,81 @@ public class LoginProperties {
 
     private Nuguri nuguri = new Nuguri();
 
+    private Naver naver = new Naver();
+
+    private Facebook facebook = new Facebook();
+
+    private Google google = new Google();
+
+    private Kakao kakao = new Kakao();
+
     @Getter
     @Setter
     public static class Nuguri {
+        private String loginUrl;
 
+        private String tokenUrl;
+
+        private String infoUrl;
+
+        private String clientId;
+
+        private String clientSecret;
+
+        private String redirectUri;
+    }
+
+    @Getter
+    @Setter
+    public static class Naver {
+        private String loginUrl;
+
+        private String tokenUrl;
+
+        private String infoUrl;
+
+        private String clientId;
+
+        private String clientSecret;
+
+        private String redirectUri;
+    }
+
+    @Getter
+    @Setter
+    public static class Facebook {
+        private String loginUrl;
+
+        private String tokenUrl;
+
+        private String infoUrl;
+
+        private String clientId;
+
+        private String clientSecret;
+
+        private String redirectUri;
+    }
+
+    @Getter
+    @Setter
+    public static class Google {
+        private String loginUrl;
+
+        private String tokenUrl;
+
+        private String infoUrl;
+
+        private String clientId;
+
+        private String clientSecret;
+
+        private String redirectUri;
+    }
+
+    @Getter
+    @Setter
+    public static class Kakao {
         private String loginUrl;
 
         private String tokenUrl;

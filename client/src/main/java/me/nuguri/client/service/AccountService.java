@@ -1,6 +1,7 @@
 package me.nuguri.client.service;
 
 import lombok.RequiredArgsConstructor;
+import me.nuguri.client.domain.AccountAdapter;
 import me.nuguri.client.entity.Account;
 import me.nuguri.client.repository.AccountRepository;
 import me.nuguri.common.enums.Role;
@@ -25,13 +26,7 @@ public class AccountService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-        Account account = accountRepository.findByEmail(email).orElseThrow(() -> new UsernameNotFoundException(email));
-        return User
-                .builder()
-                .username(account.getEmail())
-                .password(account.getPassword())
-                .roles(account.getRoles().stream().map(Role::toString).collect(Collectors.joining(",")))
-                .build();
+        return new AccountAdapter(accountRepository.findByEmail(email).orElseThrow(() -> new UsernameNotFoundException(email)));
     }
 
     public Account find(String email) {
@@ -40,7 +35,6 @@ public class AccountService implements UserDetailsService {
 
     @Transactional
     public Account generate(Account account) {
-
         return accountRepository.save(account);
     }
 

@@ -8,7 +8,14 @@
     <title>Client Main</title>
 </head>
 <body>
-nuguri oauth login <a th:href="@{${nuguriLoginUri}}">nuguri login</a>
-<h1 sec:authorize="isAuthenticated()"><span sec:authentication="name"></span></h1>
+nuguri oauth login <a th:href="@{${nuguriLoginUri}}">nuguri login</a><br>
+naver oauth login <a th:href="@{${naverLoginUri}}">naver login</a><br>
+facebook oauth login <a th:href="@{${facebookLoginUri}}">facebook login</a><br>
+google oauth login <a th:href="@{${googleLoginUri}}">google login</a><br>
+kakao oauth login <a th:href="@{${kakaoLoginUri}}">kakao login</a><br>
+
+<h1 sec:authorize="isAuthenticated()" sec:authentication="principal.account.name"></h1>
+<br><br>
+<a href="/logout" sec:authorize="isAuthenticated()">logout</a>
 </body>
 </html>

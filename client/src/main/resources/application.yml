@@ -4,7 +4,7 @@ server:
   servlet:
     session:
       cookie:
-        name: client-session-id
+        name: CLIENT-JSESSIONID
 
 spring:
   devtools:
@@ -48,9 +48,37 @@ logging:
 # properties
 oauth:
   nuguri:
-    loginUrl: "http://localhost:9600/oauth/authorize"
-    tokenUrl: "http://localhost:9600/oauth/token"
-    infoUrl: "http://localhost:9600/oauth/me"
-    clientId: "07e879ba-2e23-4fcb-a794-7017c4984517"
-    clientSecret: "447f2e88-ff7a-4004-ae00-f50d3d6d58f3"
-    redirectUri: "http://localhost:7600/nuguri/login"
+    loginUrl: http://localhost:9600/oauth/authorize
+    tokenUrl: http://localhost:9600/oauth/token
+    infoUrl: http://localhost:9600/oauth/me
+    clientId: 07e879ba-2e23-4fcb-a794-7017c4984517
+    clientSecret: 447f2e88-ff7a-4004-ae00-f50d3d6d58f3
+    redirectUri: http://localhost:7600/nuguri/login
+  naver:
+    loginUrl: https://nid.naver.com/oauth2.0/authorize
+    tokenUrl: https://nid.naver.com/oauth2.0/token
+    infoUrl: https://openapi.naver.com/v1/nid/me
+    clientId: RCWljNRcB0dBzTPRcyqN
+    clientSecret: d18T17O3SJ
+    redirectUri: http://localhost:7600/naver/login
+  facebook:
+    loginUrl: https://www.facebook.com/v2.11/dialog/oauth
+    tokenUrl: https://graph.facebook.com/v2.11/oauth/access_token
+    infoUrl: https://graph.facebook.com/me
+    clientId: 536416420575938
+    clientSecret: 40b2bbbfbae461192dc313a0a2e6e487
+    redirectUri: http://localhost:7600/facebook/login
+  google:
+    loginUrl: https://accounts.google.com/o/oauth2/v2/auth
+    tokenUrl: https://oauth2.googleapis.com/token
+    infoUrl: https://openidconnect.googleapis.com/v1/userinfo
+    clientId: 234833594657-k8a6l19tq9uca5qp44cv10jfge30v68e.apps.googleusercontent.com
+    clientSecret: 3iPxi6v5UYf6RxeoNJ19NJaW
+    redirectUri: http://localhost:7600/google/login
+  kakao:
+    loginUrl: https://kauth.kakao.com/oauth/authorize
+    tokenUrl: https://kauth.kakao.com/oauth/token
+    infoUrl: https://kapi.kakao.com/v2/user/me
+    clientId: a42309c315e2e4f6521653ede9a19442
+    clientSecret: 8sGhK7VmOUZBT0gpXC7ov061vHHOFQkB
+    redirectUri: http://localhost:7600/kakao/login

@@ -105,6 +105,7 @@ public class AuthorizationApiControllerTest extends BaseIntegrationTest {
                                 headerWithName("X-Frame-Options").description("X-Frame-Options")
                         ),
                         responseFields(
+                                fieldWithPath("id").description("account id"),
                                 fieldWithPath("email").description("account email"),
                                 fieldWithPath("name").description("account name"),
                                 fieldWithPath("roles").description("account roles")
