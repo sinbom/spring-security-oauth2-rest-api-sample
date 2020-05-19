@@ -43,6 +43,10 @@ public class LoginService {
 
     private final Jackson2JsonParser parser = new Jackson2JsonParser();
 
+    /**
+     * Auth Module Server 로그인
+     * @param code authorize code
+     */
     public void nuguriLogin(String code) {
         String access_token = getAccessToken(code, properties.getNuguri().getTokenUrl(), properties.getNuguri().getClientId(),
                 properties.getNuguri().getClientSecret(), properties.getNuguri().getRedirectUri());
@@ -57,13 +61,17 @@ public class LoginService {
         setSessionContext(access_token, findOrGenerate(id, name, LoginType.NUGURI));
     }
 
+    /**
+     * 네이버 로그인
+     * @param code authorize code
+     */
     public void naverLogin(String code) {
         String access_token = getAccessToken(code, properties.getNaver().getTokenUrl(), properties.getNaver().getClientId(),
                 properties.getNaver().getClientSecret(), properties.getNaver().getRedirectUri());
 
         HttpHeaders bearer = new HttpHeaders();
         bearer.setBearerAuth(access_token);
-        Map<String, String> infoResultMap = (Map<String, String>) parser.parseMap(restTemplate.exchange(properties.getNaver().getInfoUrl(),
+        Map<String, String> infoResultMap = (Map) parser.parseMap(restTemplate.exchange(properties.getNaver().getInfoUrl(),
                 HttpMethod.GET, new HttpEntity<>(bearer), String.class).getBody()).get("response");
 
         String id = infoResultMap.get("id");
@@ -71,6 +79,10 @@ public class LoginService {
         setSessionContext(access_token, findOrGenerate(id, name, LoginType.NAVER));
     }
 
+    /**
+     * 페이스북 로그인
+     * @param code authorize code
+     */
     public void facebookLogin(String code) {
         String access_token = getAccessToken(code, properties.getFacebook().getTokenUrl(), properties.getFacebook().getClientId(),
                 properties.getFacebook().getClientSecret(), properties.getFacebook().getRedirectUri());
@@ -89,6 +101,10 @@ public class LoginService {
         setSessionContext(access_token, findOrGenerate(id, name, LoginType.FACEBOOK));
     }
 
+    /**
+     * 구글 로그인
+     * @param code authorize code
+     */
     public void googleLogin(String code) {
         String access_token = getAccessToken(code, properties.getGoogle().getTokenUrl(), properties.getGoogle().getClientId(),
                 properties.getGoogle().getClientSecret(), properties.getGoogle().getRedirectUri());
@@ -103,6 +119,10 @@ public class LoginService {
         setSessionContext(access_token, findOrGenerate(id, name, LoginType.GOOGLE));
     }
 
+    /**
+     * 카카오 로그인
+     * @param code authorize code
+     */
     public void kakaoLogin(String code) {
         String access_token = getAccessToken(code, properties.getKakao().getTokenUrl(), properties.getKakao().getClientId(),
                 properties.getKakao().getClientSecret(), properties.getKakao().getRedirectUri());

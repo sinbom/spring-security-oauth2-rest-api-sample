@@ -12,6 +12,4 @@ public abstract class BaseEntity {
 
     protected LocalDateTime deleted;
 
-    protected boolean usable = true;
-
 }

@@ -60,7 +60,7 @@ public class ClientApiController {
             Client client = new Client();
             client.setClientId(UUID.randomUUID().toString());
             client.setClientSecret(UUID.randomUUID().toString());
-            client.setGrantTypes(String.join(",", GrantType.AUTHORIZATION_CODE.toString()));
+            client.setGrantTypes(GrantType.AUTHORIZATION_CODE.toString());
             client.setAuthorities(Role.USER.toString());
             client.setScope(String.join(",", Scope.READ.toString(), Scope.WRITE.toString()));
             client.setAccessTokenValidity(600);

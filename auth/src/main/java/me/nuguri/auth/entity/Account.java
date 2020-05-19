@@ -18,6 +18,8 @@ import java.util.Set;
 @EqualsAndHashCode(of ="id")
 public class Account implements Serializable {
 
+    private static final Long serialVersionUID = 1L;
+
     /** PK */
     @Id
     @GeneratedValue

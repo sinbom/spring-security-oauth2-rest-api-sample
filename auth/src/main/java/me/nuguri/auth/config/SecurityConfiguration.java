@@ -26,7 +26,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.time.LocalDateTime;
-
+//TODO 추후 Auth, Account 서버 분리 후 로그인 세션 키 Redis 클러스터링 하기
 @Configuration
 @EnableWebSecurity
 @Order(1)
