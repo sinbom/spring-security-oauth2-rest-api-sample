@@ -1,6 +1,7 @@
 package me.nuguri.account.config;
 
 import lombok.RequiredArgsConstructor;
+import me.nuguri.account.converter.CustomAccessTokenConverter;
 import me.nuguri.account.property.AccountServerProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -51,6 +52,7 @@ public class ResourceServerConfiguration extends ResourceServerConfigurerAdapter
         remoteTokenServices.setCheckTokenEndpointUrl(properties.getCheckTokenUrl());
         remoteTokenServices.setClientId(properties.getClientId());
         remoteTokenServices.setClientSecret(properties.getClientSecret());
+//        remoteTokenServices.setAccessTokenConverter(new CustomAccessTokenConverter());
         return remoteTokenServices;
     }
 

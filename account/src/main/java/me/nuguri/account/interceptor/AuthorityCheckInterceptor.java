@@ -3,13 +3,16 @@ package me.nuguri.account.interceptor;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import me.nuguri.account.annotation.HasAuthority;
+import me.nuguri.account.converter.CustomAuthenticationToken;
 import me.nuguri.common.domain.AccountAdapter;
 import me.nuguri.common.domain.ErrorResponse;
 import me.nuguri.common.entity.Account;
 import me.nuguri.common.enums.Role;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.provider.OAuth2Authentication;
 import org.springframework.stereotype.Component;
 import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.HandlerMapping;
@@ -40,22 +43,26 @@ public class AuthorityCheckInterceptor extends HandlerInterceptorAdapter {
                 return true;
             } else {
                 Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-                Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-                if (principal instanceof AccountAdapter) {
-                    Account account = ((AccountAdapter) principal).getAccount();
-                    Map<?, ?> map = (Map<?, ?>) request.getAttribute(HandlerMapping.URI_TEMPLATE_VARIABLES_ATTRIBUTE);
-                    if (map.get("id").equals(account.getId() + "") || account.getRoles().stream().anyMatch(r -> r.equals(Role.ADMIN))) {
+                Map<String, String> map = (Map<String, String>) request.getAttribute(HandlerMapping.URI_TEMPLATE_VARIABLES_ATTRIBUTE);
+                String id = map.get("id");
+                if (authentication instanceof UsernamePasswordAuthenticationToken) {
+                    Account account = ((AccountAdapter) authentication.getPrincipal()).getAccount();
+                    if (account.getId().toString().equals(id) || account.getRoles().stream().anyMatch(r -> r.equals(Role.ADMIN))) {
                         return true;
-                    } else {
-                        response.setStatus(HttpStatus.FORBIDDEN.value());
-                        response.getWriter().write(objectMapper.writeValueAsString(new ErrorResponse(HttpStatus.FORBIDDEN, "have no authority")));
-                        return false;
+                    }
+                } else if (authentication instanceof OAuth2Authentication) {
+                    CustomAuthenticationToken authenticationToken = (CustomAuthenticationToken) ((OAuth2Authentication) authentication).getUserAuthentication();
+                    if (authenticationToken.getId().equals(id) || authenticationToken.getAuthorities().stream().anyMatch(r -> r.getAuthority().equals(Role.ADMIN.toString()))) {
+                        return true;
                     }
                 } else {
                     response.setStatus(HttpStatus.UNAUTHORIZED.value());
                     response.getWriter().write(objectMapper.writeValueAsString(new ErrorResponse(HttpStatus.FORBIDDEN, "unauthorized")));
                     return false;
                 }
+                response.setStatus(HttpStatus.FORBIDDEN.value());
+                response.getWriter().write(objectMapper.writeValueAsString(new ErrorResponse(HttpStatus.FORBIDDEN, "have no authority")));
+                return false;
             }
         } else {
             return true;
