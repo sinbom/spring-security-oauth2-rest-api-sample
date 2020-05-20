@@ -1,5 +1,9 @@
 # TEST DB Connection Setting
 spring:
+  data:
+    redis:
+      repositories:
+        enabled: false
   datasource:
     url: jdbc:h2:mem:testdb
     username: root

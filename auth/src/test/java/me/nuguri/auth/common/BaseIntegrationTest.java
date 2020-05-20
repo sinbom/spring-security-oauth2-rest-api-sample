@@ -2,6 +2,8 @@ package me.nuguri.auth.common;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import me.nuguri.auth.property.AuthServerConfigProperties;
+import me.nuguri.auth.repository.AccountRepository;
+import me.nuguri.auth.service.ClientService;
 import me.nuguri.common.entity.Account;
 import me.nuguri.common.entity.Client;
 import me.nuguri.common.enums.GrantType;
@@ -52,10 +54,31 @@ public abstract class BaseIntegrationTest {
     @Autowired
     protected PasswordEncoder passwordEncoder;
 
+    @Autowired
+    private AccountRepository accountRepository;
+
+    @Autowired
+    private ClientService clientService;
+
     protected void generateTestEntities() {
-        /*Client client = new Client();
+        Account admin = new Account();
+        admin.setName("관리자");
+        admin.setEmail(properties.getAdminEmail());
+        admin.setPassword(passwordEncoder.encode(properties.getAdminPassword()));
+        admin.setRoles(new HashSet<>(Arrays.asList(Role.ADMIN, Role.USER)));
+
+        Account user = new Account();
+        user.setName("사용자");
+        user.setEmail(properties.getUserEmail());
+        user.setPassword(passwordEncoder.encode(properties.getUserPassword()));
+        user.setRoles(new HashSet<>(Arrays.asList(Role.USER)));
+
+        admin = accountRepository.save(admin);
+        user = accountRepository.save(user);
+
+        Client client = new Client();
         client.setClientId(properties.getClientId());
-        client.setClientSecret(passwordEncoder.encode(properties.getClientSecret()));
+        client.setClientSecret(properties.getClientSecret());
         client.setResourceIds("account");
         client.setScope(String.join(",", Scope.READ.toString(), Scope.WRITE.toString()));
         client.setGrantTypes(String.join(",", GrantType.PASSWORD.toString(), GrantType.AUTHORIZATION_CODE.toString(),
@@ -66,14 +89,16 @@ public abstract class BaseIntegrationTest {
 
         Client client2 = new Client();
         client2.setClientId("test");
-        client2.setClientSecret(passwordEncoder.encode("test"));
+        client2.setClientSecret("test");
         client2.setResourceIds("account");
         client2.setScope(String.join(",", Scope.READ.toString()));
         client2.setGrantTypes(String.join(",", GrantType.PASSWORD.toString(), GrantType.CLIENT_CREDENTIALS.toString()));
         client2.setRedirectUri(properties.getRedirectUri());
         client2.setAuthorities(String.join(",", Role.USER.toString()));
         client2.addAccount(user);
-        clientSe*/
+
+        clientService.generate(client);
+        clientService.generate(client2);
     }
 
     /**

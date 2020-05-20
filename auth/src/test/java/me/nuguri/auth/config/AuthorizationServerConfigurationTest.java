@@ -2,6 +2,7 @@ package me.nuguri.auth.config;
 
 import me.nuguri.auth.common.BaseIntegrationTest;
 import me.nuguri.common.enums.GrantType;
+import me.nuguri.common.enums.Role;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -19,8 +20,7 @@ import static org.springframework.restdocs.payload.PayloadDocumentation.fieldWit
 import static org.springframework.restdocs.payload.PayloadDocumentation.responseFields;
 import static org.springframework.restdocs.request.RequestDocumentation.parameterWithName;
 import static org.springframework.restdocs.request.RequestDocumentation.requestParameters;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -93,7 +93,7 @@ public class AuthorizationServerConfigurationTest  extends BaseIntegrationTest {
     @DisplayName("인증 서버 엑세스 토큰 Authorization Code 방식으로 정상적으로 얻는 경우")
     public void getAccessToken_GrantType_Authorization_Code_Success_200() throws Exception {
         mockMvc.perform(get("/oauth/authorize")
-                .with(httpBasic(properties.getUserEmail(), properties.getUserPassword()))
+                .with(user(properties.getUserEmail()).password(properties.getUserPassword()).roles(Role.USER.toString()))
                 .param("response_type", "code")
                 .param("client_id", properties.getClientId())
                 .param("redirect_uri", properties.getRedirectUri())
@@ -101,6 +101,7 @@ public class AuthorizationServerConfigurationTest  extends BaseIntegrationTest {
                 .andDo(print())
                 .andDo(r -> {
                     mockMvc.perform(post("/oauth/authorize")
+                            .with(user(properties.getUserEmail()).password(properties.getUserPassword()).roles(Role.USER.toString()))
                             .with(csrf())
                             .session((MockHttpSession) r.getRequest().getSession())
                             .param("response_type", "code")
@@ -113,7 +114,7 @@ public class AuthorizationServerConfigurationTest  extends BaseIntegrationTest {
                             .andDo(r2 -> {
                                 String redirectedUrl = r2.getResponse().getRedirectedUrl();
                                 mockMvc.perform(post("/oauth/token")
-                                        .with(httpBasic(properties.getClientId(), properties.getClientSecret()))
+                                        .with(user(properties.getUserEmail()).password(properties.getUserPassword()).roles(Role.USER.toString()))
                                         .param("code", redirectedUrl.substring(redirectedUrl.lastIndexOf("=") + 1))
                                         .param("grant_type", GrantType.AUTHORIZATION_CODE.toString())
                                         .param("redirect_uri", properties.getRedirectUri()))

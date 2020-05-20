@@ -2,10 +2,7 @@ package me.nuguri.auth.entity;
 
 import lombok.*;
 
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.Lob;
-import javax.persistence.Table;
+import javax.persistence.*;
 
 /**
  * 엑세스 토큰 엔티티
@@ -14,10 +11,13 @@ import javax.persistence.Table;
 @Table(name = "oauth_access_token")
 @Getter
 @Setter
-@EqualsAndHashCode(of ="client_id")
+@EqualsAndHashCode(of ="id")
 public class AccessToken {
 
     @Id
+    @GeneratedValue
+    private Long id;
+
     private String authentication_id;
 
     private String token_id;
