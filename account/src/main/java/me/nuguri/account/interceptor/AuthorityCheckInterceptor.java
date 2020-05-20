@@ -1,21 +1,18 @@
-package me.nuguri.auth.interceptor;
+package me.nuguri.account.interceptor;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
-import me.nuguri.auth.annotation.HasAuthority;
-import me.nuguri.auth.domain.AccountAdapter;
-import me.nuguri.auth.entity.Account;
+import me.nuguri.account.annotation.HasAuthority;
+import me.nuguri.common.domain.AccountAdapter;
 import me.nuguri.common.domain.ErrorResponse;
+import me.nuguri.common.entity.Account;
 import me.nuguri.common.enums.Role;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.oauth2.provider.token.TokenStore;
 import org.springframework.stereotype.Component;
 import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.HandlerMapping;
-import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
 
 import javax.servlet.http.HttpServletRequest;
@@ -42,6 +39,7 @@ public class AuthorityCheckInterceptor extends HandlerInterceptorAdapter {
             if (((HandlerMethod) handler).getMethodAnnotation(HasAuthority.class) == null) {
                 return true;
             } else {
+                Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
                 Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
                 if (principal instanceof AccountAdapter) {
                     Account account = ((AccountAdapter) principal).getAccount();

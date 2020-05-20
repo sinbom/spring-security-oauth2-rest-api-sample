@@ -1,6 +1,8 @@
-package me.nuguri.auth.entity;
+package me.nuguri.common.entity;
 
-import lombok.*;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
 import me.nuguri.common.enums.Role;
 
 import javax.persistence.*;

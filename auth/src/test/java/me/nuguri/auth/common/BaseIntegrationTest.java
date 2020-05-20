@@ -1,10 +1,9 @@
 package me.nuguri.auth.common;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import me.nuguri.auth.entity.Account;
-import me.nuguri.auth.entity.Client;
 import me.nuguri.auth.property.AuthServerConfigProperties;
-import me.nuguri.auth.service.AccountService;
+import me.nuguri.common.entity.Account;
+import me.nuguri.common.entity.Client;
 import me.nuguri.common.enums.GrantType;
 import me.nuguri.common.enums.Role;
 import me.nuguri.common.enums.Scope;
@@ -15,7 +14,6 @@ import org.springframework.boot.json.JacksonJsonParser;
 import org.springframework.boot.test.autoconfigure.restdocs.AutoConfigureRestDocs;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.json.JacksonTester;
 import org.springframework.context.annotation.Import;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.annotation.DirtiesContext;
@@ -25,8 +23,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Arrays;
 import java.util.HashSet;
-import java.util.UUID;
-import java.util.stream.IntStream;
 
 import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.post;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic;
@@ -56,23 +52,8 @@ public abstract class BaseIntegrationTest {
     @Autowired
     protected PasswordEncoder passwordEncoder;
 
-    @Autowired
-    protected AccountService accountService;
-
     protected void generateTestEntities() {
-        Account admin = new Account();
-        admin.setName("관리자");
-        admin.setEmail(properties.getAdminEmail());
-        admin.setPassword(properties.getAdminPassword());
-        admin.setRoles(new HashSet<>(Arrays.asList(Role.ADMIN, Role.USER)));
-
-        Account user = new Account();
-        user.setName("사용자");
-        user.setEmail(properties.getUserEmail());
-        user.setPassword(properties.getUserPassword());
-        user.setRoles(new HashSet<>(Arrays.asList(Role.USER)));
-
-        Client client = new Client();
+        /*Client client = new Client();
         client.setClientId(properties.getClientId());
         client.setClientSecret(passwordEncoder.encode(properties.getClientSecret()));
         client.setResourceIds("account");
@@ -92,9 +73,7 @@ public abstract class BaseIntegrationTest {
         client2.setRedirectUri(properties.getRedirectUri());
         client2.setAuthorities(String.join(",", Role.USER.toString()));
         client2.addAccount(user);
-
-        accountService.generate(admin);
-        accountService.generate(user);
+        clientSe*/
     }
 
     /**

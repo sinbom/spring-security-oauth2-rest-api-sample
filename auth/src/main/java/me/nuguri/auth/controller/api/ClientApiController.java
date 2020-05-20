@@ -3,12 +3,11 @@ package me.nuguri.auth.controller.api;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
-import me.nuguri.auth.annotation.AuthenticationUser;
-import me.nuguri.auth.domain.AccountAdapter;
-import me.nuguri.auth.entity.Account;
-import me.nuguri.auth.entity.Client;
 import me.nuguri.auth.service.ClientService;
+import me.nuguri.common.domain.AccountAdapter;
 import me.nuguri.common.domain.ErrorResponse;
+import me.nuguri.common.entity.Account;
+import me.nuguri.common.entity.Client;
 import me.nuguri.common.enums.GrantType;
 import me.nuguri.common.enums.Role;
 import me.nuguri.common.enums.Scope;
@@ -28,7 +27,6 @@ import javax.validation.constraints.NotEmpty;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @RestController
 @RequiredArgsConstructor

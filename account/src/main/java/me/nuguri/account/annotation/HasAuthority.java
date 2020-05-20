@@ -1,4 +1,4 @@
-package me.nuguri.auth.annotation;
+package me.nuguri.account.annotation;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

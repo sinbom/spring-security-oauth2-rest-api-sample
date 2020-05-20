@@ -20,6 +20,8 @@
   <modules>
     <module>auth</module>
     <module>resc</module>
+    <module>client</module>
+    <module>account</module>
   </modules>
 
   <properties>

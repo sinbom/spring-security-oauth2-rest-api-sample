@@ -1,4 +1,4 @@
-package me.nuguri.auth.annotation;
+package me.nuguri.account.annotation;
 
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 

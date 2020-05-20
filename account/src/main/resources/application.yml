@@ -1,6 +1,6 @@
 # Server Setting
 server:
-  port: 9600
+  port: 10600
 
 spring:
   profiles:
@@ -20,7 +20,6 @@ spring:
     host: localhost
     port: 6379
 
-
   # DB Connection Setting
   datasource:
     url: jdbc:mysql://localhost:3306/oauth?serverTimezone=UTC&useSSL=false
@@ -30,7 +29,7 @@ spring:
   # JPA Setting
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: create
       use-new-id-generator-mappings: false
     properties:
       hibernate:
@@ -52,11 +51,16 @@ logging:
         security: DEBUG
 
 # configuration properties
-auth:
+account:
   client-id: nuguri
   client-secret: bom
-  redirect-uri: http://localhost:${server.port}/main
+  redirect-uri: http://localhost:9600/main
   admin-email: admin@naver.com
   admin-password: 1234
   user-email: user@naver.com
   user-password: 1234
+  check-token-url: http://localhost:9600/oauth/check_token
+  revoke-token-url: http://localhost:9600/oauth/revoke_token
+  access-token-url: http://localhost:9600/oauth/token
+  authorize-code-url: http://localhost:9600/oauth/authorize
+

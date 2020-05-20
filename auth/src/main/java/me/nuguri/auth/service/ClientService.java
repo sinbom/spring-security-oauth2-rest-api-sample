@@ -1,8 +1,8 @@
 package me.nuguri.auth.service;
 
 import lombok.RequiredArgsConstructor;
-import me.nuguri.auth.entity.Client;
 import me.nuguri.auth.repository.ClientRepository;
+import me.nuguri.common.entity.Client;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
