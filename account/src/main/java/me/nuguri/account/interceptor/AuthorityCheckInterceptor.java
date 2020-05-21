@@ -51,10 +51,10 @@ public class AuthorityCheckInterceptor extends HandlerInterceptorAdapter {
                         return true;
                     }
                 } else if (authentication instanceof OAuth2Authentication) {
-                    CustomAuthenticationToken authenticationToken = (CustomAuthenticationToken) ((OAuth2Authentication) authentication).getUserAuthentication();
-                    if (authenticationToken.getId().equals(id) || authenticationToken.getAuthorities().stream().anyMatch(r -> r.getAuthority().equals(Role.ADMIN.toString()))) {
+//                    CustomAuthenticationToken authenticationToken = (CustomAuthenticationToken) ((OAuth2Authentication) authentication).getUserAuthentication();
+//                    if (authenticationToken.getId().equals(id) || authenticationToken.getAuthorities().stream().anyMatch(r -> r.getAuthority().equals(Role.ADMIN.toString()))) {
                         return true;
-                    }
+//                    }
                 } else {
                     response.setStatus(HttpStatus.UNAUTHORIZED.value());
                     response.getWriter().write(objectMapper.writeValueAsString(new ErrorResponse(HttpStatus.FORBIDDEN, "unauthorized")));

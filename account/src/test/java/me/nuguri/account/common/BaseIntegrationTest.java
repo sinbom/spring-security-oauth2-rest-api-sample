@@ -4,10 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import me.nuguri.account.property.AccountServerProperties;
 import me.nuguri.account.service.AccountService;
 import me.nuguri.common.entity.Account;
-import me.nuguri.common.entity.Client;
-import me.nuguri.common.enums.GrantType;
 import me.nuguri.common.enums.Role;
-import me.nuguri.common.enums.Scope;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -24,13 +21,13 @@ import org.springframework.http.*;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.common.exceptions.InvalidTokenException;
 import org.springframework.security.oauth2.provider.token.RemoteTokenServices;
-import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
+import redis.embedded.RedisServer;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -38,8 +35,6 @@ import java.util.stream.Collectors;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
-import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.post;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic;
 
 @SpringBootTest
 @ActiveProfiles("test")
@@ -50,6 +45,8 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 @Transactional
 @ExtendWith(MockitoExtension.class)
 public abstract class BaseIntegrationTest {
+
+    protected static RedisServer redisServer = new RedisServer();
 
     @Autowired
     protected MockMvc mockMvc;

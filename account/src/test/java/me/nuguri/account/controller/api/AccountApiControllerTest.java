@@ -3,9 +3,7 @@ package me.nuguri.account.controller.api;
 import me.nuguri.account.common.BaseIntegrationTest;
 import me.nuguri.common.entity.Account;
 import me.nuguri.common.enums.Role;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.hateoas.MediaTypes;
@@ -36,6 +34,16 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @DisplayName("계정 API 테스트")
 public class AccountApiControllerTest extends BaseIntegrationTest {
+
+    @BeforeAll
+    public static void beforeAll() {
+        redisServer.start();
+    }
+
+    @AfterAll
+    public static void afterAll() {
+        redisServer.stop();
+    }
 
     /**
      * 테스트 계정 및 클라이언트 생성
