@@ -1,13 +1,19 @@
 package me.nuguri.auth.config;
 
 import me.nuguri.auth.common.BaseIntegrationTest;
+import me.nuguri.auth.common.EmbeddedRedisConfiguration;
 import me.nuguri.common.enums.GrantType;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.json.JacksonJsonParser;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpHeaders;
-import org.springframework.mock.web.MockHttpSession;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.web.servlet.ResultActions;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -25,8 +31,12 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+//@Import(EmbeddedRedisConfiguration.class)
 @DisplayName("Oauth2 인증 서버 설정 테스트")
-public class AuthorizationServerConfigurationTest  extends BaseIntegrationTest {
+public class AuthorizationServerConfigurationTest extends BaseIntegrationTest {
+
+    @Autowired
+    AuthenticationManager authenticationManager;
 
     /**
      * 테스트 계정 및 클라이언트 생성
@@ -73,8 +83,8 @@ public class AuthorizationServerConfigurationTest  extends BaseIntegrationTest {
                                 fieldWithPath("scope").description("access scopes"),
                                 fieldWithPath("id").description("account id")
                         )
-                )
-        );
+                        )
+                );
     }
 
     @Test
@@ -92,74 +102,74 @@ public class AuthorizationServerConfigurationTest  extends BaseIntegrationTest {
     @Test
     @DisplayName("인증 서버 엑세스 토큰 Authorization Code 방식으로 정상적으로 얻는 경우")
     public void getAccessToken_GrantType_Authorization_Code_Success_200() throws Exception {
+        setAuthentication(properties.getUserEmail(), properties.getUserPassword());
         mockMvc.perform(get("/oauth/authorize")
-                .with(httpBasic(properties.getUserEmail(), properties.getUserPassword()))
                 .param("response_type", "code")
                 .param("client_id", properties.getClientId())
                 .param("redirect_uri", properties.getRedirectUri())
                 .param("scope", "read"))
                 .andDo(print())
                 .andDo(r -> {
-                    mockMvc.perform(post("/oauth/authorize")
-                            .with(csrf())
-                            .session((MockHttpSession) r.getRequest().getSession())
-                            .param("response_type", "code")
-                            .param("client_id", properties.getClientId())
-                            .param("redirect_uri", properties.getRedirectUri())
-                            .param("scope", "read")
-                            .param("scope.read", "true")
-                            .param("user_oauth_approval", "true"))
-                            .andDo(print())
-                            .andDo(r2 -> {
-                                String redirectedUrl = r2.getResponse().getRedirectedUrl();
-                                mockMvc.perform(post("/oauth/token")
-                                        .with(httpBasic(properties.getClientId(), properties.getClientSecret()))
-                                        .param("code", redirectedUrl.substring(redirectedUrl.lastIndexOf("=") + 1))
-                                        .param("grant_type", GrantType.AUTHORIZATION_CODE.toString())
-                                        .param("redirect_uri", properties.getRedirectUri()))
-                                        .andDo(print())
-                                        .andExpect(status().isOk())
-                                        .andExpect(jsonPath("access_token").exists())
-                                        .andExpect(jsonPath("token_type").exists())
-                                        .andExpect(jsonPath("refresh_token").exists())
-                                        .andExpect(jsonPath("expires_in").exists())
-                                        .andExpect(jsonPath("scope").exists())
-                                        .andExpect(jsonPath("id").exists()
-                                );
-                            });
-                }
-        );
+                            mockMvc.perform(post("/oauth/authorize")
+                                    .cookie(r.getResponse().getCookies())
+                                    .with(csrf())
+                                    .param("response_type", "code")
+                                    .param("client_id", properties.getClientId())
+                                    .param("redirect_uri", properties.getRedirectUri())
+                                    .param("scope", "read")
+                                    .param("scope.read", "true")
+                                    .param("user_oauth_approval", "true"))
+                                    .andDo(print())
+                                    .andDo(r2 -> {
+                                        String redirectedUrl = r2.getResponse().getRedirectedUrl();
+                                        mockMvc.perform(post("/oauth/token")
+                                                .with(httpBasic(properties.getClientId(), properties.getClientSecret()))
+                                                .param("code", redirectedUrl.substring(redirectedUrl.lastIndexOf("=") + 1))
+                                                .param("grant_type", GrantType.AUTHORIZATION_CODE.toString())
+                                                .param("redirect_uri", properties.getRedirectUri()))
+                                                .andDo(print())
+                                                .andExpect(status().isOk())
+                                                .andExpect(jsonPath("access_token").exists())
+                                                .andExpect(jsonPath("token_type").exists())
+                                                .andExpect(jsonPath("refresh_token").exists())
+                                                .andExpect(jsonPath("expires_in").exists())
+                                                .andExpect(jsonPath("scope").exists())
+                                                .andExpect(jsonPath("id").exists()
+                                                );
+                                    });
+                        }
+                );
     }
 
     @Test
     @DisplayName("인증 서버 엑세스 토큰 Implicit 방식으로 정상적으로 얻는 경우")
     public void getAccessToken_GrantType_Implicit_Success_200() throws Exception {
+        setAuthentication(properties.getUserEmail(), properties.getUserPassword());
         mockMvc.perform(get("/oauth/authorize")
-                .with(httpBasic(properties.getUserEmail(), properties.getUserPassword()))
                 .param("response_type", "token")
                 .param("client_id", properties.getClientId())
                 .param("redirect_uri", properties.getRedirectUri())
                 .param("scope", "read"))
                 .andDo(print())
                 .andDo(r -> {
-                    String redirectedUrl = mockMvc.perform(post("/oauth/authorize")
-                            .with(csrf())
-                            .session((MockHttpSession) r.getRequest().getSession())
-                            .param("response_type", "token")
-                            .param("client_id", properties.getClientId())
-                            .param("redirect_uri", properties.getRedirectUri())
-                            .param("scope", "read")
-                            .param("scope.read", "true")
-                            .param("user_oauth_approval", "true"))
-                            .andExpect(status().is3xxRedirection())
-                            .andDo(print())
-                            .andReturn().getResponse().getRedirectedUrl();
-                    assertThat(redirectedUrl).contains("access_token");
-                    assertThat(redirectedUrl).contains("token_type");
-                    assertThat(redirectedUrl).contains("expires_in");
-                    assertThat(redirectedUrl).contains("id");
-                }
-        );
+                            String redirectedUrl = mockMvc.perform(post("/oauth/authorize")
+                                    .cookie(r.getResponse().getCookies())
+                                    .with(csrf())
+                                    .param("response_type", "token")
+                                    .param("client_id", properties.getClientId())
+                                    .param("redirect_uri", properties.getRedirectUri())
+                                    .param("scope", "read")
+                                    .param("scope.read", "true")
+                                    .param("user_oauth_approval", "true"))
+                                    .andExpect(status().is3xxRedirection())
+                                    .andDo(print())
+                                    .andReturn().getResponse().getRedirectedUrl();
+                            assertThat(redirectedUrl).contains("access_token");
+                            assertThat(redirectedUrl).contains("token_type");
+                            assertThat(redirectedUrl).contains("expires_in");
+                            assertThat(redirectedUrl).contains("id");
+                        }
+                );
     }
 
     @Test
@@ -200,8 +210,8 @@ public class AuthorizationServerConfigurationTest  extends BaseIntegrationTest {
                                 fieldWithPath("scope").description("access scopes"),
                                 fieldWithPath("id").description("account id")
                         )
-                )
-        );
+                        )
+                );
     }
 
     @Test
@@ -262,8 +272,8 @@ public class AuthorizationServerConfigurationTest  extends BaseIntegrationTest {
                                 fieldWithPath("scope").description("access scopes"),
                                 fieldWithPath("id").description("account id")
                         )
-                )
-        );
+                        )
+                );
     }
 
     @Test
@@ -314,8 +324,8 @@ public class AuthorizationServerConfigurationTest  extends BaseIntegrationTest {
                                 fieldWithPath("expires_in").description("access token expires time"),
                                 fieldWithPath("scope").description("access scopes")
                         )
-                )
-        );
+                        )
+                );
     }
 
     @Test
@@ -339,7 +349,8 @@ public class AuthorizationServerConfigurationTest  extends BaseIntegrationTest {
 
     /**
      * Client Credentials 방식 엑세스 토큰 발급 요청 공통 로직
-     * @param clientId 클라이언트 아이디
+     *
+     * @param clientId     클라이언트 아이디
      * @param clientSecret 클라이언트 시크릿
      * @return Client Credentials 방식 엑세스 토큰 발급 요청 결과
      * @throws Exception
@@ -352,6 +363,7 @@ public class AuthorizationServerConfigurationTest  extends BaseIntegrationTest {
 
     /**
      * Refresh Token 방식 엑세스 토큰 발급 요청 공통 로직
+     *
      * @param refresh_token 재발급 토큰
      * @return Refresh Token 방식 엑세스 토큰 발급 요청 결과
      * @throws Exception
@@ -365,7 +377,8 @@ public class AuthorizationServerConfigurationTest  extends BaseIntegrationTest {
 
     /**
      * Password 방식 엑세스 토근 발급 요청 공통 로직
-     * @param email 이메일
+     *
+     * @param email    이메일
      * @param password 비밀번호
      * @return Password 방식 엑세스 토큰 발급 요청 결과
      * @throws Exception
@@ -380,6 +393,7 @@ public class AuthorizationServerConfigurationTest  extends BaseIntegrationTest {
 
     /**
      * Password 방식 엑세스 토큰 요청 후 재발급 토큰 반환 공통 로직
+     *
      * @param username 이메일
      * @param password 비밀번호
      * @return 재발급 토큰
@@ -392,6 +406,11 @@ public class AuthorizationServerConfigurationTest  extends BaseIntegrationTest {
                         .getResponse()
                         .getContentAsString())
                 .get("refresh_token");
+    }
+
+    private void setAuthentication(String username, String password) {
+        SecurityContext context = SecurityContextHolder.getContext();
+        context.setAuthentication(authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(username, password)));
     }
 
 }

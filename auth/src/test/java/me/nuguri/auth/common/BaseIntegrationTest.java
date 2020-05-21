@@ -2,6 +2,8 @@ package me.nuguri.auth.common;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import me.nuguri.auth.property.AuthServerConfigProperties;
+import me.nuguri.auth.repository.AccountRepository;
+import me.nuguri.auth.service.AccountService;
 import me.nuguri.common.entity.Account;
 import me.nuguri.common.entity.Client;
 import me.nuguri.common.enums.GrantType;
@@ -29,12 +31,11 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 
 @SpringBootTest
 @ActiveProfiles("test")
-@Import(RestDocsConfiguration.class)
+@Import({RestDocsConfiguration.class, EmbeddedRedisConfiguration.class})
 @AutoConfigureRestDocs
 @AutoConfigureMockMvc
 @Disabled
 @Transactional
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public abstract class BaseIntegrationTest {
 
     @Autowired
@@ -52,11 +53,26 @@ public abstract class BaseIntegrationTest {
     @Autowired
     protected PasswordEncoder passwordEncoder;
 
+    @Autowired
+    private AccountRepository accountRepository;
+
     protected void generateTestEntities() {
-        /*Client client = new Client();
+        Account admin = new Account();
+        admin.setName("관리자");
+        admin.setEmail(properties.getAdminEmail());
+        admin.setPassword(passwordEncoder.encode(properties.getAdminPassword()));
+        admin.setRoles(new HashSet<>(Arrays.asList(Role.ADMIN, Role.USER)));
+
+        Account user = new Account();
+        user.setName("사용자");
+        user.setEmail(properties.getUserEmail());
+        user.setPassword(passwordEncoder.encode(properties.getUserPassword()));
+        user.setRoles(new HashSet<>(Arrays.asList(Role.USER)));
+
+        Client client = new Client();
         client.setClientId(properties.getClientId());
         client.setClientSecret(passwordEncoder.encode(properties.getClientSecret()));
-        client.setResourceIds("account");
+        client.setResourceIds("account,nuguri");
         client.setScope(String.join(",", Scope.READ.toString(), Scope.WRITE.toString()));
         client.setGrantTypes(String.join(",", GrantType.PASSWORD.toString(), GrantType.AUTHORIZATION_CODE.toString(),
                 GrantType.IMPLICIT.toString(), GrantType.CLIENT_CREDENTIALS.toString(), GrantType.REFRESH_TOKEN.toString()));
@@ -73,7 +89,9 @@ public abstract class BaseIntegrationTest {
         client2.setRedirectUri(properties.getRedirectUri());
         client2.setAuthorities(String.join(",", Role.USER.toString()));
         client2.addAccount(user);
-        clientSe*/
+
+        accountRepository.save(admin);
+        accountRepository.save(user);
     }
 
     /**

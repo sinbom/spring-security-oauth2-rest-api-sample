@@ -21,13 +21,8 @@ import javax.servlet.http.HttpServletRequest;
 @RequiredArgsConstructor
 public class AuthorizationController {
 
-//    private final RedisTemplate<String, Object> redisTemplate;
-
-    private final StringRedisTemplate redisTemplate;
-
     @RequestMapping({"/main", "/"})
     public String main(HttpServletRequest request) {
-        System.out.println(redisTemplate.opsForValue().get("apptest"));
         Cookie[] cookie = request.getCookies();
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         System.out.println(authentication);
