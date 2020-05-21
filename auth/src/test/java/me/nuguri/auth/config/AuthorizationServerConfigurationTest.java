@@ -1,15 +1,10 @@
 package me.nuguri.auth.config;
 
 import me.nuguri.auth.common.BaseIntegrationTest;
-import me.nuguri.auth.common.EmbeddedRedisConfiguration;
 import me.nuguri.common.enums.GrantType;
-import me.nuguri.common.enums.Role;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.json.JacksonJsonParser;
-import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -37,6 +32,16 @@ public class AuthorizationServerConfigurationTest extends BaseIntegrationTest {
 
     @Autowired
     AuthenticationManager authenticationManager;
+
+    @BeforeAll
+    public static void beforeAll() {
+        redisServer.start();
+    }
+
+    @AfterAll
+    public static void afterAll() {
+        redisServer.stop();
+    }
 
     /**
      * 테스트 계정 및 클라이언트 생성

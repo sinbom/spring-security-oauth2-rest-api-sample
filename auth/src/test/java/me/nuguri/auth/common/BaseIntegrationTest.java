@@ -3,11 +3,6 @@ package me.nuguri.auth.common;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import me.nuguri.auth.property.AuthServerConfigProperties;
 import me.nuguri.auth.repository.AccountRepository;
-<<<<<<< HEAD
-import me.nuguri.auth.service.AccountService;
-=======
-import me.nuguri.auth.service.ClientService;
->>>>>>> c311b54b25c11b277402b88fcd6d8a41d1490a60
 import me.nuguri.common.entity.Account;
 import me.nuguri.common.entity.Client;
 import me.nuguri.common.enums.GrantType;
@@ -22,10 +17,10 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
+import redis.embedded.RedisServer;
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -35,12 +30,14 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 
 @SpringBootTest
 @ActiveProfiles("test")
-@Import({RestDocsConfiguration.class, EmbeddedRedisConfiguration.class})
+@Import(RestDocsConfiguration.class)
 @AutoConfigureRestDocs
 @AutoConfigureMockMvc
 @Disabled
 @Transactional
 public abstract class BaseIntegrationTest {
+
+    protected static RedisServer redisServer = new RedisServer();
 
     @Autowired
     protected MockMvc mockMvc;

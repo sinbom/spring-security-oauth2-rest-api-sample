@@ -1,9 +1,7 @@
 package me.nuguri.auth.controller.api;
 
 import me.nuguri.auth.common.BaseIntegrationTest;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import org.springframework.http.HttpHeaders;
 
 import static org.springframework.restdocs.headers.HeaderDocumentation.*;
@@ -18,6 +16,16 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @DisplayName("Oauth2 API 테스트")
 public class AuthorizationApiControllerTest extends BaseIntegrationTest {
+
+    @BeforeAll
+    public static void beforeAll() {
+        redisServer.start();
+    }
+
+    @AfterAll
+    public static void afterAll() {
+        redisServer.stop();
+    }
 
     /**
      * 테스트 계정 및 클라이언트 생성

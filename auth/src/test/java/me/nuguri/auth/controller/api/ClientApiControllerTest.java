@@ -1,9 +1,7 @@
 package me.nuguri.auth.controller.api;
 
 import me.nuguri.auth.common.BaseIntegrationTest;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import org.springframework.hateoas.MediaTypes;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -19,6 +17,16 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @DisplayName("클라이언트 API 테스트")
 public class ClientApiControllerTest extends BaseIntegrationTest {
+
+    @BeforeAll
+    public static void beforeAll() {
+        redisServer.start();
+    }
+
+    @AfterAll
+    public static void afterAll() {
+        redisServer.stop();
+    }
 
     /**
      * 테스트 계정 및 클라이언트 생성
