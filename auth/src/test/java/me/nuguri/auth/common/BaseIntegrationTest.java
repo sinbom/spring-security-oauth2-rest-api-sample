@@ -3,7 +3,11 @@ package me.nuguri.auth.common;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import me.nuguri.auth.property.AuthServerConfigProperties;
 import me.nuguri.auth.repository.AccountRepository;
+<<<<<<< HEAD
 import me.nuguri.auth.service.AccountService;
+=======
+import me.nuguri.auth.service.ClientService;
+>>>>>>> c311b54b25c11b277402b88fcd6d8a41d1490a60
 import me.nuguri.common.entity.Account;
 import me.nuguri.common.entity.Client;
 import me.nuguri.common.enums.GrantType;
@@ -73,6 +77,7 @@ public abstract class BaseIntegrationTest {
         client.setClientId(properties.getClientId());
         client.setClientSecret(passwordEncoder.encode(properties.getClientSecret()));
         client.setResourceIds("account,nuguri");
+
         client.setScope(String.join(",", Scope.READ.toString(), Scope.WRITE.toString()));
         client.setGrantTypes(String.join(",", GrantType.PASSWORD.toString(), GrantType.AUTHORIZATION_CODE.toString(),
                 GrantType.IMPLICIT.toString(), GrantType.CLIENT_CREDENTIALS.toString(), GrantType.REFRESH_TOKEN.toString()));
@@ -82,7 +87,7 @@ public abstract class BaseIntegrationTest {
 
         Client client2 = new Client();
         client2.setClientId("test");
-        client2.setClientSecret(passwordEncoder.encode("test"));
+        client2.setClientSecret("test");
         client2.setResourceIds("account");
         client2.setScope(String.join(",", Scope.READ.toString()));
         client2.setGrantTypes(String.join(",", GrantType.PASSWORD.toString(), GrantType.CLIENT_CREDENTIALS.toString()));

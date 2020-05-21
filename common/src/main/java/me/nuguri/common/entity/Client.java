@@ -14,14 +14,17 @@ import java.io.Serializable;
 @Table(name = "oauth_client_details")
 @Getter
 @Setter
-@EqualsAndHashCode(of ="clientId")
+@EqualsAndHashCode(of ="id")
 public class Client implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
-    /** 클라이언트 Id */
     @Id
-    @Column(updatable = false)
+    @GeneratedValue
+    private Long id;
+
+    /** 클라이언트 Id */
+    @Column(updatable = false, unique = true)
     private String clientId;
 
     /** 리소스 Id */
