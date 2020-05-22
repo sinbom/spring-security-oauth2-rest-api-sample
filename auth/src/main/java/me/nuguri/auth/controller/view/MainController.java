@@ -19,10 +19,10 @@ import javax.servlet.http.HttpServletRequest;
 
 @Controller
 @RequiredArgsConstructor
-public class AuthorizationController {
+public class MainController {
 
     @RequestMapping({"/main", "/"})
-    public String main(HttpServletRequest request) {
+    public String main() {
         return "main";
     }
 

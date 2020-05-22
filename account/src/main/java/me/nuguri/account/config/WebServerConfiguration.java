@@ -13,6 +13,10 @@ public class WebServerConfiguration implements WebMvcConfigurer {
 
     private final AuthorityCheckInterceptor authorityCheckInterceptor;
 
+    /**
+     * 인터셉터 등록 및 적용 경로 매핑 설정
+     * @param registry
+     */
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
         registry
@@ -20,6 +24,10 @@ public class WebServerConfiguration implements WebMvcConfigurer {
                 .addPathPatterns("/api/**");
     }
 
+    /**
+     * 리소스 경로 매핑 설정
+     * @param registry
+     */
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
         registry

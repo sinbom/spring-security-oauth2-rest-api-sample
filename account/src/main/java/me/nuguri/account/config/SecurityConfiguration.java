@@ -33,6 +33,11 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 
     private final UserDetailsService userDetailsService;
 
+    /**
+     * 필터 접근 이전 필터링에서 제외할 리소스 패턴 설정
+     * @param web
+     * @throws Exception
+     */
     @Override
     public void configure(WebSecurity web) throws Exception {
         web.ignoring().mvcMatchers("/docs/**");
@@ -41,6 +46,11 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
         web.ignoring().requestMatchers(PathRequest.toStaticResources().atCommonLocations());
     }
 
+    /**
+     * 시큐리티(리소스 X) 필터 체인 설정, /api/** url 패턴이 아닌 경우 권한 처리
+     * @param http
+     * @throws Exception
+     */
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http
@@ -48,9 +58,8 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                 .regexMatchers("^(?!/api/).*$")
                 .and()
                 .authorizeRequests()
-                .mvcMatchers("/login").anonymous()
+                .mvcMatchers("/", "/main").permitAll()
                 .anyRequest().authenticated();
-        http.exceptionHandling().accessDeniedPage("/");
         http
                 .formLogin()
                 .loginPage("/login")
@@ -71,13 +80,14 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                         super.onAuthenticationFailure(request, response, exception);
                         log.info("[log] username : " + request.getParameter("username") + " is login fail at " + LocalDateTime.now());
                     }
-                });
+                })
+                .permitAll();
         http
                 .logout()
                 .logoutSuccessHandler(new SimpleUrlLogoutSuccessHandler() {
                     @Override
                     public void onLogoutSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
-                        String referer = (String) request.getSession().getAttribute("referer");
+                        String referer = request.getParameter("referer");
                         referer = StringUtils.isEmpty(referer) ? "/" : referer;
                         log.info("[log] logout referer : " + referer);
                         response.sendRedirect(referer);

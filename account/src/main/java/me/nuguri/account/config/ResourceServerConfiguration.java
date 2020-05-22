@@ -27,11 +27,21 @@ public class ResourceServerConfiguration extends ResourceServerConfigurerAdapter
 
     private final AccountServerProperties properties;
 
+    /**
+     * 리소스 서버 설정
+     * @param resources
+     * @throws Exception
+     */
     @Override
     public void configure(ResourceServerSecurityConfigurer resources) throws Exception {
         resources.resourceId("account");
     }
 
+    /**
+     * 리소스 서버 필터 체인 설정, /api/** url 패턴에 대한 권한 처리
+     * @param http
+     * @throws Exception
+     */
     @Override
     public void configure(HttpSecurity http) throws Exception {
         http
@@ -47,6 +57,10 @@ public class ResourceServerConfiguration extends ResourceServerConfigurerAdapter
         http.exceptionHandling().accessDeniedHandler(new OAuth2AccessDeniedHandler());
     }
 
+    /**
+     * 리소스 서버에서 인증 서버로 check token endpoint 통신할 때 사용
+     * @return
+     */
     @Bean
     public RemoteTokenServices remoteTokenServices() {
         RemoteTokenServices remoteTokenServices = new RemoteTokenServices();
