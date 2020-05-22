@@ -11,6 +11,7 @@ import me.nuguri.common.enums.Role;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.provider.OAuth2Authentication;
 import org.springframework.stereotype.Component;
@@ -20,7 +21,9 @@ import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Component
 @RequiredArgsConstructor
@@ -51,10 +54,10 @@ public class AuthorityCheckInterceptor extends HandlerInterceptorAdapter {
                         return true;
                     }
                 } else if (authentication instanceof OAuth2Authentication) {
-//                    CustomAuthenticationToken authenticationToken = (CustomAuthenticationToken) ((OAuth2Authentication) authentication).getUserAuthentication();
-//                    if (authenticationToken.getId().equals(id) || authenticationToken.getAuthorities().stream().anyMatch(r -> r.getAuthority().equals(Role.ADMIN.toString()))) {
+                    CustomAuthenticationToken authenticationToken = (CustomAuthenticationToken) ((OAuth2Authentication) authentication).getUserAuthentication();
+                    if (authenticationToken.getId().equals(id) || authenticationToken.getAuthorities().stream().anyMatch(r -> r.getAuthority().equals("ROLE_" + Role.ADMIN.toString()))) {
                         return true;
-//                    }
+                    }
                 } else {
                     response.setStatus(HttpStatus.UNAUTHORIZED.value());
                     response.getWriter().write(objectMapper.writeValueAsString(new ErrorResponse(HttpStatus.FORBIDDEN, "unauthorized")));

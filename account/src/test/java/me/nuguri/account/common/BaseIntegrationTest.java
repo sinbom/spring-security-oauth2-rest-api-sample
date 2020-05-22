@@ -46,7 +46,7 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 public abstract class BaseIntegrationTest {
 
-    protected static RedisServer redisServer = new RedisServer();
+    protected static RedisServer redisServer = new RedisServer(16379);
 
     @Autowired
     protected MockMvc mockMvc;

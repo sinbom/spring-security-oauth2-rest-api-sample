@@ -1,5 +1,6 @@
 package me.nuguri.account.config;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
@@ -12,8 +13,8 @@ import org.springframework.session.web.context.AbstractHttpSessionApplicationIni
 public class RedisConfiguration extends AbstractHttpSessionApplicationInitializer {
 
     @Bean
-    public RedisConnectionFactory redisConnectionFactory() {
-        return new LettuceConnectionFactory();
+    public RedisConnectionFactory redisConnectionFactory(@Value("${spring.redis.host}") String host, @Value("${spring.redis.port}") int port) {
+        return new LettuceConnectionFactory(host, port);
     }
 
 /*    @Bean

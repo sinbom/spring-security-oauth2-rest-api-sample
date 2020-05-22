@@ -12,20 +12,6 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
-import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.web.authentication.SavedRequestAwareAuthenticationSuccessHandler;
-import org.springframework.security.web.authentication.SimpleUrlAuthenticationFailureHandler;
-import org.springframework.security.web.authentication.logout.SimpleUrlLogoutSuccessHandler;
-
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.time.LocalDateTime;
-//TODO 추후 Auth, Account 서버 분리 후 로그인 세션 키 Redis 클러스터링 하기
 @Configuration
 @EnableWebSecurity
 @Order(1)
@@ -57,7 +43,7 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                 .anyRequest().authenticated();
         http.csrf().ignoringAntMatchers("/oauth/revoke_token", "/oauth/me");
         http.httpBasic().disable();
-        http.formLogin().loginPage("http://localhost:10600/login");
+        http.formLogin().loginPage("http://localhost:10600/login").loginProcessingUrl("http://localhost:10600/login");
         http.logout().disable();
     }
 }

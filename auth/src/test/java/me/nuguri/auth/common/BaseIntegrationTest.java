@@ -37,7 +37,7 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 @Transactional
 public abstract class BaseIntegrationTest {
 
-    protected static RedisServer redisServer = new RedisServer();
+    protected static RedisServer redisServer = new RedisServer(16379);
 
     @Autowired
     protected MockMvc mockMvc;
