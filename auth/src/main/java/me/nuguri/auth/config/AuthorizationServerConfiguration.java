@@ -8,6 +8,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.config.annotation.configurers.ClientDetailsServiceConfigurer;
@@ -101,7 +102,7 @@ public class AuthorizationServerConfiguration {
                     .authorizeRequests()
                     .mvcMatchers(HttpMethod.POST, "/api/**/user").permitAll()
                     .anyRequest().authenticated();
-            http.sessionManagement().disable();
+            http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
             http.logout().disable();
             http.csrf().disable();
             http.exceptionHandling().accessDeniedHandler(new OAuth2AccessDeniedHandler());

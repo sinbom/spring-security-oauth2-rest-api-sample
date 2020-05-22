@@ -23,13 +23,6 @@ public class AuthorizationController {
 
     @RequestMapping({"/main", "/"})
     public String main(HttpServletRequest request) {
-        Cookie[] cookie = request.getCookies();
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        System.out.println(authentication);
-        for (Cookie cookie1 : cookie) {
-            System.out.println(cookie1.getName());
-            System.out.println(cookie1.getValue());
-        }
         return "main";
     }
 
