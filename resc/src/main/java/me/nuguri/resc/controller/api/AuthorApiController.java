@@ -8,7 +8,7 @@ import me.nuguri.common.domain.ErrorResponse;
 import me.nuguri.common.domain.Pagination;
 import me.nuguri.common.domain.PaginationResource;
 import me.nuguri.common.validator.PaginationValidator;
-import me.nuguri.resc.entity.Author;
+import me.nuguri.resc.entity.Creator;
 import me.nuguri.resc.entity.Book;
 import me.nuguri.resc.service.AuthorService;
 import org.modelmapper.ModelMapper;
@@ -18,7 +18,6 @@ import org.springframework.hateoas.Link;
 import org.springframework.hateoas.MediaTypes;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.oauth2.provider.OAuth2Authentication;
 import org.springframework.stereotype.Component;
 import org.springframework.validation.Errors;
 import org.springframework.web.bind.annotation.*;
@@ -27,7 +26,6 @@ import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -54,11 +52,11 @@ public class AuthorApiController {
      */
     @GetMapping(value = "/api/v1/authors", produces = MediaTypes.HAL_JSON_VALUE)
     public ResponseEntity<?> queryAuthors(Pagination pagination, Errors errors) {
-        paginationValidator.validate(pagination, Author.class, errors);
+        paginationValidator.validate(pagination, Creator.class, errors);
         if (errors.hasErrors()) {
             return ResponseEntity.badRequest().body(new ErrorResponse(HttpStatus.BAD_REQUEST, "invalid parameters", errors));
         }
-        Page<Author> page = authorService.findAll(pagination.getPageable());
+        Page<Creator> page = authorService.findAll(pagination.getPageable());
         if (page.getNumberOfElements() < 1) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
                     .body(new ErrorResponse(HttpStatus.NOT_FOUND, page.getTotalElements() < 1 ? "content of all pages does not exist" : "content of current page does not exist"));
@@ -91,15 +89,15 @@ public class AuthorApiController {
      */
     @PostMapping("/api/v1/author")
     public ResponseEntity<?> generateAuthor(@RequestBody @Valid GenerateAuthorRequest request, Errors errors) {
-        Author author = modelMapper.map(request, Author.class);
-        authorValidator.validate(author, errors);
+        Creator creator = modelMapper.map(request, Creator.class);
+        authorValidator.validate(creator, errors);
         if (errors.hasErrors()) {
             return ResponseEntity.badRequest().body(new ErrorResponse(HttpStatus.BAD_REQUEST, "invalid value", errors));
         }
         return ResponseEntity.created(linkTo(methodOn(AuthorApiController.class)
                 .generateAuthor(null, null))
                 .toUri())
-                .body(new GetAuthorResponse(authorService.generate(author)));
+                .body(new GetAuthorResponse(authorService.generate(creator)));
     }
 
     @PatchMapping("/api/v1/author/{id}")
@@ -138,23 +136,23 @@ public class AuthorApiController {
             public GetBookResponse(Book book) {
                 this.id = book.getId();
                 this.name = book.getName();
-                this.pubDate = book.getPubDate();
+                this.pubDate = book.getPublishDate();
             }
         }
         private Long id;
         private String name;
         private LocalDate birth;
         private LocalDate death;
-        private List<GetBookResponse> books = new ArrayList<>();
+        private List<GetBookResponse> books;
 
-        public GetAuthorResponse(Author author) {
-            this.id = author.getId();
-            this.name = author.getName();
-            this.birth = author.getBirth();
-            this.death = author.getDeath();
-            this.books = author.getBooks()
+        public GetAuthorResponse(Creator creator) {
+            this.id = creator.getId();
+            this.name = creator.getName();
+            this.birth = creator.getBirth();
+            this.death = creator.getDeath();
+            this.books = creator.getProducts()
                     .stream()
-                    .map(GetBookResponse::new)
+                    .map(p -> new GetBookResponse((Book) p))
                     .collect(Collectors.toList());
         }
     }
@@ -178,12 +176,12 @@ public class AuthorApiController {
     public static class AuthorValidator {
         /**
          * Author 도메인 값 중 생년날짜, 사망날짜 검증
-         * @param author birth 생년날짜, death 사망날짜
+         * @param creator birth 생년날짜, death 사망날짜
          * @param errors 에러
          */
-        public void validate(Author author, Errors errors) {
-            LocalDate birth = author.getBirth();
-            LocalDate death = author.getDeath();
+        public void validate(Creator creator, Errors errors) {
+            LocalDate birth = creator.getBirth();
+            LocalDate death = creator.getDeath();
             if (birth != null && death != null) {
                 if (death.isBefore(birth)) {
                     errors.reject("wrongValue", "birth is must be before death");

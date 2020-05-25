@@ -3,17 +3,19 @@ package me.nuguri.resc;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import me.nuguri.resc.entity.*;
-import me.nuguri.resc.repository.*;
+import me.nuguri.resc.enums.Gender;
+import me.nuguri.resc.repository.CompanyRepository;
+import me.nuguri.resc.repository.CreatorRepository;
+import me.nuguri.resc.repository.CategoryBookRepository;
+import me.nuguri.resc.repository.MajorCategoryRepository;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.ApplicationArguments;
-import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
-import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 
 @Component
@@ -21,11 +23,13 @@ import java.util.concurrent.ThreadLocalRandom;
 @Slf4j
 public class ApplicationRunner implements org.springframework.boot.ApplicationRunner {
 
-    private final AuthorRepository authorRepository;
+    private final CreatorRepository creatorRepository;
 
     private final MajorCategoryRepository majorCategoryRepository;
 
     private final CategoryBookRepository categoryBookRepository;
+
+    private final CompanyRepository companyRepository;
 
     @Value("${spring.profiles.active}")
     private String profile;
@@ -34,11 +38,11 @@ public class ApplicationRunner implements org.springframework.boot.ApplicationRu
     private String ddlAuto;
 
     @Override
-    public void run(ApplicationArguments args) throws Exception {
+    public void run(ApplicationArguments args) {
         if (profile.equals("local") && ddlAuto.equals("create")) {
             log.info("[log] [active profile is " + profile + "] => do persist test entities");
             Random random = new Random();
-            List<Author> authorList = new ArrayList<>();
+            List<Creator> creatorList = new ArrayList<>();
             String[] authorNames = {"홍길동", "아무개", "김똥개", "신나라", "박대기"};
             LocalDate[] authorBirth = {LocalDate.of(1946, 9, 17), LocalDate.of(1926, 5, 21)
                     , LocalDate.of(1996, 10, 25), LocalDate.of(1920, 6, 13), LocalDate.of(1965, 4, 2)};
@@ -46,12 +50,15 @@ public class ApplicationRunner implements org.springframework.boot.ApplicationRu
                     , LocalDate.of(2020, 2, 14), LocalDate.of(1987, 7, 11), LocalDate.of(1999, 9, 12)};
 
             for (int i = 0; i < authorNames.length; i++) {
-                Author author = new Author();
-                author.setName(authorNames[i]);
-                author.setBirth(authorBirth[i]);
-                author.setDeath(authorDeath[i]);
-                authorList.add(author);
+                Creator creator = new Creator();
+                creator.setName(authorNames[i]);
+                creator.setBirth(authorBirth[i]);
+                creator.setDeath(authorDeath[i]);
+                creator.setGender(i % 2 == 0 ? Gender.M : Gender.F);
+                creatorList.add(creator);
             }
+
+            creatorRepository.saveAll(creatorList);
 
             List<Book> bookList = new ArrayList<>();
             long min = LocalDate.of(1900, 1, 1).toEpochDay();
@@ -59,9 +66,15 @@ public class ApplicationRunner implements org.springframework.boot.ApplicationRu
             for (int i = 0; i < 200; i++) {
                 Book book = new Book();
                 book.setName("책 " + i);
-                book.setPubDate(LocalDate.ofEpochDay(ThreadLocalRandom.current().nextLong(min, max)));
-                book.addAuthor(authorList.get(random.nextInt(authorList.size())));
+                book.setPublishDate(LocalDate.ofEpochDay(ThreadLocalRandom.current().nextLong(min, max)));
+                book.addCreator(creatorList.get(random.nextInt(creatorList.size())));
+                Company company = new Company();
+                company.setName("아무회사" + i);
+                company.setEstablishDate(LocalDate.now());
+                book.addCompany(company);
                 bookList.add(book);
+
+                companyRepository.save(company);
             }
 
             List<MajorCategory> majorCategoryList = new ArrayList<>();
@@ -94,7 +107,6 @@ public class ApplicationRunner implements org.springframework.boot.ApplicationRu
                 }
             }
 
-            authorRepository.saveAll(authorList);
             majorCategoryRepository.saveAll(majorCategoryList);
 
             for (int i = 0; i < bookList.size(); i++) {
@@ -102,13 +114,13 @@ public class ApplicationRunner implements org.springframework.boot.ApplicationRu
                 for (int j = 0; j < random.nextInt(5) + 1; j++) {
                     int index = random.nextInt(minorCategoryList.size());
                     MinorCategory minorCategory = minorCategoryList.get(index).get(random.nextInt(minorCategoryList.get(index).size()));
-                    if (book.getCategoryBooks().stream().anyMatch(cb -> cb.getCategory().equals(minorCategory))) {
+                    if (book.getProductCategories().stream().anyMatch(cb -> cb.getCategory().equals(minorCategory))) {
                         j--;
                     } else {
-                        CategoryBook categoryBook = new CategoryBook();
-                        categoryBook.addMinorCategory(minorCategory);
-                        categoryBook.addBook(book);
-                        categoryBookRepository.save(categoryBook);
+                        ProductCategory productCategory = new ProductCategory();
+                        productCategory.addMinorCategory(minorCategory);
+                        productCategory.addProduct(book);
+                        categoryBookRepository.save(productCategory);
                     }
                 }
             }

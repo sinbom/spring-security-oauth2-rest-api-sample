@@ -1,8 +1,8 @@
 package me.nuguri.resc.service;
 
 import lombok.RequiredArgsConstructor;
-import me.nuguri.resc.entity.Author;
-import me.nuguri.resc.repository.AuthorRepository;
+import me.nuguri.resc.entity.Creator;
+import me.nuguri.resc.repository.CreatorRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -13,7 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 public class AuthorService {
 
-    private final AuthorRepository authorRepository;
+    private final CreatorRepository creatorRepository;
 
     /**
      * 저자 엔티티 페이지 조회
@@ -21,8 +21,8 @@ public class AuthorService {
      * @return 조회한 저자 엔티티 페이징 객체
      */
     @Transactional(readOnly = true)
-    public Page<Author> findAll(Pageable pageable) {
-        return authorRepository.findAll(pageable);
+    public Page<Creator> findAll(Pageable pageable) {
+        return creatorRepository.findAll(pageable);
     }
 
     /**
@@ -31,17 +31,17 @@ public class AuthorService {
      * @return 조회한 저자 엔티티 객체
      */
     @Transactional(readOnly = true)
-    public Author find(Long id) {
-        return authorRepository.findById(id).orElseThrow(RuntimeException::new);
+    public Creator find(Long id) {
+        return creatorRepository.findById(id).orElseThrow(RuntimeException::new);
     }
 
     /**
      * 저자 엔티티 생성, 입력 받은 파라미터 값으로 생성
-     * @param author name 이름, birth 출생날짜, death 사망 날짜
+     * @param creator name 이름, birth 출생날짜, death 사망 날짜
      * @return 생성한 저자 엔티티 객체
      */
-    public Author generate(Author author) {
-        return authorRepository.save(author);
+    public Creator generate(Creator creator) {
+        return creatorRepository.save(creator);
     }
 
 }

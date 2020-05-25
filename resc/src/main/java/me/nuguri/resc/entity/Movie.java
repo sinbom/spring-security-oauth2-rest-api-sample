@@ -1,23 +1,21 @@
 package me.nuguri.resc.entity;
 
-import lombok.*;
+import lombok.Getter;
+import lombok.Setter;
 
 import javax.persistence.*;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * 책 엔티티
- */
 @Entity
-@DiscriminatorValue("B")
+@DiscriminatorValue("M")
 @Getter
 @Setter
-public class Book extends Product {
+public class Movie extends Product {
 
-    /** 출판 날짜 */
+    /** 개봉 날짜 */
     @Column(nullable = false)
-    private LocalDate publishDate;
+    private LocalDate releaseDate;
 
 }
