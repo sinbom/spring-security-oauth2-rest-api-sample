@@ -20,9 +20,9 @@ import org.springframework.security.oauth2.provider.token.RemoteTokenServices;
 @Configuration
 @EnableAuthorizationServer
 @EnableResourceServer
-@EnableGlobalMethodSecurity(prePostEnabled = true)
+@EnableGlobalMethodSecurity(prePostEnabled = true) // 애노테이션 기반 권한 검사 사용
 @RequiredArgsConstructor
-@Order(100)
+@Order(100) // 시큐리티 필터 체인보다 우선순위를 낮게 하여 우선적으로 시큐리티 필터 체인의 url 패턴으로 검사
 public class ResourceServerConfiguration extends ResourceServerConfigurerAdapter {
 
     private final AccountServerProperties properties;

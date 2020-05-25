@@ -28,7 +28,7 @@ public class AccountService implements UserDetailsService {
     private final ModelMapper modelMapper;
 
     /**
-     * 시큐리티 로그인 수행 시 사용, 유저 엔티티 대리키(email) 조회
+     * 큐리티 로그인 및 인증 토큰 발급(password 방식) 수행 시 사용, 유저 엔티티 대리키(email) 조회
      * @param email 이메일
      * @return 유저 엔티티 래핑 + 시큐리티 인증 객체
      */

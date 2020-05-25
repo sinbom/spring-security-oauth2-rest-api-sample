@@ -34,6 +34,13 @@ public class ClientApiController {
 
     private final ClientService clientService;
 
+    /**
+     * 클라이언트 정보 생성
+     * @param request resourceIds 접근 리소스, redirectUri 리다이렉트 uri
+     * @param errors 에러
+     * @param authentication 현재 인증 토큰 기반 인증 객체
+     * @return
+     */
     @PostMapping(value = "/api/v1/client", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaTypes.HAL_JSON_VALUE)
     public ResponseEntity<?> generateClient(@RequestBody @Valid GenerateClientRequest request, Errors errors, OAuth2Authentication authentication) {
         if (errors.hasErrors()) {
@@ -46,6 +53,8 @@ public class ClientApiController {
         return ResponseEntity.ok(new GenerateClientResponse(client));
     }
 
+    // ==========================================================================================================================================
+    // Domain
     @Getter
     @Setter
     public static class GenerateClientRequest {
@@ -95,5 +104,6 @@ public class ClientApiController {
             this.redirectUri = client.getRedirectUri();
         }
     }
+    // ==========================================================================================================================================
 
 }

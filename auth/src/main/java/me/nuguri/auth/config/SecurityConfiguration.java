@@ -14,7 +14,7 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 @Configuration
 @EnableWebSecurity
-@Order(1)
+@Order(1) // 리소스 서버 필터 체인보다 우선순위를 높게 하여 우선적으로 시큐리티 필터 체인의 url 패턴으로 검사
 @RequiredArgsConstructor
 @Slf4j
 public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
@@ -25,12 +25,21 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
         return super.authenticationManagerBean();
     }
 
+    /**
+     * 필터 접근 이전 필터링에서 제외할 리소스 패턴 설정
+     * @param web
+     */
     @Override
     public void configure(WebSecurity web) {
         web.ignoring().mvcMatchers("/docs/**");
         web.ignoring().requestMatchers(PathRequest.toStaticResources().atCommonLocations());
     }
 
+    /**
+     * 시큐리티(리소스 X) 필터 체인 설정, /api/** url 패턴이 아닌 경우 권한 처리
+     * @param http
+     * @throws Exception
+     */
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http

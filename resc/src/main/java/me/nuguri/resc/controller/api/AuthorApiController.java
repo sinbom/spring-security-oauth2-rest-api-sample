@@ -46,6 +46,12 @@ public class AuthorApiController {
 
     private final AuthorValidator authorValidator;
 
+    /**
+     * 저자 정보 페이징 조회
+     * @param pagination page 페이지 번호, size 페이지 당 갯수, sort 정렬(방식,기준)
+     * @param errors 에러
+     * @return
+     */
     @GetMapping(value = "/api/v1/authors", produces = MediaTypes.HAL_JSON_VALUE)
     public ResponseEntity<?> queryAuthors(Pagination pagination, Errors errors) {
         paginationValidator.validate(pagination, Author.class, errors);
@@ -63,6 +69,11 @@ public class AuthorApiController {
         return ResponseEntity.ok(queryAuthorsResources);
     }
 
+    /**
+     * 저자 정보 조회
+     * @param id 식별키
+     * @return
+     */
     @GetMapping("/api/v1/author/{id}")
     public ResponseEntity<?> getAuthor(@PathVariable Long id) {
         try {
@@ -72,6 +83,12 @@ public class AuthorApiController {
         }
     }
 
+    /**
+     * 저자 정보 생성
+     * @param request name 이름, birth 출생날짜, death 사망 날짜
+     * @param errors 에러
+     * @return
+     */
     @PostMapping("/api/v1/author")
     public ResponseEntity<?> generateAuthor(@RequestBody @Valid GenerateAuthorRequest request, Errors errors) {
         Author author = modelMapper.map(request, Author.class);

@@ -38,6 +38,11 @@ public class ApplicationConfiguration {
         return new JdbcTokenStore(dataSource);
     }
 
+    /**
+     * 인증 서버 엔드 포인트 /oauth/token, /oauth/check_token, /oauth/revoke_token
+     * 응답 JSON 값에 추가 정보인 계정 식별키 id 값을 포함해서 응답
+     * @return
+     */
     @Bean
     public TokenEnhancer tokenEnhancer() {
         return (oAuth2AccessToken, oAuth2Authentication) -> {

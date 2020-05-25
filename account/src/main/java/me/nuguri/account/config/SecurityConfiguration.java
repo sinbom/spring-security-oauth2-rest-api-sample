@@ -1,6 +1,5 @@
 package me.nuguri.account.config;
 
-import io.netty.util.internal.StringUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.security.servlet.PathRequest;
@@ -27,7 +26,7 @@ import java.time.LocalDateTime;
 @Configuration
 @EnableWebSecurity
 @RequiredArgsConstructor
-@Order(1)
+@Order(1) // 리소스 서버 필터 체인보다 우선순위를 높게 하여 우선적으로 시큐리티 필터 체인의 url 패턴으로 검사
 @Slf4j
 public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 

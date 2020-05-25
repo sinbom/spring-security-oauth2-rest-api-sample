@@ -48,6 +48,11 @@ public class AuthorizationServerConfiguration {
 
         private final AuthServerConfigProperties properties;
 
+        /**
+         * 인증 서버 설정
+         * @param security
+         * @throws Exception
+         */
         @Override
         public void configure(AuthorizationServerSecurityConfigurer security) throws Exception {
             security
@@ -56,6 +61,11 @@ public class AuthorizationServerConfiguration {
                     .checkTokenAccess("permitAll()");
         }
 
+        /**
+         * 인증 서버 클라이언트 설정
+         * @param clients
+         * @throws Exception
+         */
         @Override
         public void configure(ClientDetailsServiceConfigurer clients) throws Exception {
             clients.jdbc(dataSource);
@@ -71,6 +81,11 @@ public class AuthorizationServerConfiguration {
                 .refreshTokenValiditySeconds(60 * 10 * 6);*/
         }
 
+        /**
+         * 인증 서버 엔드포인트 설정
+         * @param endpoints
+         * @throws Exception
+         */
         @Override
         public void configure(AuthorizationServerEndpointsConfigurer endpoints) throws Exception {
             endpoints
@@ -83,16 +98,26 @@ public class AuthorizationServerConfiguration {
     }
 
     @Configuration
-    @EnableGlobalMethodSecurity(prePostEnabled = true)
-    @Order(100)
+    @EnableGlobalMethodSecurity(prePostEnabled = true) // 애노테이션 기반 권한 검사 사용
+    @Order(100) // 시큐리티 필터 체인보다 우선순위를 낮게 하여 우선적으로 시큐리티 필터 체인의 url 패턴으로 검사
     @RequiredArgsConstructor
     public static class ResourceConfiguration extends ResourceServerConfigurerAdapter {
 
+        /**
+         * 리소스 서버 설정
+         * @param resources
+         * @throws Exception
+         */
         @Override
         public void configure(ResourceServerSecurityConfigurer resources) throws Exception {
             resources.resourceId("account");
         }
 
+        /**
+         * 리소스 서버 필터 체인 설정, /api/** url 패턴에 대한 권한 처리
+         * @param http
+         * @throws Exception
+         */
         @Override
         public void configure(HttpSecurity http) throws Exception {
             http
