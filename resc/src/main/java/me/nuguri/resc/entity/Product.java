@@ -1,5 +1,6 @@
 package me.nuguri.resc.entity;
 
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -12,18 +13,27 @@ import java.util.List;
 @DiscriminatorColumn(name = "PTYPE", length = 1)
 @Getter
 @Setter
+@EqualsAndHashCode(of = "id", callSuper = false)
 public class Product extends BaseEntity{
 
+    /** 식별키 */
+    @Id
+    @GeneratedValue
+    private Long id;
+
+    /** 이름 */
     @Column(nullable = false)
     private String name;
 
-    @Column
-    private Integer price;
+    /** 가격 */
+    @Column(nullable = false)
+    private int price;
 
+    /** 재고 수량 */
     @Column(nullable = false)
     private int stockCount;
 
-    @ManyToOne(optional = false, fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY)
     private Creator creator;
 
     @ManyToOne(optional = false, fetch = FetchType.LAZY)

@@ -11,7 +11,13 @@ import javax.persistence.*;
 @Entity
 @Getter
 @Setter
+@EqualsAndHashCode(of = "id", callSuper = false)
 public class ProductCategory extends BaseEntity {
+
+    /** 식별키 */
+    @Id
+    @GeneratedValue
+    private Long id;
 
     /** 카테고리 */
     @ManyToOne(optional = false, fetch = FetchType.LAZY)

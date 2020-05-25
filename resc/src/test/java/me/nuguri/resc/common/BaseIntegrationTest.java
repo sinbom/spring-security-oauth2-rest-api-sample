@@ -26,6 +26,7 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
+import javax.persistence.EntityManager;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -43,6 +44,9 @@ import static org.mockito.Mockito.when;
 @Transactional
 @ExtendWith(MockitoExtension.class)
 public abstract class BaseIntegrationTest {
+
+    @Autowired
+    protected EntityManager entityManager;
 
     @Autowired
     protected MockMvc mockMvc;

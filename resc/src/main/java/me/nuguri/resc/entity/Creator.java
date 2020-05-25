@@ -14,7 +14,13 @@ import java.util.List;
 @Entity
 @Getter
 @Setter
+@EqualsAndHashCode(of = "id", callSuper = false)
 public class Creator extends BaseEntity {
+
+    /** 식별키 */
+    @Id
+    @GeneratedValue
+    private Long id;
 
     /** 이름 */
     @Column(nullable = false)
@@ -30,7 +36,6 @@ public class Creator extends BaseEntity {
     /** 사망 날짜 */
     private LocalDate death;
 
-    /** 책 */
     @OneToMany(mappedBy = "creator", cascade = CascadeType.ALL)
     private List<Product> products = new ArrayList<>();
 

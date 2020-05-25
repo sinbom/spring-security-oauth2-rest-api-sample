@@ -12,6 +12,7 @@ import java.util.List;
  */
 @Entity
 @DiscriminatorValue("B")
+@PrimaryKeyJoinColumn(name = "product_id")
 @Getter
 @Setter
 public class Book extends Product {

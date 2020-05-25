@@ -1,12 +1,10 @@
 package me.nuguri.resc.entity;
 
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 
-import javax.persistence.CascadeType;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.OneToMany;
+import javax.persistence.*;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -14,7 +12,13 @@ import java.util.List;
 @Entity
 @Getter
 @Setter
+@EqualsAndHashCode(of = "id", callSuper = false)
 public class Company extends BaseEntity {
+
+    /** 식별키 */
+    @Id
+    @GeneratedValue
+    private Long id;
 
     /** 이름 */
     @Column(nullable = false)

@@ -20,13 +20,7 @@ import java.time.LocalDateTime;
 @EntityListeners(AuditingEntityListener.class)
 @Getter
 @Setter
-@EqualsAndHashCode(of = "id")
 public abstract class BaseEntity {
-
-    /** 식별키 */
-    @Id
-    @GeneratedValue
-    private Long id;
 
     /** 생성 날짜 */
     @CreatedDate

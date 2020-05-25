@@ -12,7 +12,13 @@ import java.util.List;
 @Entity
 @Getter
 @Setter
+@EqualsAndHashCode(of = "id", callSuper = false)
 public class MinorCategory extends BaseEntity {
+
+    /** 식별키 */
+    @Id
+    @GeneratedValue
+    private Long id;
 
     /** 이름 */
     @Column(nullable = false)

@@ -5,6 +5,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.springframework.validation.Errors;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.Type;
 import java.util.stream.Stream;
 
 public class PaginationValidator {
@@ -32,7 +34,9 @@ public class PaginationValidator {
             if (sort.length > 1) {
                 for (int i = 0; i < sort.length - 1; i++) {
                     String property = sort[i];
-                    if (Stream.of(entityType.getDeclaredFields()).noneMatch(f -> f.getName().equals(property))) {
+                    try {
+                        entityType.getDeclaredField(property);
+                    } catch (NoSuchFieldException e) {
                         errors.rejectValue("sort", "wrongValue", "sort property is wrong");
                     }
                 }
@@ -40,8 +44,10 @@ public class PaginationValidator {
                     errors.rejectValue("sort", "wrongValue", "sort direction is wrong");
                 }
             } else if (sort.length == 1){
-                if (Stream.of(entityType.getDeclaredFields()).noneMatch(f -> f.getName().equals(sort[0]))) {
-                    errors.rejectValue("sort", "wrongValue", "sort property is wrong");
+                try {
+                    entityType.getDeclaredField(sort[0]);
+                } catch (NoSuchFieldException e) {
+                    e.printStackTrace();errors.rejectValue("sort", "wrongValue", "sort property is wrong");
                 }
             }
         }
