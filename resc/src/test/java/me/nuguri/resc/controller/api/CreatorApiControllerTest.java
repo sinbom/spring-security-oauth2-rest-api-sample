@@ -1,5 +1,6 @@
 package me.nuguri.resc.controller.api;
 
+import me.nuguri.common.entity.Account;
 import me.nuguri.resc.common.BaseIntegrationTest;
 import me.nuguri.resc.entity.Book;
 import me.nuguri.resc.entity.Company;
@@ -49,7 +50,7 @@ public class CreatorApiControllerTest extends BaseIntegrationTest {
         List<Creator> creatorList = new ArrayList<>();
         String[] creatorNames = {"홍길동", "아무개", "김똥개", "신나라", "박대기"};
         LocalDate[] creatorBirth = {LocalDate.of(1946, 9, 17), LocalDate.of(1926, 5, 21)
-                , LocalDate.of(1996, 10, 25), LocalDate.of(1920, 6, 13), LocalDate.of(1965, 4,2)};
+                , LocalDate.of(1996, 10, 25), LocalDate.of(1920, 6, 13), LocalDate.of(1965, 4, 2)};
         LocalDate[] creatorDeath = {LocalDate.of(2018, 12, 1), LocalDate.of(2006, 4, 19)
                 , LocalDate.of(2020, 2, 14), LocalDate.of(1987, 7, 11), LocalDate.of(1999, 9, 12)};
 
@@ -265,13 +266,13 @@ public class CreatorApiControllerTest extends BaseIntegrationTest {
     public void updateCreator_V1_Success_200() throws Exception {
         mockRestTemplate(HttpStatus.OK);
         CreatorApiController.GenerateCreatorRequest request = new CreatorApiController.GenerateCreatorRequest();
-        Long id = generateCreator().getId();
-        String name = "TEST";
+
+        Creator creator = generateCreator();
+        Long id = creator.getId();
         Gender gender = Gender.F;
         LocalDate birth = LocalDate.of(1996, 9, 17);
         LocalDate death = LocalDate.now();
 
-        request.setName(name);
         request.setGender(gender);
         request.setBirth(birth);
         request.setDeath(death);
@@ -283,13 +284,12 @@ public class CreatorApiControllerTest extends BaseIntegrationTest {
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andDo(print());
+        Creator updated = creatorService.find(id);
 
-        Creator creator = creatorService.find(id);
-
-        assertEquals(name, creator.getName());
-        assertEquals(gender, creator.getGender());
-        assertEquals(birth, creator.getBirth());
-        assertEquals(death, creator.getDeath());
+        assertEquals(creator.getName(), updated.getName());
+        assertEquals(gender, updated.getGender());
+        assertEquals(birth, updated.getBirth());
+        assertEquals(death, updated.getDeath());
     }
 
     @Test
@@ -360,8 +360,153 @@ public class CreatorApiControllerTest extends BaseIntegrationTest {
                 .andDo(print());
     }
 
+    @Test
+    @DisplayName("저자 전체 수정 성공적인 경우")
+    public void mergeCreator_V1_Success_200() throws Exception {
+        mockRestTemplate(HttpStatus.OK);
+        CreatorApiController.GenerateCreatorRequest request = new CreatorApiController.GenerateCreatorRequest();
+        Long id = generateCreator().getId();
+        String name = "TEST";
+        Gender gender = Gender.F;
+        LocalDate birth = LocalDate.of(1996, 9, 17);
+        LocalDate death = LocalDate.now();
+
+        request.setName(name);
+        request.setGender(gender);
+        request.setBirth(birth);
+        request.setDeath(death);
+
+        mockMvc.perform(put("/api/v1/creator/{id}", id)
+                .accept(MediaTypes.HAL_JSON)
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + getAccessToken())
+                .content(objectMapper.writeValueAsString(request))
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andDo(print());
+
+        Creator merged = creatorService.find(id);
+
+        assertEquals(name, merged.getName());
+        assertEquals(gender, merged.getGender());
+        assertEquals(birth, merged.getBirth());
+        assertEquals(death, merged.getDeath());
+    }
+
+    @Test
+    @DisplayName("저자 전체 수정 잘못된 엑세스 토큰으로 실패하는 경우")
+    public void mergeCreator_V1_Unauthorized_401() throws Exception {
+        mockRestTemplate(HttpStatus.UNAUTHORIZED);
+        CreatorApiController.GenerateCreatorRequest request = new CreatorApiController.GenerateCreatorRequest();
+        String name = "TEST";
+        Gender gender = Gender.F;
+        LocalDate birth = LocalDate.of(1996, 9, 17);
+        LocalDate death = LocalDate.now();
+
+        request.setName(name);
+        request.setGender(gender);
+        request.setBirth(birth);
+        request.setDeath(death);
+
+        mockMvc.perform(put("/api/v1/creator/{id}", generateCreator().getId())
+                .accept(MediaTypes.HAL_JSON)
+                .header(HttpHeaders.AUTHORIZATION, "Bearer invalid token")
+                .content(objectMapper.writeValueAsString(request))
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isUnauthorized())
+                .andDo(print());
+    }
+
+    @Test
+    @DisplayName("저자 전체 수정 존재하지 않아서 생성하는 경우")
+    public void mergeCreator_V1_NotFound_201() throws Exception {
+        mockRestTemplate(HttpStatus.OK);
+        CreatorApiController.GenerateCreatorRequest request = new CreatorApiController.GenerateCreatorRequest();
+        String name = "TEST";
+        Gender gender = Gender.F;
+        LocalDate birth = LocalDate.of(1996, 9, 17);
+        LocalDate death = LocalDate.now();
+
+        request.setName(name);
+        request.setGender(gender);
+        request.setBirth(birth);
+        request.setDeath(death);
+
+        mockMvc.perform(put("/api/v1/creator/{id}", 123641564)
+                .accept(MediaTypes.HAL_JSON)
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + getAccessToken())
+                .content(objectMapper.writeValueAsString(request))
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isCreated())
+                .andDo(print());
+    }
+
+    @Test
+    @DisplayName("저자 전체 수정 잘못된 입력 값으로 실패하는 경우")
+    public void mergeCreator_V1_Invalid_400() throws Exception {
+        mockRestTemplate(HttpStatus.OK);
+        CreatorApiController.GenerateCreatorRequest request = new CreatorApiController.GenerateCreatorRequest();
+        LocalDate birth = LocalDate.now();
+        LocalDate death = LocalDate.of(1996, 9, 17);
+
+        request.setBirth(birth);
+        request.setDeath(death);
+
+        mockMvc.perform(put("/api/v1/creator/{id}", generateCreator().getId())
+                .accept(MediaTypes.HAL_JSON)
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + getAccessToken())
+                .content(objectMapper.writeValueAsString(request))
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest())
+                .andDo(print());
+    }
+
+    @Test
+    @DisplayName("저자 삭제 성공적인 경우")
+    public void deleteCreator_V1_Success_200() throws Exception {
+        mockRestTemplate(HttpStatus.OK);
+        mockMvc.perform(delete("/api/v1/creator/{id}", generateCreator().getId())
+                .accept(MediaTypes.HAL_JSON)
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + getAccessToken()))
+                .andExpect(status().isOk())
+                .andDo(print());
+    }
+
+    @Test
+    @DisplayName("저자 삭제 잘못된 엑세스 토큰으로 실패하는 경우")
+    public void deleteCreator_V1_Unauthorized_401() throws Exception {
+        mockRestTemplate(HttpStatus.UNAUTHORIZED);
+        mockMvc.perform(delete("/api/v1/creator/{id}", generateCreator().getId())
+                .accept(MediaTypes.HAL_JSON)
+                .header(HttpHeaders.AUTHORIZATION, "Bearer invalid token"))
+                .andExpect(status().isUnauthorized())
+                .andDo(print());
+    }
+
+    @Test
+    @DisplayName("저자 삭제 잘못된 파라미터로 실패하는 경우")
+    public void deleteCreator_V1_Invalid_400() throws Exception {
+        mockRestTemplate(HttpStatus.OK);
+        mockMvc.perform(delete("/api/v1/creator/{id}", "asdsad")
+                .accept(MediaTypes.HAL_JSON)
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + getAccessToken()))
+                .andExpect(status().isBadRequest())
+                .andDo(print());
+    }
+
+    @Test
+    @DisplayName("저자 삭제 존재하지 않아서 실패하는 경우")
+    public void deleteCreator_V1_NotFound_404() throws Exception {
+        mockRestTemplate(HttpStatus.OK);
+        mockMvc.perform(delete("/api/v1/creator/{id}", "1298371")
+                .accept(MediaTypes.HAL_JSON)
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + getAccessToken()))
+                .andExpect(status().isNotFound())
+                .andDo(print());
+    }
+
     /**
      * 5개의 책을 쓴 저자 엔티티를 생성하는 공통 메소드
+     *
      * @return 저자 엔티티
      */
     private Creator generateCreator() {

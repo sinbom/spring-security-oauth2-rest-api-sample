@@ -1,7 +1,8 @@
 package me.nuguri.resc.repository;
 
 import me.nuguri.resc.entity.Clothes;
-import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.transaction.annotation.Transactional;
 
-public interface MovieRepository extends JpaRepository<Clothes, Long> {
+@Transactional
+public interface MovieRepository extends BaseRepository<Clothes, Long> {
 }

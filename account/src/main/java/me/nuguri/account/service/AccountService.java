@@ -89,12 +89,12 @@ public class AccountService implements UserDetailsService {
     }
 
     /**
-     * 유저 엔티티 수정, 입력 받은 모든 파라미터로 대입해서 수정
+     * 유저 엔티티 수정, 입력 받은 파라미터만 대입해서 수정
      * @param account password 비밀번호, name 이름, roles 권한
      * @return 수정한 유저 엔티티 객체
      */
     public Account update(Account account) {
-        Account update = accountRepository.findById(account.getId()).orElseThrow(UserNotExistException::new);
+        Account update = find(account.getId());
         if (!StringUtils.isEmpty(account.getPassword())) {
             update.setPassword(passwordEncoder.encode(account.getPassword()));
         }
@@ -108,12 +108,12 @@ public class AccountService implements UserDetailsService {
     }
 
     /**
-     * 유저 엔티티 병합, 전달 받은 값이 없어도 수정할 수 있는(updatable) 프로퍼티 모두 대입해서 수정, 식별키에 해당 하는 유저가 없는 경우 생성하지는 않음
+     * 유저 엔티티 병합, 입력 받은 모든 파라미터 모두 대입해서 수정, 식별키에 해당하는 유저가 없는 경우 생성하지는 않음
      * @param account password 비밀번호, name 이름, roles 권한
      * @return 병합한 유저 엔티티 객체
      */
     public Account merge(Account account) {
-        Account merge = accountRepository.findById(account.getId()).orElseThrow(UserNotExistException::new);
+        Account merge = find(account.getId());
         account.setPassword(passwordEncoder.encode(account.getPassword()));
         modelMapper.map(account, merge);
         return merge;
@@ -125,7 +125,7 @@ public class AccountService implements UserDetailsService {
      * @return 제거한 유저 엔티티 객체
      */
     public Account delete(Long id) {
-        Account delete = accountRepository.findById(id).orElseThrow(UserNotExistException::new);
+        Account delete = find(id);
         accountRepository.delete(delete);
         return delete;
     }

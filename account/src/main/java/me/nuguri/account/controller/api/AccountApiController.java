@@ -209,7 +209,6 @@ public class AccountApiController {
     public static class QueryUsersResource extends EntityModel<GetUserResponse> {
         public QueryUsersResource(GetUserResponse content, Link... links) {
             super(content, links);
-            add(linkTo(methodOn(AccountApiController.class).queryUsers( null, null)).withSelfRel().withType("GET"));
             add(linkTo(methodOn(AccountApiController.class).getUser(content.getId())).withRel("getUser").withType("GET"));
             add(linkTo(methodOn(AccountApiController.class).updateUser(content.getId(), null, null)).withRel("updateUser").withType("PATCH"));
             add(linkTo(methodOn(AccountApiController.class).mergeUser(content.getId(), null, null)).withRel("mergeUser").withType("PUT"));

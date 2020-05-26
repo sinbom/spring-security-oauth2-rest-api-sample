@@ -1,7 +1,8 @@
 package me.nuguri.resc.repository;
 
 import me.nuguri.resc.entity.Food;
-import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.transaction.annotation.Transactional;
 
-public interface FoodRepository extends JpaRepository<Food, Long> {
+@Transactional
+public interface FoodRepository extends BaseRepository<Food, Long> {
 }

@@ -1,7 +1,8 @@
 package me.nuguri.resc.repository;
 
 import me.nuguri.resc.entity.MinorCategory;
-import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.transaction.annotation.Transactional;
 
-public interface MinorCategoryRepository extends JpaRepository<MinorCategory, Long> {
+@Transactional
+public interface MinorCategoryRepository extends BaseRepository<MinorCategory, Long> {
 }

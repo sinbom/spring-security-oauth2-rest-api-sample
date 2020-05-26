@@ -1,7 +1,8 @@
 package me.nuguri.resc.repository;
 
 import me.nuguri.resc.entity.Company;
-import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.transaction.annotation.Transactional;
 
-public interface CompanyRepository extends JpaRepository<Company, Long> {
+@Transactional
+public interface CompanyRepository extends BaseRepository<Company, Long> {
 }

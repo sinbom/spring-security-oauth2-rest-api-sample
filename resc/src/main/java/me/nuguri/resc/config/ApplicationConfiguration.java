@@ -2,6 +2,8 @@ package me.nuguri.resc.config;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import me.nuguri.resc.Application;
+import me.nuguri.resc.repository.BaseRepository;
+import me.nuguri.resc.repository.impl.BaseRepositoryImpl;
 import org.modelmapper.ModelMapper;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -13,6 +15,7 @@ import javax.persistence.EntityManager;
 
 @Configuration
 @EnableJpaAuditing
+@EnableJpaRepositories(basePackageClasses = BaseRepository.class, repositoryBaseClass = BaseRepositoryImpl.class)
 public class ApplicationConfiguration {
 
     @Bean

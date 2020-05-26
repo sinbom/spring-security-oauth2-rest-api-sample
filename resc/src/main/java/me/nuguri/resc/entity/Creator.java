@@ -1,6 +1,8 @@
 package me.nuguri.resc.entity;
 
-import lombok.*;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
 import me.nuguri.resc.enums.Gender;
 
 import javax.persistence.*;
