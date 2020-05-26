@@ -1,11 +1,10 @@
 package me.nuguri.resc.service;
 
 import lombok.RequiredArgsConstructor;
-import me.nuguri.resc.controller.api.CreatorApiController;
+import me.nuguri.resc.domain.CreatorSearchCondition;
 import me.nuguri.resc.entity.Creator;
 import me.nuguri.resc.entity.Product;
 import me.nuguri.resc.repository.CreatorRepository;
-import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -28,7 +27,7 @@ public class CreatorService {
      * @return 조회한 저자 엔티티 페이징 객체
      */
     @Transactional(readOnly = true)
-    public Page<Creator> findAll(Pageable pageable) {
+    public Page<Creator> findPaging(Pageable pageable) {
         return creatorRepository.findAll(pageable);
     }
 
@@ -38,14 +37,11 @@ public class CreatorService {
      * @return 조회한 저자 엔티티 페이징 객체
      */
     @Transactional(readOnly = true)
-    public Page<Creator> findAllWithProduct(Pageable pageable) {
-        Page<Creator> page = creatorRepository.findAll(pageable);
+    public Page<Creator> pagingWithCondition(CreatorSearchCondition condition, Pageable pageable) {
+        Page<Creator> page = creatorRepository.findWithCondition(condition, pageable);
         Optional<Creator> first = page.get().findFirst();
         first.ifPresent(creator -> {
-            Product product = creator.getProducts().get(0);
-            if (product != null) {
-                product.getId(); // 컬렉션 페치 조인으로 인해 Batch Size 지연 로딩 사용
-            }
+           creator.getProducts().get(0); // 컬렉션 페치 조인으로 인해 Batch Size 지연 로딩 사용
         });
         return page;
     }

@@ -6,21 +6,21 @@ import me.nuguri.resc.entity.Company;
 import me.nuguri.resc.entity.Creator;
 import me.nuguri.resc.enums.Gender;
 import me.nuguri.resc.repository.CompanyRepository;
-import me.nuguri.resc.repository.CreatorRepository;
 import me.nuguri.resc.service.CreatorService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.MediaTypes;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 
-import javax.persistence.EntityManager;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -86,12 +86,34 @@ public class CreatorApiControllerTest extends BaseIntegrationTest {
     @DisplayName("저자 목록 페이징 조회 성공적인 경우")
     public void queryCreators_V1_Success_200() throws Exception {
         mockRestTemplate(HttpStatus.OK);
+
         mockMvc.perform(get("/api/v1/creators")
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + getAccessToken())
                 .accept(MediaTypes.HAL_JSON)
                 .queryParam("page", "1")
                 .queryParam("size", "10")
                 .queryParam("sort", "id,asc"))
+                .andExpect(status().isOk())
+                .andDo(print());
+    }
+
+    @ParameterizedTest(name = "{index}. {displayName} parameter(sort: {arguments})")
+    @DisplayName("저자 목록 페이징 조건 값 조회 성공적인 경우")
+    @ValueSource(strings = {"id,asc", "id,name,desc", "id,name,birth,asc", "death", ""})
+    public void conditionQueryCreators_V1_Success_200(String sort) throws Exception {
+        mockRestTemplate(HttpStatus.OK);
+
+        mockMvc.perform(get("/api/v1/creators")
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + getAccessToken())
+                .accept(MediaTypes.HAL_JSON)
+                .queryParam("gender", Gender.M.toString())
+                .queryParam("startBirth", "1990-01-01")
+                .queryParam("endBirth", DateTimeFormatter.ofPattern("yyyy-MM-dd").format(LocalDate.now()))
+                .queryParam("startDeath", "1990-01-01")
+                .queryParam("endDeath", DateTimeFormatter.ofPattern("yyyy-MM-dd").format(LocalDate.now()))
+                .queryParam("page", "1")
+                .queryParam("size", "10")
+                .queryParam("sort", sort))
                 .andExpect(status().isOk())
                 .andDo(print());
     }

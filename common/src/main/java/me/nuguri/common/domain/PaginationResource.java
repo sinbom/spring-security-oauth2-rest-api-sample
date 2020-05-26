@@ -9,8 +9,13 @@ import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.util.StringUtils;
+import org.springframework.web.util.UriComponentsBuilder;
+import org.springframework.web.util.UrlPathHelper;
 
+import java.lang.reflect.MalformedParameterizedTypeException;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -40,7 +45,21 @@ public class PaginationResource<T> extends EntityModel<T> {
         this.page = new PaginationInfo(page);
     }
 
-    public void addPaginationLink(Pagination pagination, WebMvcLinkBuilder builder) {
+    public void addPaginationLink(WebMvcLinkBuilder builder, Pagination pagination, Map<String, String> params) {
+        UriComponentsBuilder uriBuilder = builder.toUriComponentsBuilder();
+        String paginationUrl;
+
+        if (params != null) {
+            Set<String> keySet = params.keySet();
+            for (String key : keySet) {
+                String param = params.get(key);
+                uriBuilder.queryParam(key, param);
+            }
+            paginationUrl = UriComponentsBuilder.fromUriString(uriBuilder.toUriString()).toUriString();
+        } else {
+            paginationUrl = uriBuilder.toUriString();
+        }
+
         String page = pagination.getPage();
         String size = pagination.getSize();
         String sort = pagination.getSort();
@@ -61,7 +80,7 @@ public class PaginationResource<T> extends EntityModel<T> {
             } else {
                 map.set("page", pages[i]);
             }
-            add(new Link(builder.toUriComponentsBuilder().queryParams(map).toUriString()).withRel(rels[i]));
+            add(new Link(UriComponentsBuilder.fromUriString(paginationUrl).queryParams(map).toUriString()).withRel(rels[i]));
         }
 
     }

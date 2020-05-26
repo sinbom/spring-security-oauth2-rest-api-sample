@@ -23,7 +23,7 @@ spring:
     properties:
       hibernate:
         format_sql: true
-        default_batch_fetch_size: 1000
+        default_batch_fetch_size: 1000 # 컬렉션 지연로딩시 IN 쿼리로 컬렉션 전체 조회하여 N+1 방지 Max Size 를 모르겠음..
     open-in-view: false
 
 # Logging Setting

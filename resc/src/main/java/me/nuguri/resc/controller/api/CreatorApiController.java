@@ -9,6 +9,7 @@ import me.nuguri.common.domain.ErrorResponse;
 import me.nuguri.common.domain.Pagination;
 import me.nuguri.common.domain.PaginationResource;
 import me.nuguri.common.validator.PaginationValidator;
+import me.nuguri.resc.domain.CreatorSearchCondition;
 import me.nuguri.resc.entity.Book;
 import me.nuguri.resc.entity.Creator;
 import me.nuguri.resc.enums.Gender;
@@ -54,18 +55,18 @@ public class CreatorApiController {
      * @return
      */
     @GetMapping(value = "/api/v1/creators", produces = MediaTypes.HAL_JSON_VALUE)
-    public ResponseEntity<?> queryCreators(Pagination pagination, Errors errors) {
+    public ResponseEntity<?> queryCreators(CreatorSearchCondition condition, Pagination pagination, Errors errors) {
         paginationValidator.validate(pagination, Creator.class, errors);
         if (errors.hasErrors()) {
             return ResponseEntity.badRequest().body(new ErrorResponse(HttpStatus.BAD_REQUEST, "invalid parameters", errors));
         }
-        Page<Creator> page = creatorService.findAllWithProduct(pagination.getPageable());
+        Page<Creator> page = creatorService.pagingWithCondition(condition, pagination.getPageable());
         if (page.getNumberOfElements() < 1) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
                     .body(new ErrorResponse(HttpStatus.NOT_FOUND, page.getTotalElements() < 1 ? "content of all pages does not exist" : "content of current page does not exist"));
         }
         PaginationResource<QueryCreatorsResource> queryCreatorsResources = new PaginationResource<>(page, creator -> new QueryCreatorsResource(new GetCreatorResponse(creator)));
-        queryCreatorsResources.addPaginationLink(pagination, linkTo(methodOn(CreatorApiController.class).queryCreators(null, null)));
+        queryCreatorsResources.addPaginationLink(linkTo(methodOn(CreatorApiController.class).queryCreators(null, null, null)), pagination, condition.paramsToMap());
         queryCreatorsResources.add(linkTo(CreatorApiController.class).slash("/docs/creator.html").withRel("document"));
         return ResponseEntity.ok(queryCreatorsResources);
     }

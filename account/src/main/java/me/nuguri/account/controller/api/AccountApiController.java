@@ -64,7 +64,7 @@ public class AccountApiController {
                     .body(new ErrorResponse(HttpStatus.NOT_FOUND, page.getTotalElements() < 1 ? "content of all pages does not exist" : "content of current page does not exist"));
         }
         PaginationResource<QueryUsersResource> resource = new PaginationResource<>(page, account -> new QueryUsersResource(modelMapper.map(account, GetUserResponse.class)));
-        resource.addPaginationLink(pagination, linkTo(methodOn(AccountApiController.class).queryUsers(null, null)));
+        resource.addPaginationLink(linkTo(methodOn(AccountApiController.class).queryUsers(null, null)), pagination, null);
         resource.add(linkTo(AccountApiController.class).slash("/docs/account.html").withRel("document"));
         return ResponseEntity.ok(resource);
     }
