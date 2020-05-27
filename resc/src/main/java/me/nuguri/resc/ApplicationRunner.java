@@ -6,7 +6,7 @@ import me.nuguri.resc.entity.*;
 import me.nuguri.resc.enums.Gender;
 import me.nuguri.resc.repository.CompanyRepository;
 import me.nuguri.resc.repository.CreatorRepository;
-import me.nuguri.resc.repository.CategoryBookRepository;
+import me.nuguri.resc.repository.ProductCategoryRepository;
 import me.nuguri.resc.repository.MajorCategoryRepository;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.ApplicationArguments;
@@ -27,7 +27,7 @@ public class ApplicationRunner implements org.springframework.boot.ApplicationRu
 
     private final MajorCategoryRepository majorCategoryRepository;
 
-    private final CategoryBookRepository categoryBookRepository;
+    private final ProductCategoryRepository productCategoryRepository;
 
     private final CompanyRepository companyRepository;
 
@@ -120,7 +120,7 @@ public class ApplicationRunner implements org.springframework.boot.ApplicationRu
                         ProductCategory productCategory = new ProductCategory();
                         productCategory.addMinorCategory(minorCategory);
                         productCategory.addProduct(book);
-                        categoryBookRepository.save(productCategory);
+                        productCategoryRepository.save(productCategory);
                     }
                 }
             }

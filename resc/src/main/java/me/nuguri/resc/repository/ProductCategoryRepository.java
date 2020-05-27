@@ -4,5 +4,5 @@ import me.nuguri.resc.entity.ProductCategory;
 import org.springframework.transaction.annotation.Transactional;
 
 @Transactional
-public interface CategoryBookRepository extends BaseRepository<ProductCategory, Long> {
+public interface ProductCategoryRepository extends BaseRepository<ProductCategory, Long> {
 }

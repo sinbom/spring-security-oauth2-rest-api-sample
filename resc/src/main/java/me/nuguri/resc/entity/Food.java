@@ -9,7 +9,7 @@ import javax.persistence.PrimaryKeyJoinColumn;
 
 @Entity
 @DiscriminatorValue("F")
-@PrimaryKeyJoinColumn(name = "product_id")
+@PrimaryKeyJoinColumn(name = "food_id")
 @Getter
 @Setter
 public class Food extends Product {

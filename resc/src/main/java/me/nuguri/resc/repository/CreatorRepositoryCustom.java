@@ -6,10 +6,12 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 @Transactional
 public interface CreatorRepositoryCustom {
 
-    void deleteByIds(Long... ids);
+    void deleteByIds(List<Long> ids);
 
     Page<Creator> findByCondition(CreatorSearchCondition condition, Pageable pageable);
 

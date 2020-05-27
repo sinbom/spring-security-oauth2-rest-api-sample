@@ -1,6 +1,5 @@
 package me.nuguri.resc.controller.api;
 
-import me.nuguri.common.entity.Account;
 import me.nuguri.resc.common.BaseIntegrationTest;
 import me.nuguri.resc.entity.Book;
 import me.nuguri.resc.entity.Company;
@@ -23,6 +22,7 @@ import org.springframework.http.MediaType;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
@@ -31,6 +31,7 @@ import java.util.stream.IntStream;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @DisplayName("저자 API 테스트")
@@ -390,6 +391,7 @@ public class CreatorApiControllerTest extends BaseIntegrationTest {
         assertEquals(gender, merged.getGender());
         assertEquals(birth, merged.getBirth());
         assertEquals(death, merged.getDeath());
+        entityManager.flush();
     }
 
     @Test
@@ -498,6 +500,84 @@ public class CreatorApiControllerTest extends BaseIntegrationTest {
     public void deleteCreator_V1_NotFound_404() throws Exception {
         mockRestTemplate(HttpStatus.OK);
         mockMvc.perform(delete("/api/v1/creator/{id}", "1298371")
+                .accept(MediaTypes.HAL_JSON)
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + getAccessToken()))
+                .andExpect(status().isNotFound())
+                .andDo(print());
+    }
+
+    @Test
+    @DisplayName("저자 배치 삭제 성공적인 경우")
+    public void deleteCreators_V1_Success_200() throws Exception {
+        mockRestTemplate(HttpStatus.OK);
+        List<Long> ids = new ArrayList<>();
+        for (int i = 0; i < 5; i++) {
+            ids.add(generateCreator().getId());
+        }
+
+        CreatorApiController.DeleteCreatorsRequest request = new CreatorApiController.DeleteCreatorsRequest();
+        request.setIds(ids);
+
+        mockMvc.perform(delete("/api/v1/creators")
+                .content(objectMapper.writeValueAsString(request))
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaTypes.HAL_JSON)
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + getAccessToken()))
+                .andExpect(status().isOk())
+                .andDo(print());
+    }
+
+    @Test
+    @DisplayName("저자 삭제 잘못된 엑세스 토큰으로 실패하는 경우")
+    public void deleteCreators_V1_Unauthorized_401() throws Exception {
+        mockRestTemplate(HttpStatus.UNAUTHORIZED);
+        List<Long> ids = new ArrayList<>();
+        for (int i = 0; i < 5; i++) {
+            ids.add(generateCreator().getId());
+        }
+
+        CreatorApiController.DeleteCreatorsRequest request = new CreatorApiController.DeleteCreatorsRequest();
+        request.setIds(ids);
+
+        mockMvc.perform(delete("/api/v1/creators")
+                .content(objectMapper.writeValueAsString(request))
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaTypes.HAL_JSON)
+                .header(HttpHeaders.AUTHORIZATION, "Bearer invalid token"))
+                .andExpect(status().isUnauthorized())
+                .andDo(print());
+    }
+
+    @Test
+    @DisplayName("저자 삭제 잘못된 파라미터로 실패하는 경우")
+    public void deleteCreators_V1_Invalid_400() throws Exception {
+        mockRestTemplate(HttpStatus.OK);
+        List<Long> ids = Arrays.asList(-1L, 2L, 3L);
+
+        CreatorApiController.DeleteCreatorsRequest request = new CreatorApiController.DeleteCreatorsRequest();
+        request.setIds(ids);
+
+        mockMvc.perform(delete("/api/v1/creators")
+                .content(objectMapper.writeValueAsString(request))
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaTypes.HAL_JSON)
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + getAccessToken()))
+                .andExpect(status().isBadRequest())
+                .andDo(print());
+    }
+
+    @Test
+    @DisplayName("저자 삭제 존재하지 않아서 실패하는 경우")
+    public void deleteCreators_V1_NotFound_404() throws Exception {
+        mockRestTemplate(HttpStatus.OK);
+        List<Long> ids = Arrays.asList(123123L, 234234L, 345345L);
+
+        CreatorApiController.DeleteCreatorsRequest request = new CreatorApiController.DeleteCreatorsRequest();
+        request.setIds(ids);
+
+        mockMvc.perform(delete("/api/v1/creators")
+                .content(objectMapper.writeValueAsString(request))
+                .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaTypes.HAL_JSON)
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + getAccessToken()))
                 .andExpect(status().isNotFound())

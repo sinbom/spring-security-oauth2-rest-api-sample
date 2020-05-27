@@ -3,8 +3,7 @@ package me.nuguri.resc.entity;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
-import org.hibernate.annotations.OnDelete;
-import org.hibernate.annotations.OnDeleteAction;
+import me.nuguri.resc.enums.ProductType;
 
 import javax.persistence.*;
 import java.util.ArrayList;
@@ -22,6 +21,11 @@ public class Product extends BaseEntity{
     @Id
     @GeneratedValue
     private Long id;
+
+    /** 자식 테이블 구분 컬럼 조회 필드 */
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, insertable = false, updatable = false, length = 1)
+    private ProductType ptype;
 
     /** 이름 */
     @Column(nullable = false)

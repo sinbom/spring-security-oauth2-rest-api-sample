@@ -10,24 +10,25 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.util.StringUtils;
 import org.springframework.web.util.UriComponentsBuilder;
-import org.springframework.web.util.UrlPathHelper;
 
-import java.lang.reflect.MalformedParameterizedTypeException;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-@Getter @Setter
+@Getter
+@Setter
 public class PaginationResource<T> extends EntityModel<T> {
 
-    @Getter @Setter
+    @Getter
+    @Setter
     public static class PaginationInfo {
         private Integer size;
         private Long totalElements;
         private Integer totalPages;
         private Integer number;
+
         public <E> PaginationInfo(Page<E> number) {
             this.size = number.getSize();
             this.totalElements = number.getTotalElements();
