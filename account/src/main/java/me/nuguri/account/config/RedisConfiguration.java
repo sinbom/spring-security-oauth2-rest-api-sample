@@ -17,17 +17,4 @@ public class RedisConfiguration extends AbstractHttpSessionApplicationInitialize
         return new LettuceConnectionFactory(host, port);
     }
 
-/*    @Bean
-    public StringRedisTemplate stringRedisTemplate() {
-        return new StringRedisTemplate(redisConnectionFactory());
-    }*/
-
-/*    @Bean
-    public RedisTemplate<String, Object> redisTemplate() {
-        RedisTemplate<String, Object> redisTemplate = new RedisTemplate<>();
-        redisTemplate.setConnectionFactory(redisConnectionFactory());
-        redisTemplate.setKeySerializer(new StringRedisSerializer());
-        return redisTemplate;
-    }*/
-
 }

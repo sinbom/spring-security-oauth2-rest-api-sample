@@ -1,6 +1,6 @@
 package me.nuguri.resc.repository;
 
-import me.nuguri.resc.entity.Product;
+import me.nuguri.common.entity.Product;
 import org.springframework.transaction.annotation.Transactional;
 
 @Transactional

@@ -2,6 +2,8 @@ package me.nuguri.account.controller.api;
 
 import me.nuguri.account.common.BaseIntegrationTest;
 import me.nuguri.common.entity.Account;
+import me.nuguri.common.entity.Address;
+import me.nuguri.common.enums.Gender;
 import me.nuguri.common.enums.Role;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -45,26 +47,15 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
         redisServer.stop();
     }
 
-    /**
-     * 테스트 계정 및 클라이언트 생성
-     */
     @BeforeEach
     public void beforeEach() {
-        generateTestEntities();
-        IntStream.range(0, 30).forEach(n -> {
-                    Account account = new Account();
-                    account.setName("테스트" + n);
-                    account.setEmail(UUID.randomUUID().toString() + "@test.com");
-                    account.setPassword("test");
-                    account.setRoles(new HashSet<>(Arrays.asList(Role.USER)));
-                    accountService.generate(account);
-                }
-        );
+        entityInitializer.init(entityManager);
     }
 
     @Test
     @DisplayName("유저 정보 리스트 성공적으로 얻는 경우")
     public void queryUsers_V1_Success_200() throws Exception {
+        generateAccounts();
         mockRestTemplate(HttpStatus.OK, accountService.find(properties.getAdminEmail()));
         mockMvc.perform(get("/api/v1/users")
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + getAccessToken())
@@ -97,6 +88,10 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
                                 fieldWithPath("_contents[*].id").description("account id"),
                                 fieldWithPath("_contents[*].email").description("account email"),
                                 fieldWithPath("_contents[*].name").description("account name"),
+                                fieldWithPath("_contents[*].gender").description("account gender"),
+                                fieldWithPath("_contents[*].address.city").description("address city"),
+                                fieldWithPath("_contents[*].address.street").description("address street"),
+                                fieldWithPath("_contents[*].address.zipCode").description("address zipCode"),
                                 fieldWithPath("_contents[*].roles").description("account roles"),
                                 fieldWithPath("_contents[*]._links.getUser.href").description("getUser link"),
                                 fieldWithPath("_contents[*]._links.updateUser.href").description("updateUser link"),
@@ -135,6 +130,7 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
     @Test
     @DisplayName("유저 정보 리스트 요청 페이지 데이터 없어서 못 얻는 경우")
     public void queryUsers_V1_NotFound_404() throws Exception {
+        generateAccounts();
         mockRestTemplate(HttpStatus.OK, accountService.find(properties.getAdminEmail()));
         mockMvc.perform(get("/api/v1/users")
                 .queryParam("page", "18723671")
@@ -207,6 +203,10 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
                                 fieldWithPath("id").description("account id"),
                                 fieldWithPath("email").description("account email"),
                                 fieldWithPath("name").description("account name"),
+                                fieldWithPath("gender").description("account gender"),
+                                fieldWithPath("address.city").description("address city"),
+                                fieldWithPath("address.street").description("address street"),
+                                fieldWithPath("address.zipCode").description("address zipCode"),
                                 fieldWithPath("roles").description("account roles")
                         )
                         )
@@ -232,6 +232,8 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
         account.setName("테스트");
         account.setEmail("bvcncvbncvnbt@test.com");
         account.setPassword("test");
+        account.setGender(Gender.F);
+        account.setAddress(new Address("경기도 과천시", "부림2길 76 2층", "13830"));
         account.setRoles(new HashSet<>(Arrays.asList(Role.USER)));
 
         mockMvc.perform(get("/api/v1/user/{id}", accountService.generate(account).getId())
@@ -279,6 +281,8 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
         request.setName("생성성공");
         request.setEmail("test200@naver.com");
         request.setPassword("123123");
+        request.setGender(Gender.F);
+        request.setAddress(new Address("경기도 과천시", "부림2길 76 2층", "13830"));
         request.setRoles(new HashSet<>(Arrays.asList(Role.USER)));
 
         mockMvc.perform(post("/api/v1/user")
@@ -325,6 +329,10 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
                                 fieldWithPath("id").description("account id"),
                                 fieldWithPath("email").description("account email"),
                                 fieldWithPath("name").description("account name"),
+                                fieldWithPath("gender").description("account gender"),
+                                fieldWithPath("address.city").description("address city"),
+                                fieldWithPath("address.street").description("address street"),
+                                fieldWithPath("address.zipCode").description("address zipCode"),
                                 fieldWithPath("roles").description("account roles")
                         )
                         )
@@ -338,6 +346,8 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
         AccountApiController.GenerateUserRequest request = new AccountApiController.GenerateUserRequest();
         request.setName("테스트");
         request.setEmail("isNotEmailType");
+        request.setGender(Gender.M);
+        request.setAddress(new Address("", "", ""));
         request.setPassword("1234");
 
         mockMvc.perform(post("/api/v1/user")
@@ -362,6 +372,8 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
         request.setName("테스트");
         request.setEmail(email);
         request.setPassword("124331");
+        request.setGender(Gender.F);
+        request.setAddress(new Address("경기도 과천시", "부림2길 76 2층", "13830"));
         request.setRoles(new HashSet<>(Arrays.asList(Role.USER)));
 
         accountService.generate(modelMapper.map(request, Account.class));
@@ -436,6 +448,10 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
                                 fieldWithPath("id").description("account id"),
                                 fieldWithPath("email").description("account email"),
                                 fieldWithPath("name").description("account name"),
+                                fieldWithPath("gender").description("account gender"),
+                                fieldWithPath("address.city").description("address city"),
+                                fieldWithPath("address.street").description("address street"),
+                                fieldWithPath("address.zipCode").description("address zipCode"),
                                 fieldWithPath("roles").description("account roles")
                         )
                         )
@@ -505,11 +521,15 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
         mockRestTemplate(HttpStatus.OK, accountService.find(properties.getAdminEmail()));
         String name = "수정성공";
         String password = "1123123";
+        Gender gender = Gender.F;
+        Address address = new Address("경기도 과천시", "부림2길 76 2층", "13830");
         Set<Role> roles = new HashSet<>(Arrays.asList(Role.ADMIN, Role.USER));
 
         AccountApiController.UpdateUserRequest request = new AccountApiController.UpdateUserRequest();
         request.setName(name);
         request.setPassword(password);
+        request.setGender(gender);
+        request.setAddress(address);
         request.setRoles(roles);
 
         mockMvc.perform(put("/api/v1/user/{id}", accountService.find(properties.getUserEmail()).getId())
@@ -555,6 +575,10 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
                                 fieldWithPath("id").description("account id"),
                                 fieldWithPath("email").description("account email"),
                                 fieldWithPath("name").description("account name"),
+                                fieldWithPath("gender").description("account gender"),
+                                fieldWithPath("address.city").description("address city"),
+                                fieldWithPath("address.street").description("address street"),
+                                fieldWithPath("address.zipCode").description("address zipCode"),
                                 fieldWithPath("roles").description("account roles")
                         )
                         )
@@ -563,6 +587,8 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
         Account merge = accountService.find(properties.getUserEmail());
         assertEquals(name, merge.getName());
         assertTrue(passwordEncoder.matches(password, merge.getPassword()));
+        assertEquals(gender, merge.getGender());
+        assertEquals(address, merge.getAddress());
         assertEquals(roles, merge.getRoles());
     }
 
@@ -573,6 +599,8 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
         AccountApiController.UpdateUserRequest request = new AccountApiController.UpdateUserRequest();
         request.setName("테스트");
         request.setPassword("1123123");
+        request.setGender(Gender.F);
+        request.setAddress(new Address("경기도 과천시", "부림2길 76 2층", "13830"));
         request.setRoles(new HashSet<>(Arrays.asList(Role.USER)));
 
         mockMvc.perform(put("/api/v1/user/{id}", accountService.find(properties.getAdminEmail()).getId())
@@ -591,6 +619,8 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
         AccountApiController.UpdateUserRequest request = new AccountApiController.UpdateUserRequest();
         request.setName("테스트");
         request.setPassword("1123123");
+        request.setGender(Gender.F);
+        request.setAddress(new Address("경기도 과천시", "부림2길 76 2층", "13830"));
         request.setRoles(new HashSet<>(Arrays.asList(Role.ADMIN)));
 
         mockMvc.perform(put("/api/v1/user/{id}", "198237981")
@@ -609,6 +639,8 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
         AccountApiController.UpdateUserRequest request = new AccountApiController.UpdateUserRequest();
         request.setName("테스트");
         request.setPassword("1");
+        request.setGender(Gender.F);
+        request.setAddress(new Address("", "", ""));
         request.setRoles(new HashSet<>(Arrays.asList(Role.ADMIN)));
 
         mockMvc.perform(put("/api/v1/user/{id}", accountService.find(properties.getUserEmail()).getId())
@@ -664,6 +696,10 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
                                 fieldWithPath("id").description("account id"),
                                 fieldWithPath("email").description("account email"),
                                 fieldWithPath("name").description("account name"),
+                                fieldWithPath("gender").description("account gender"),
+                                fieldWithPath("address.city").description("address city"),
+                                fieldWithPath("address.street").description("address street"),
+                                fieldWithPath("address.zipCode").description("address zipCode"),
                                 fieldWithPath("roles").description("account roles")
                         )
                         )
@@ -702,5 +738,23 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
                 .andDo(print())
                 .andExpect(status().isBadRequest());
     }
+
+    /**
+     * 테스트 계정 및 클라이언트 생성
+     */
+    private void generateAccounts() {
+        IntStream.range(0, 30).forEach(n -> {
+                    Account account = new Account();
+                    account.setName("테스트" + n);
+                    account.setEmail(UUID.randomUUID().toString() + "@test.com");
+                    account.setPassword("test");
+                    account.setGender(n % 2 == 0 ? Gender.M : Gender.F);
+                    account.setAddress(new Address("경기도 과천시", "부림2길 76 2층", "13830"));
+                    account.setRoles(new HashSet<>(Arrays.asList(Role.USER)));
+                    accountService.generate(account);
+                }
+        );
+    }
+
 
 }

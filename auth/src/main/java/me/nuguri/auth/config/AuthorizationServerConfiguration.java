@@ -46,8 +46,6 @@ public class AuthorizationServerConfiguration {
 
         private final UserDetailsService userDetailsService;
 
-        private final AuthServerConfigProperties properties;
-
         /**
          * 인증 서버 설정
          * @param security

@@ -1,10 +1,10 @@
 package me.nuguri.resc.controller.api;
 
+import me.nuguri.common.entity.Book;
+import me.nuguri.common.entity.Company;
+import me.nuguri.common.entity.Creator;
+import me.nuguri.common.enums.Gender;
 import me.nuguri.resc.common.BaseIntegrationTest;
-import me.nuguri.resc.entity.Book;
-import me.nuguri.resc.entity.Company;
-import me.nuguri.resc.entity.Creator;
-import me.nuguri.resc.enums.Gender;
 import me.nuguri.resc.repository.CompanyRepository;
 import me.nuguri.resc.service.CreatorService;
 import org.junit.jupiter.api.BeforeEach;
@@ -31,7 +31,6 @@ import java.util.stream.IntStream;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @DisplayName("저자 API 테스트")

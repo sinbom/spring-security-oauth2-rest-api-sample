@@ -1,19 +1,21 @@
-package me.nuguri.resc.entity;
+package me.nuguri.common.entity;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 
 import javax.persistence.*;
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * 상위 카테고리 엔티티
+ */
 @Entity
 @Getter
 @Setter
 @EqualsAndHashCode(of = "id", callSuper = false)
-public class Company extends BaseEntity {
+public class MajorCategory extends BaseEntity {
 
     /** 식별키 */
     @Id
@@ -24,11 +26,8 @@ public class Company extends BaseEntity {
     @Column(nullable = false)
     private String name;
 
-    /** 설립 날짜 */
-    @Column(nullable = false)
-    private LocalDate establishDate;
-
-    @OneToMany(mappedBy = "company", cascade = CascadeType.ALL)
-    private List<Product> products = new ArrayList<>();
+    /** 하위 카테고리 */
+    @OneToMany(mappedBy = "majorCategory", cascade = CascadeType.ALL)
+    private List<MinorCategory> minorCategories = new ArrayList<>();
 
 }

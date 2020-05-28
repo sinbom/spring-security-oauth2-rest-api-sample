@@ -28,12 +28,9 @@ public class ClientApiControllerTest extends BaseIntegrationTest {
         redisServer.stop();
     }
 
-    /**
-     * 테스트 계정 및 클라이언트 생성
-     */
     @BeforeEach
     public void beforeEach() {
-        generateTestEntities();
+        entityInitializer.init(entityManager);
     }
 
     @Test

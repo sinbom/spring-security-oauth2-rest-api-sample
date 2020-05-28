@@ -14,8 +14,8 @@ import java.io.Serializable;
 @Table(name = "oauth_client_details")
 @Getter
 @Setter
-@EqualsAndHashCode(of ="id")
-public class Client implements Serializable {
+@EqualsAndHashCode(of ="id", callSuper = false)
+public class Client extends BaseEntity implements Serializable {
 
     private static final long serialVersionUID = 1L;
 

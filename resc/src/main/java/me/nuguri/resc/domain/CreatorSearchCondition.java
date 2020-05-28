@@ -2,7 +2,7 @@ package me.nuguri.resc.domain;
 
 import lombok.Getter;
 import lombok.Setter;
-import me.nuguri.resc.enums.Gender;
+import me.nuguri.common.enums.Gender;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.util.StringUtils;
 

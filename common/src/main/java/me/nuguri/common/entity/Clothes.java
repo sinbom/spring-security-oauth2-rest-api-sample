@@ -1,8 +1,8 @@
-package me.nuguri.resc.entity;
+package me.nuguri.common.entity;
 
 import lombok.Getter;
 import lombok.Setter;
-import me.nuguri.resc.enums.Size;
+import me.nuguri.common.enums.Size;
 
 import javax.persistence.*;
 

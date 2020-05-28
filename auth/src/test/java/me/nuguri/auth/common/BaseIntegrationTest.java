@@ -2,35 +2,29 @@ package me.nuguri.auth.common;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import me.nuguri.auth.property.AuthServerConfigProperties;
-import me.nuguri.auth.repository.AccountRepository;
-import me.nuguri.common.entity.Account;
-import me.nuguri.common.entity.Client;
 import me.nuguri.common.enums.GrantType;
-import me.nuguri.common.enums.Role;
-import me.nuguri.common.enums.Scope;
+import me.nuguri.common.initializer.EntityInitializer;
+import net.bytebuddy.asm.Advice;
 import org.junit.jupiter.api.Disabled;
-import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.json.JacksonJsonParser;
 import org.springframework.boot.test.autoconfigure.restdocs.AutoConfigureRestDocs;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 import redis.embedded.RedisServer;
 
-import java.util.Arrays;
-import java.util.HashSet;
+import javax.persistence.EntityManager;
 
 import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.post;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic;
 
 @SpringBootTest
 @ActiveProfiles("test")
-@Import(RestDocsConfiguration.class)
+@Import(TestApplicationConfiguration.class)
 @AutoConfigureRestDocs
 @AutoConfigureMockMvc
 @Disabled
@@ -49,52 +43,10 @@ public abstract class BaseIntegrationTest {
     protected ObjectMapper objectMapper;
 
     @Autowired
-    protected ModelMapper modelMapper;
+    protected EntityInitializer entityInitializer;
 
     @Autowired
-    protected PasswordEncoder passwordEncoder;
-
-    @Autowired
-    private AccountRepository accountRepository;
-
-    protected void generateTestEntities() {
-        Account admin = new Account();
-        admin.setName("관리자");
-        admin.setEmail(properties.getAdminEmail());
-        admin.setPassword(passwordEncoder.encode(properties.getAdminPassword()));
-        admin.setRoles(new HashSet<>(Arrays.asList(Role.ADMIN, Role.USER)));
-
-        Account user = new Account();
-        user.setName("사용자");
-        user.setEmail(properties.getUserEmail());
-        user.setPassword(passwordEncoder.encode(properties.getUserPassword()));
-        user.setRoles(new HashSet<>(Arrays.asList(Role.USER)));
-
-        Client client = new Client();
-        client.setClientId(properties.getClientId());
-        client.setClientSecret(passwordEncoder.encode(properties.getClientSecret()));
-        client.setResourceIds("account,nuguri");
-
-        client.setScope(String.join(",", Scope.READ.toString(), Scope.WRITE.toString()));
-        client.setGrantTypes(String.join(",", GrantType.PASSWORD.toString(), GrantType.AUTHORIZATION_CODE.toString(),
-                GrantType.IMPLICIT.toString(), GrantType.CLIENT_CREDENTIALS.toString(), GrantType.REFRESH_TOKEN.toString()));
-        client.setRedirectUri(properties.getRedirectUri());
-        client.setAuthorities(String.join(",", Role.ADMIN.toString(), Role.USER.toString()));
-        client.addAccount(admin);
-
-        Client client2 = new Client();
-        client2.setClientId("test");
-        client2.setClientSecret("test");
-        client2.setResourceIds("account");
-        client2.setScope(String.join(",", Scope.READ.toString()));
-        client2.setGrantTypes(String.join(",", GrantType.PASSWORD.toString(), GrantType.CLIENT_CREDENTIALS.toString()));
-        client2.setRedirectUri(properties.getRedirectUri());
-        client2.setAuthorities(String.join(",", Role.USER.toString()));
-        client2.addAccount(user);
-
-        accountRepository.save(admin);
-        accountRepository.save(user);
-    }
+    protected EntityManager entityManager;
 
     /**
      * Password 방식 엑세스 토큰 요청 후 토큰 반환 공통 로직

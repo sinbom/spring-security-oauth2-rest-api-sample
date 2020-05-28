@@ -4,6 +4,7 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import me.nuguri.client.enums.LoginType;
+import me.nuguri.common.enums.Gender;
 import me.nuguri.common.enums.Role;
 
 import javax.persistence.*;

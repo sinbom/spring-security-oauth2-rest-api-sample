@@ -10,6 +10,8 @@ import me.nuguri.common.domain.ErrorResponse;
 import me.nuguri.common.domain.Pagination;
 import me.nuguri.common.domain.PaginationResource;
 import me.nuguri.common.entity.Account;
+import me.nuguri.common.entity.Address;
+import me.nuguri.common.enums.Gender;
 import me.nuguri.common.enums.Role;
 import me.nuguri.common.validator.PaginationValidator;
 import org.modelmapper.ModelMapper;
@@ -28,10 +30,13 @@ import org.springframework.web.bind.annotation.*;
 import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
 import java.util.Set;
 
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
+import static org.springframework.util.StringUtils.hasText;
+import static org.springframework.util.StringUtils.isEmpty;
 
 @RestController
 @RequiredArgsConstructor
@@ -181,6 +186,10 @@ public class AccountApiController {
         private String password;
         @NotBlank
         private String name;
+        @NotNull
+        private Gender gender;
+        @NotNull
+        private Address address;
         @NotEmpty
         private Set<Role> roles;
     }
@@ -191,6 +200,10 @@ public class AccountApiController {
         private String password;
         @NotBlank
         private String name;
+        @NotNull
+        private Gender gender;
+        @NotNull
+        private Address address;
         @NotEmpty
         private Set<Role> roles;
     }
@@ -200,6 +213,8 @@ public class AccountApiController {
         private Long id;
         private String email;
         private String name;
+        private Gender gender;
+        private Address address;
         private Set<Role> roles;
     }
     // ==========================================================================================================================================
@@ -278,21 +293,30 @@ public class AccountApiController {
     @Component
     public static class AccountValidator {
         /**
-         * Account 도메인 condition 값 중 이메일, 비밀번호 검증
-         * @param request email 이메일, password 비밀번호
+         * Account 도메인 condition 값 중 이메일, 비밀번호, 주소 검증
+         * @param request email 이메일, password 비밀번호, address 주소(시도 + 도로명 + 우편번호)
          * @param errors 에러
          */
         public void validate(Account request, Errors errors) {
             String email = request.getEmail();
             String password = request.getPassword();
-            if (!StringUtils.isEmpty(email)) {
+            Address address = request.getAddress();
+            if (hasText(email)) {
                 if (!email.matches("^[a-zA-Z0-9_-]{5,15}@[a-zA-Z0-9-]{1,10}\\.[a-zA-Z]{2,6}$")) {
                     errors.rejectValue("email", "wrongValue", "email is wrong ex) [alphabet or number 10~15]@[alphabet or number 1~10].[alphabet 2~6]");
                 }
             }
-            if (!StringUtils.isEmpty(password)) {
+            if (hasText(password)) {
                 if (!password.matches("^.{5,15}$")) {
                     errors.rejectValue("password", "wrongValue", "password is wrong, any character from 5 to 15");
+                }
+            }
+            if (address != null) {
+                String city = address.getCity();
+                String street = address.getStreet();
+                String zipCode = address.getZipCode();
+                if (isEmpty(city) || isEmpty(street) || isEmpty(zipCode)) {
+                    errors.reject("wrongValue", "address(city, street, zipCode) field is blank");
                 }
             }
         }

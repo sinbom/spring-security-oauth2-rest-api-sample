@@ -2,12 +2,12 @@ package me.nuguri.resc;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import me.nuguri.resc.entity.*;
-import me.nuguri.resc.enums.Gender;
+import me.nuguri.common.entity.*;
+import me.nuguri.common.enums.Gender;
 import me.nuguri.resc.repository.CompanyRepository;
 import me.nuguri.resc.repository.CreatorRepository;
-import me.nuguri.resc.repository.ProductCategoryRepository;
 import me.nuguri.resc.repository.MajorCategoryRepository;
+import me.nuguri.resc.repository.ProductCategoryRepository;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.stereotype.Component;

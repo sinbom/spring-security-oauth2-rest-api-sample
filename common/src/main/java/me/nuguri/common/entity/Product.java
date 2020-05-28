@@ -1,14 +1,17 @@
-package me.nuguri.resc.entity;
+package me.nuguri.common.entity;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
-import me.nuguri.resc.enums.ProductType;
+import me.nuguri.common.enums.ProductType;
 
 import javax.persistence.*;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * 상품 엔티티
+ */
 @Entity
 @Inheritance(strategy = InheritanceType.JOINED)
 @DiscriminatorColumn(name = "PTYPE", length = 1)

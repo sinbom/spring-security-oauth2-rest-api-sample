@@ -34,7 +34,7 @@ spring:
     properties:
       hibernate:
         format_sql: true
-#        default_batch_fetch_size: 1000 # 컬렉션들의 레이지 로딩 발생 시 컬렉션 중 하나의 프록시에서 lazy 로딩이 호출되도 모든 컬렉션을 in 쿼리로 한번에 조회
+        default_batch_fetch_size: 1000 # 컬렉션들의 레이지 로딩 발생 시 컬렉션 중 하나의 프록시에서 lazy 로딩이 호출되도 모든 컬렉션을 in 쿼리로 한번에 조회
     open-in-view: false
 
 # Logging Setting

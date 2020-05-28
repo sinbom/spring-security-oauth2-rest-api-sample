@@ -1,4 +1,4 @@
-package me.nuguri.resc.entity;
+package me.nuguri.common.entity;
 
 import lombok.Getter;
 import lombok.Setter;

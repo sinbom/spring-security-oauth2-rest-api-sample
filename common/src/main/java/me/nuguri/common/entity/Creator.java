@@ -1,9 +1,9 @@
-package me.nuguri.resc.entity;
+package me.nuguri.common.entity;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
-import me.nuguri.resc.enums.Gender;
+import me.nuguri.common.enums.Gender;
 
 import javax.persistence.*;
 import java.time.LocalDate;

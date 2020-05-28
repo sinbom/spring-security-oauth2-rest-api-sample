@@ -2,6 +2,7 @@ package me.nuguri.auth.config;
 
 import me.nuguri.auth.common.BaseIntegrationTest;
 import me.nuguri.common.enums.GrantType;
+import me.nuguri.common.initializer.EntityInitializer;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.json.JacksonJsonParser;
@@ -11,6 +12,8 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.web.servlet.ResultActions;
+
+import javax.persistence.EntityManager;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.restdocs.headers.HeaderDocumentation.*;
@@ -26,7 +29,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-//@Import(EmbeddedRedisConfiguration.class)
 @DisplayName("Oauth2 인증 서버 설정 테스트")
 public class AuthorizationServerConfigurationTest extends BaseIntegrationTest {
 
@@ -43,12 +45,9 @@ public class AuthorizationServerConfigurationTest extends BaseIntegrationTest {
         redisServer.stop();
     }
 
-    /**
-     * 테스트 계정 및 클라이언트 생성
-     */
     @BeforeEach
     public void beforeEach() {
-        generateTestEntities();
+        entityInitializer.init(entityManager);
     }
 
     @Test

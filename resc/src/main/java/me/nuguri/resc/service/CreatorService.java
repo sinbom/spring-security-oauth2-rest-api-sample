@@ -1,9 +1,9 @@
 package me.nuguri.resc.service;
 
 import lombok.RequiredArgsConstructor;
+import me.nuguri.common.entity.Creator;
+import me.nuguri.common.entity.Product;
 import me.nuguri.resc.domain.CreatorSearchCondition;
-import me.nuguri.resc.entity.Creator;
-import me.nuguri.resc.entity.Product;
 import me.nuguri.resc.repository.CreatorRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -11,7 +11,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
-import javax.persistence.EntityManager;
 import java.util.List;
 import java.util.NoSuchElementException;
 

@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import me.nuguri.account.property.AccountServerProperties;
 import me.nuguri.account.service.AccountService;
 import me.nuguri.common.entity.Account;
-import me.nuguri.common.enums.Role;
+import me.nuguri.common.initializer.EntityInitializer;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -29,6 +29,7 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 import redis.embedded.RedisServer;
 
+import javax.persistence.EntityManager;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -38,7 +39,7 @@ import static org.mockito.Mockito.when;
 
 @SpringBootTest
 @ActiveProfiles("test")
-@Import(RestDocsConfiguration.class)
+@Import(TestApplicationConfiguration.class)
 @AutoConfigureRestDocs
 @AutoConfigureMockMvc
 @Disabled
@@ -67,27 +68,16 @@ public abstract class BaseIntegrationTest {
     protected AccountService accountService;
 
     @Autowired
+    protected EntityInitializer entityInitializer;
+
+    @Autowired
+    protected EntityManager entityManager;
+
+    @Autowired
     private RemoteTokenServices remoteTokenServices;
 
     @Mock
     private RestTemplate restTemplate;
-
-    protected void generateTestEntities() {
-        Account admin = new Account();
-        admin.setName("관리자");
-        admin.setEmail(properties.getAdminEmail());
-        admin.setPassword(properties.getAdminPassword());
-        admin.setRoles(new HashSet<>(Arrays.asList(Role.ADMIN, Role.USER)));
-
-        Account user = new Account();
-        user.setName("사용자");
-        user.setEmail(properties.getUserEmail());
-        user.setPassword(properties.getUserPassword());
-        user.setRoles(new HashSet<>(Arrays.asList(Role.USER)));
-
-        accountService.generate(admin);
-        accountService.generate(user);
-    }
 
     /**
      * 1. 엑세스 토큰을 인증 서버에서 발급 받는 외부 API 요청 mocking (/oauth/token)
