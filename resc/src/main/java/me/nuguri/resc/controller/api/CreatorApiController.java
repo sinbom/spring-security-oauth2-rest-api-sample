@@ -205,14 +205,13 @@ public class CreatorApiController {
             ErrorResponse errorResponse = new ErrorResponse(BAD_REQUEST, "invalid value", errors);
             return ResponseEntity.badRequest().body(errorResponse);
         }
-        try {
-            long count = creatorService.deleteInBatch(request.ids);
+        long count = creatorService.deleteInBatch(request.ids);
+        if (count > 0) {
             DeleteCreatorResource deleteCreatorResource = new DeleteCreatorResource(count);
             return ResponseEntity.ok(deleteCreatorResource);
-        } catch (Exception e) {
-            ErrorResponse errorResponse = new ErrorResponse(NOT_FOUND, "not exist element of id");
-            return ResponseEntity.status(NOT_FOUND).body(errorResponse);
         }
+        ErrorResponse errorResponse = new ErrorResponse(NOT_FOUND, "not exist element of id");
+        return ResponseEntity.status(NOT_FOUND).body(errorResponse);
     }
 
     // ==========================================================================================================================================
