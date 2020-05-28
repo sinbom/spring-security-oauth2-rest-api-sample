@@ -22,8 +22,6 @@ public class CreatorService {
 
     private final CreatorRepository creatorRepository;
 
-    private final EntityManager em;
-
     /**
      * 저자 엔티티 페이지 조회
      *
@@ -33,6 +31,7 @@ public class CreatorService {
     @Transactional(readOnly = true)
     public Page<Creator> pagingWithCondition(CreatorSearchCondition condition, Pageable pageable) {
         Page<Creator> page = creatorRepository.findByCondition(condition, pageable);
+        // TODO lazy Loading 부분 서비스 로직과 분리해야함
         page
                 .stream()
                 .findFirst()
@@ -117,8 +116,8 @@ public class CreatorService {
      * 저자 엔티티 제거, in batch 쿼리
      * @param ids 식별키
      */
-    public void deleteInBatch(List<Long> ids) {
-        creatorRepository.deleteByIds(ids);
+    public long deleteInBatch(List<Long> ids) {
+        return creatorRepository.deleteByIds(ids);
     }
 
 }

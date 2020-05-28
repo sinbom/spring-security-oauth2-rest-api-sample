@@ -43,7 +43,7 @@ public class CreatorRepositoryImpl implements CreatorRepositoryCustom {
     private final JPAQueryFactory jpaQueryFactory;
 
     @Override
-    public void deleteByIds(List<Long> ids) {
+    public long deleteByIds(List<Long> ids) {
         // 저자와 연관된 상품 엔티티, 상품 카테고리 식별키 조회
         List<Tuple> result = jpaQueryFactory
                 .select(creator.id, product, productCategory.id)
@@ -64,13 +64,16 @@ public class CreatorRepositoryImpl implements CreatorRepositoryCustom {
                 .where(product.creator.id.in(ids))
                 .fetch();*/
 
-        // 삭제 요청받은 식별키들 중에서 존재하는 식별키 추출
+        // 삭제 요청받은 저자 식별키들 중에서 실제로 존재하는 식별키 추출
         List<Long> creatorIds = result
                 .stream()
                 .map(t -> t.get(creator.id))
-                .filter(Objects::nonNull)
                 .distinct()
                 .collect(toList());
+
+        if (creatorIds.isEmpty()) {
+            return 0;
+        }
 
         // 조회한 상품 엔티티를 ptype 기준으로 그룹핑
         Map<? extends Class<? extends Product>, List<Product>> productGroups = result
@@ -113,12 +116,10 @@ public class CreatorRepositoryImpl implements CreatorRepositoryCustom {
         }
 
         // 저자 엔티티 삭제
-        if (!creatorIds.isEmpty()) {
-            jpaQueryFactory
-                    .delete(creator)
-                    .where(creator.id.in(creatorIds))
-                    .execute();
-        }
+        return jpaQueryFactory
+                .delete(creator)
+                .where(creator.id.in(creatorIds))
+                .execute();
     }
 
     @Override
@@ -153,6 +154,7 @@ public class CreatorRepositoryImpl implements CreatorRepositoryCustom {
 
     /**
      * pageable 값에 따라 동적으로 querydsl 정렬 조건 생성 메소드
+     *
      * @param pageable page 페이지, size 사이즈, sort 정렬
      * @return
      */

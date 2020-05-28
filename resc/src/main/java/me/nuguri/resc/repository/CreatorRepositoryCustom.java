@@ -11,7 +11,7 @@ import java.util.List;
 @Transactional
 public interface CreatorRepositoryCustom {
 
-    void deleteByIds(List<Long> ids);
+    long deleteByIds(List<Long> ids);
 
     Page<Creator> findByCondition(CreatorSearchCondition condition, Pageable pageable);
 

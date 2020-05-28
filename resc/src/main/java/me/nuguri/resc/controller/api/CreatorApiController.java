@@ -191,7 +191,7 @@ public class CreatorApiController {
     public ResponseEntity<?> deleteCreator(@PathVariable Long id) {
         try {
             creatorService.delete(id);
-            DeleteCreatorResource deleteCreatorResource = new DeleteCreatorResource(id);
+            DeleteCreatorResource deleteCreatorResource = new DeleteCreatorResource(1L);
             return ResponseEntity.ok(deleteCreatorResource);
         } catch (NoSuchElementException e) {
             ErrorResponse errorResponse = new ErrorResponse(NOT_FOUND, "not exist element of id");
@@ -207,8 +207,9 @@ public class CreatorApiController {
             return ResponseEntity.badRequest().body(errorResponse);
         }
         try {
-            creatorService.deleteInBatch(request.ids);
-            return ResponseEntity.ok().build();
+            long count = creatorService.deleteInBatch(request.ids);
+            DeleteCreatorResource deleteCreatorResource = new DeleteCreatorResource(count);
+            return ResponseEntity.ok(deleteCreatorResource);
         } catch (Exception e) {
             ErrorResponse errorResponse = new ErrorResponse(NOT_FOUND, "not exist element of id");
             return ResponseEntity.status(NOT_FOUND).body(errorResponse);
