@@ -6,12 +6,14 @@ import com.querydsl.core.types.Order;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.Expressions;
+import com.querydsl.core.types.dsl.PathBuilder;
 import com.querydsl.core.types.dsl.SimplePath;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import me.nuguri.resc.domain.CreatorSearchCondition;
 import me.nuguri.resc.entity.Creator;
+import me.nuguri.resc.entity.Product;
 import me.nuguri.resc.enums.Gender;
 import me.nuguri.resc.repository.CreatorRepositoryCustom;
 import org.springframework.data.domain.Page;
@@ -19,14 +21,16 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.repository.support.PageableExecutionUtils;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StopWatch;
 import org.springframework.util.StringUtils;
 
 import java.time.LocalDate;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
-import static com.google.common.base.Predicates.notNull;
 import static java.util.stream.Collectors.toList;
 import static me.nuguri.resc.entity.QCreator.creator;
 import static me.nuguri.resc.entity.QProduct.product;
@@ -40,15 +44,27 @@ public class CreatorRepositoryImpl implements CreatorRepositoryCustom {
 
     @Override
     public void deleteByIds(List<Long> ids) {
-        // 저자와 연관된 상품 엔티티 조회
+        // 저자와 연관된 상품 엔티티, 상품 카테고리 식별키 조회
         List<Tuple> result = jpaQueryFactory
-                .select(creator.id, product.id, productCategory.id)
+                .select(creator.id, product, productCategory.id)
                 .from(creator)
                 .leftJoin(creator.products, product)
                 .leftJoin(product.productCategories, productCategory)
                 .where(creator.id.in(ids))
                 .fetch();
 
+        // creator 조인을 줄일 수 있지만 조인 하나 더한다고 로우가 많이 늘어나서 성능 저하가 클 것 같지만
+        // 성능이 저하가 크지 않고 오히려 조인을 줄이고 product.creator.id 조회보다 더 빠름
+        // PK 조회와 FK 조회의 컬럼 위치가 인덱스 조회에 영향을 미치는 듯?
+        // 하지만 조회 로우수가 증가 하므로 속도와 조회량에 맞춰서 쿼리를 사용하면 될 것 같음
+/*          List<Tuple> result = jpaQueryFactory
+                .select(product.creator.id, product, productCategory.id)
+                .from(product)
+                .leftJoin(product.productCategories, productCategory)
+                .where(product.creator.id.in(ids))
+                .fetch();*/
+
+        // 삭제 요청받은 식별키들 중에서 존재하는 식별키 추출
         List<Long> creatorIds = result
                 .stream()
                 .map(t -> t.get(creator.id))
@@ -56,13 +72,15 @@ public class CreatorRepositoryImpl implements CreatorRepositoryCustom {
                 .distinct()
                 .collect(toList());
 
-        List<Long> productIds = result
+        // 조회한 상품 엔티티를 ptype 기준으로 그룹핑
+        Map<? extends Class<? extends Product>, List<Product>> productGroups = result
                 .stream()
-                .map(t -> t.get(product.id))
+                .map(t -> t.get(product))
                 .filter(Objects::nonNull)
                 .distinct()
-                .collect(toList());
+                .collect(Collectors.groupingBy(Product::getClass));
 
+        // 삭제 요청 받은 저자 식별키와 연관된 상품 카테고리 식별키 추출
         List<Long> productCategoryIds = result
                 .stream()
                 .map(t -> t.get(productCategory.id))
@@ -77,55 +95,30 @@ public class CreatorRepositoryImpl implements CreatorRepositoryCustom {
                     .execute();
         }
 
-        if (!productIds.isEmpty()) {
-            jpaQueryFactory
-                    .delete(product)
-                    .where(product.id.in(productIds))
-                    .execute();
-        }
-
-        if (!creatorIds.isEmpty()) {
-            // 저자 엔티티 삭제
-            jpaQueryFactory
-                    .delete(creator)
-                    .where(creator.id.in(ids))
-                    .execute();
-        }
-
-        /*if (!result.isEmpty()) {
-            Map<? extends Class<? extends Product>, List<Product>> group = result
-                    .stream()
-                    .collect(Collectors.groupingBy(Product::getClass));
-
-            // 상품 카테고리 엔티티 삭제
-            List<Long> allProductsIds = result
-                    .stream()
-                    .map(Product::getId)
-                    .collect(toList());
-            jpaQueryFactory
-                    .delete(productCategory)
-                    .where(productCategory.product.id.in(allProductsIds))
-                    .execute();
-
-            // 상품 엔티티 삭제
-            for (Class<? extends Product> key : group.keySet()) {
-                List<Product> products = group.get(key);
-                List<Long> productIds = products
+        // 상품 카테고리 엔티티 삭제
+        if (!productGroups.isEmpty()) {
+            for (Class<? extends Product> ptype : productGroups.keySet()) {
+                List<Long> productIds = productGroups
+                        .get(ptype)
                         .stream()
                         .map(Product::getId)
                         .collect(toList());
-                PathBuilder<? extends Product> path = new PathBuilder<>(key, key.getName());
+                PathBuilder<? extends Product> entityPath = new PathBuilder<>(ptype, "ptype");
+
                 jpaQueryFactory
-                        .delete(path)
-                        .where(product.id.in(productIds))
+                        .delete(entityPath)
+                        .where(entityPath.get("id").in(productIds))
                         .execute();
             }
         }
+
         // 저자 엔티티 삭제
-        jpaQueryFactory
-                .delete(creator)
-                .where(creator.id.in(ids))
-                .execute();*/
+        if (!creatorIds.isEmpty()) {
+            jpaQueryFactory
+                    .delete(creator)
+                    .where(creator.id.in(creatorIds))
+                    .execute();
+        }
     }
 
     @Override
@@ -158,6 +151,11 @@ public class CreatorRepositoryImpl implements CreatorRepositoryCustom {
         return PageableExecutionUtils.getPage(content, pageable, countQuery::fetchCount);
     }
 
+    /**
+     * pageable 값에 따라 동적으로 querydsl 정렬 조건 생성 메소드
+     * @param pageable page 페이지, size 사이즈, sort 정렬
+     * @return
+     */
     private OrderSpecifier<?>[] orderSpecifiers(Pageable pageable) {
         Sort sort = pageable.getSort();
         Iterator<Sort.Order> iterator = sort.iterator();
