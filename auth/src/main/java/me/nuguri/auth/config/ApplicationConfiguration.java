@@ -36,9 +36,10 @@ public class ApplicationConfiguration {
     @Bean
     public JwtAccessTokenConverter jwtAccessTokenConverter() {
         Resource resource = resourceLoader.getResource("classpath:/oauth2jwt.jks");
-        char[] password = "oauth2jwt".toCharArray();
-        KeyStoreKeyFactory keyStoreKeyFactory = new KeyStoreKeyFactory(resource, password);
-        KeyPair keyPair = keyStoreKeyFactory.getKeyPair("oauth2jwt");
+        char[] storePass = "oauth2jwt".toCharArray(); // 키스토어 파일 비밀번호
+        char[] keyPass = "nuguribom".toCharArray(); // 키 비밀번호
+        KeyStoreKeyFactory keyStoreKeyFactory = new KeyStoreKeyFactory(resource, storePass);
+        KeyPair keyPair = keyStoreKeyFactory.getKeyPair("nuguri", keyPass); // 키 별칭
         JwtAccessTokenConverter jwtAccessTokenConverter = new JwtAccessTokenConverter();
         jwtAccessTokenConverter.setKeyPair(keyPair);
         return jwtAccessTokenConverter;

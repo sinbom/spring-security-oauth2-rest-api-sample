@@ -44,7 +44,7 @@ public class ApplicationConfiguration {
         }
         JwtAccessTokenConverter jwtAccessTokenConverter = new JwtAccessTokenConverter();
         jwtAccessTokenConverter.setVerifierKey(publicKey);
-        return new JwtAccessTokenConverter();
+        return jwtAccessTokenConverter;
     }
 
     @Bean
