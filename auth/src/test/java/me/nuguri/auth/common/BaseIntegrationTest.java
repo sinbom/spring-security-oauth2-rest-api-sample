@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import me.nuguri.auth.property.AuthServerConfigProperties;
 import me.nuguri.common.enums.GrantType;
 import me.nuguri.common.initializer.EntityInitializer;
-import net.bytebuddy.asm.Advice;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.json.JacksonJsonParser;
@@ -15,8 +15,9 @@ import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
-import redis.embedded.RedisServer;
 
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
 import javax.persistence.EntityManager;
 
 import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.post;
@@ -30,8 +31,6 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 @Disabled
 @Transactional
 public abstract class BaseIntegrationTest {
-
-    protected static RedisServer redisServer = new RedisServer(16379);
 
     @Autowired
     protected MockMvc mockMvc;
@@ -48,8 +47,14 @@ public abstract class BaseIntegrationTest {
     @Autowired
     protected EntityManager entityManager;
 
+    @BeforeEach
+    protected void beforeEach() {
+        entityInitializer.init(entityManager);
+    }
+
     /**
      * Password 방식 엑세스 토큰 요청 후 토큰 반환 공통 로직
+     *
      * @param username 이메일
      * @param password 비밀번호
      * @return 엑세스 토큰

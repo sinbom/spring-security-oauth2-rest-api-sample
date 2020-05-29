@@ -48,7 +48,7 @@ public class ApplicationConfiguration {
 
     @Bean
     @Profile("local")
-    @ConditionalOnProperty(prefix = "${spring.jpa.hibernate.ddl-auto}", value = "create")
+    @ConditionalOnProperty(name = "spring.jpa.hibernate.ddl-auto", havingValue = "create")
     public ApplicationRunner applicationRunner(EntityInitializer entityInitializer, EntityManager em) {
         return (args) -> entityInitializer.init(em);
     }

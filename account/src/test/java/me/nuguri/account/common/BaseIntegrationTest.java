@@ -5,6 +5,7 @@ import me.nuguri.account.property.AccountServerProperties;
 import me.nuguri.account.service.AccountService;
 import me.nuguri.common.entity.Account;
 import me.nuguri.common.initializer.EntityInitializer;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -47,8 +48,6 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 public abstract class BaseIntegrationTest {
 
-    protected static RedisServer redisServer = new RedisServer(16379);
-
     @Autowired
     protected MockMvc mockMvc;
 
@@ -78,6 +77,11 @@ public abstract class BaseIntegrationTest {
 
     @Mock
     private RestTemplate restTemplate;
+
+    @BeforeEach
+    protected void beforeEach() {
+        entityInitializer.init(entityManager);
+    }
 
     /**
      * 1. 엑세스 토큰을 인증 서버에서 발급 받는 외부 API 요청 mocking (/oauth/token)

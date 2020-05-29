@@ -37,21 +37,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @DisplayName("계정 API 테스트")
 public class AccountApiControllerTest extends BaseIntegrationTest {
 
-    @BeforeAll
-    public static void beforeAll() {
-        redisServer.start();
-    }
-
-    @AfterAll
-    public static void afterAll() {
-        redisServer.stop();
-    }
-
-    @BeforeEach
-    public void beforeEach() {
-        entityInitializer.init(entityManager);
-    }
-
     @Test
     @DisplayName("유저 정보 리스트 성공적으로 얻는 경우")
     public void queryUsers_V1_Success_200() throws Exception {

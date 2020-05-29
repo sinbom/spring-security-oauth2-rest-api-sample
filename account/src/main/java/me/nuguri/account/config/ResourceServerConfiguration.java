@@ -65,8 +65,9 @@ public class ResourceServerConfiguration extends ResourceServerConfigurerAdapter
     public RemoteTokenServices remoteTokenServices() {
         RemoteTokenServices remoteTokenServices = new RemoteTokenServices();
         remoteTokenServices.setCheckTokenEndpointUrl(properties.getCheckTokenUrl());
-//        remoteTokenServices.setClientId(properties.getClientId());
-//        remoteTokenServices.setClientSecret(properties.getClientSecret());
+        // 클라이언트 ID, SECRET을 설정해야 인정 서버의 checkTokenAccess 권한이 isAuthenticated인 경우 토큰 유효성 검사시 헤더를 요청에 함께 전달하여 접근 가능
+        remoteTokenServices.setClientId(properties.getClientId());
+        remoteTokenServices.setClientSecret(properties.getClientSecret());
         remoteTokenServices.setAccessTokenConverter(new CustomAccessTokenConverter());
         return remoteTokenServices;
     }

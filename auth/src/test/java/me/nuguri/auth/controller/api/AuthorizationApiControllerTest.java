@@ -17,21 +17,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @DisplayName("Oauth2 API 테스트")
 public class AuthorizationApiControllerTest extends BaseIntegrationTest {
 
-    @BeforeAll
-    public static void beforeAll() {
-        redisServer.start();
-    }
-
-    @AfterAll
-    public static void afterAll() {
-        redisServer.stop();
-    }
-
-    @BeforeEach
-    public void beforeEach() {
-        entityInitializer.init(entityManager);
-    }
-
     @Test
     @DisplayName("인증 서버 엑세스 토큰 정상적으로 만료되는 경우")
     public void revokeAccessToken_Success_200() throws Exception {

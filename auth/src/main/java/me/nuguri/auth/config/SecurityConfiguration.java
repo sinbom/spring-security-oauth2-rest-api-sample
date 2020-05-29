@@ -49,7 +49,7 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                 .antMatchers("/oauth/revoke_token").permitAll()
                 .anyRequest().authenticated();
         http.csrf().ignoringAntMatchers("/oauth/revoke_token", "/oauth/me");
-        http.httpBasic().disable();
+        http.httpBasic();
         http.formLogin().loginPage("http://localhost:10600/login").loginProcessingUrl("http://localhost:10600/login");
         http.logout().disable();
     }

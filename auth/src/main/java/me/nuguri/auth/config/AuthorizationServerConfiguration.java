@@ -56,7 +56,7 @@ public class AuthorizationServerConfiguration {
             security
                     .passwordEncoder(passwordEncoder)
                     .tokenKeyAccess("permitAll()")
-                    .checkTokenAccess("permitAll()");
+                    .checkTokenAccess("isAuthenticated()");
         }
 
         /**

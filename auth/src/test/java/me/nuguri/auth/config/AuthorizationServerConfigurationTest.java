@@ -35,25 +35,11 @@ public class AuthorizationServerConfigurationTest extends BaseIntegrationTest {
     @Autowired
     AuthenticationManager authenticationManager;
 
-    @BeforeAll
-    public static void beforeAll() {
-        redisServer.start();
-    }
-
-    @AfterAll
-    public static void afterAll() {
-        redisServer.stop();
-    }
-
-    @BeforeEach
-    public void beforeEach() {
-        entityInitializer.init(entityManager);
-    }
-
     @Test
     @DisplayName("인증 서버 엑세스 토큰 유효한 경우")
     public void checkAccessToken_Success_200() throws Exception {
         mockMvc.perform(post("/oauth/check_token")
+                .with(httpBasic(properties.getClientId(), properties.getClientSecret()))
                 .param("token", getAccessToken(properties.getAdminEmail(), properties.getAdminPassword(), properties.getClientId(), properties.getClientSecret())))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("active").exists())
@@ -96,9 +82,9 @@ public class AuthorizationServerConfigurationTest extends BaseIntegrationTest {
     public void checkAccessToken_Invalid_AccessToken_400() throws Exception {
         String access_token = getAccessToken(properties.getAdminEmail(), properties.getAdminPassword(), properties.getClientId(), properties.getClientSecret());
         mockMvc.perform(post("/oauth/revoke_token")
-                .header(HttpHeaders.AUTHORIZATION, "Bearer " +
-                        access_token));
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + access_token));
         mockMvc.perform(post("/oauth/check_token")
+                .with(httpBasic(properties.getClientId(), properties.getClientSecret()))
                 .param("token", access_token))
                 .andExpect(status().isBadRequest());
     }

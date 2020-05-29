@@ -47,7 +47,7 @@ public class PaginationValidator {
                 try {
                     entityType.getDeclaredField(sort[0]);
                 } catch (NoSuchFieldException e) {
-                    e.printStackTrace();errors.rejectValue("sort", "wrongValue", "sort property is wrong");
+                    errors.rejectValue("sort", "wrongValue", "sort property is wrong");
                 }
             }
         }
