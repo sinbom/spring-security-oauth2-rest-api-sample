@@ -11,6 +11,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.jwt.Jwt;
 import org.springframework.security.oauth2.config.annotation.configurers.ClientDetailsServiceConfigurer;
 import org.springframework.security.oauth2.config.annotation.web.configuration.AuthorizationServerConfigurerAdapter;
 import org.springframework.security.oauth2.config.annotation.web.configuration.EnableAuthorizationServer;
@@ -20,8 +21,10 @@ import org.springframework.security.oauth2.config.annotation.web.configurers.Aut
 import org.springframework.security.oauth2.config.annotation.web.configurers.AuthorizationServerSecurityConfigurer;
 import org.springframework.security.oauth2.config.annotation.web.configurers.ResourceServerSecurityConfigurer;
 import org.springframework.security.oauth2.provider.error.OAuth2AccessDeniedHandler;
+import org.springframework.security.oauth2.provider.token.AccessTokenConverter;
 import org.springframework.security.oauth2.provider.token.TokenEnhancer;
 import org.springframework.security.oauth2.provider.token.TokenStore;
+import org.springframework.security.oauth2.provider.token.store.JwtAccessTokenConverter;
 
 import javax.sql.DataSource;
 
@@ -36,11 +39,11 @@ public class AuthorizationServerConfiguration {
 
         private final PasswordEncoder passwordEncoder;
 
-        private final TokenStore tokenStore;
-
         private final DataSource dataSource;
 
-        private final TokenEnhancer tokenEnhancer;
+        private final TokenStore tokenStore;
+
+        private final JwtAccessTokenConverter jwtAccessTokenConverter;
 
         private final AuthenticationManager authenticationManager;
 
@@ -66,7 +69,7 @@ public class AuthorizationServerConfiguration {
          */
         @Override
         public void configure(ClientDetailsServiceConfigurer clients) throws Exception {
-            clients.jdbc(dataSource);
+            clients.jdbc(dataSource); // JDBC 방식 클라이언트 등록
 /*        인메모리 클라이언트 세팅
         clients.inMemory()
                 .withClient(properties.getClientId())
@@ -87,15 +90,16 @@ public class AuthorizationServerConfiguration {
         @Override
         public void configure(AuthorizationServerEndpointsConfigurer endpoints) throws Exception {
             endpoints
+                    //                    .tokenEnhancer(tokenEnhancer)
                     .tokenStore(tokenStore)
-                    .tokenEnhancer(tokenEnhancer)
+                    .accessTokenConverter(jwtAccessTokenConverter)
                     .userDetailsService(userDetailsService)
                     .authenticationManager(authenticationManager);
         }
 
     }
 
-    @Configuration
+    @Configuration // TODO 추후 분리할 시간 있으면 분리...
     @EnableGlobalMethodSecurity(prePostEnabled = true) // 애노테이션 기반 권한 검사 사용
     @Order(100) // 시큐리티 필터 체인보다 우선순위를 낮게 하여 우선적으로 시큐리티 필터 체인의 url 패턴으로 검사
     @RequiredArgsConstructor
