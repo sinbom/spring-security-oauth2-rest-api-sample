@@ -53,6 +53,14 @@ public class ApplicationConfiguration {
     }
 
     @Bean
+    public DefaultTokenServices defaultTokenServices() {
+        DefaultTokenServices defaultTokenServices = new DefaultTokenServices();
+        defaultTokenServices.setTokenStore(tokenStore());
+        defaultTokenServices.setTokenEnhancer(jwtAccessTokenConverter());
+        return defaultTokenServices;
+    }
+
+    @Bean
     @Profile("local")
     @ConditionalOnProperty(name = "spring.jpa.hibernate.ddl-auto", havingValue = "create")
     public ApplicationRunner applicationRunner(EntityInitializer entityInitializer, EntityManager em) {
