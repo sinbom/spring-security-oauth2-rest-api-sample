@@ -57,8 +57,10 @@ public class AuthorizationServerConfiguration {
         @Override
         public void configure(AuthorizationServerSecurityConfigurer security) throws Exception {
             security
+                    // client_id, client_secret을 basic 인코딩(header Authorization)방식과 더불어 parameter로 인코딩 없이 전달해도 받을 수 있게끔 설정
+//                    .allowFormAuthenticationForClients()
                     .passwordEncoder(passwordEncoder)
-                    .tokenKeyAccess("permitAll()")
+//                    .tokenKeyAccess("permitAll()") // JWT 복호화용 public key 엔드포인트
                     .checkTokenAccess("isAuthenticated()");
         }
 

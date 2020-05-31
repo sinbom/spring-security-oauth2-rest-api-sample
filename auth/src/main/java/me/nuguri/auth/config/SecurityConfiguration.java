@@ -48,9 +48,12 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                 .antMatchers(HttpMethod.GET, "/", "/main", "/oauth/me").permitAll()
                 .antMatchers("/oauth/revoke_token").permitAll()
                 .anyRequest().authenticated();
+        http
+                .formLogin()
+                .loginPage("http://localhost:10600/login")
+                .loginProcessingUrl("http://localhost:10600/login");
+        http.logout().disable();
         http.csrf().ignoringAntMatchers("/oauth/revoke_token", "/oauth/me");
         http.httpBasic();
-        http.formLogin().loginPage("http://localhost:10600/login").loginProcessingUrl("http://localhost:10600/login");
-        http.logout().disable();
     }
 }
