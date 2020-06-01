@@ -22,6 +22,8 @@ spring:
     web:
       pageable:
         one-indexed-parameters: true
+        # true 설정 시 모든 작동 방식은 일치하지만 Pageable로 받을 때 page가 기존 방식과는 다르게 원래 페이지 값 -1 로 받아지고
+        # Hateoas PagedModel 사용시 만들어지는 링크 정보의 시작 페이지 기준이 1페이지가 된다. Page 객체의 page 값이 바뀌는 건 아니다.
   # Redis Setting
   session:
     store-type: redis
