@@ -1,9 +1,9 @@
-package me.nuguri.auth.controller.api;
+package me.nuguri.account.controller.api;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
-import me.nuguri.auth.service.ClientService;
+import me.nuguri.account.service.ClientService;
 import me.nuguri.common.domain.AccountAdapter;
 import me.nuguri.common.domain.ErrorResponse;
 import me.nuguri.common.entity.Account;
@@ -44,7 +44,8 @@ public class ClientApiController {
     @PostMapping(value = "/api/v1/client", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaTypes.HAL_JSON_VALUE)
     public ResponseEntity<?> generateClient(@RequestBody @Valid GenerateClientRequest request, Errors errors, OAuth2Authentication authentication) {
         if (errors.hasErrors()) {
-            return ResponseEntity.badRequest().body(new ErrorResponse(HttpStatus.BAD_REQUEST, "invalid value", errors));
+            ErrorResponse errorResponse = new ErrorResponse(HttpStatus.BAD_REQUEST, "invalid value", errors);
+            return ResponseEntity.badRequest().body(errorResponse);
         }
         Client client = request.toClient(((AccountAdapter) authentication.getPrincipal()).getAccount());
         String clientSecret = client.getClientSecret();

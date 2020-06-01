@@ -5,7 +5,7 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import me.nuguri.account.annotation.HasAuthority;
-import me.nuguri.account.controller.dto.AccountSearchCondition;
+import me.nuguri.account.dto.AccountSearchCondition;
 import me.nuguri.account.exception.UserNotExistException;
 import me.nuguri.account.service.AccountService;
 import me.nuguri.common.domain.ErrorResponse;
@@ -88,7 +88,7 @@ public class AccountApiController {
             value = "/api/v1/users",
             consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
             produces = MediaTypes.HAL_JSON_VALUE
-    )
+    )// clientHasRole은 접두어 ROLE_ 없을때 허가, 즉 client_credentails일 때 허가, 하지만 client detail service 직접 구현후 접두어 붙혀줄 수 있음
     @PreAuthorize("(hasRole('ADMIN') or #oauth2.clientHasRole('ADMIN')) and #oauth2.hasScope('read')")
     public ResponseEntity<?> queryUsers(PagedResourcesAssembler<Account> assembler, Pagination pagination,
                                         @Valid AccountSearchCondition condition, Errors errors) {

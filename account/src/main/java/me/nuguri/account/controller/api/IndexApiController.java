@@ -51,7 +51,6 @@ public class IndexApiController {
     @Setter
     public static class IndexResource {
         private List<Link> _links = new ArrayList<>();
-
         public IndexResource(Account account) {
             _links.add(linkTo(IndexApiController.class).slash("/docs/index.html").withRel("document"));
             _links.add(linkTo(IndexApiController.class).slash("/docs/account.html").withRel("document"));

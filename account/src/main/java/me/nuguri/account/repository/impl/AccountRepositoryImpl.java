@@ -1,22 +1,19 @@
 package me.nuguri.account.repository.impl;
 
-import com.querydsl.core.QueryResults;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
-import me.nuguri.account.controller.dto.AccountSearchCondition;
+import me.nuguri.account.dto.AccountSearchCondition;
 import me.nuguri.account.repository.AccountRepositoryCustom;
 import me.nuguri.account.repository.support.QuerydslSupportCustom;
 import me.nuguri.common.entity.Account;
-import me.nuguri.common.entity.QAccount;
+import me.nuguri.common.entity.Address;
 import me.nuguri.common.enums.Gender;
 import me.nuguri.common.enums.Role;
-import org.springframework.beans.factory.annotation.Required;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.repository.support.PageableExecutionUtils;
-import org.springframework.util.StringUtils;
 
 import java.util.List;
 
@@ -36,7 +33,8 @@ public class AccountRepositoryImpl extends QuerydslSupportCustom implements Acco
                         eqEmail(condition.getEmail()),
                         eqName(condition.getName()),
                         eqGender(condition.getGender()),
-                        eqRole(condition.getRole())
+                        eqRole(condition.getRole()),
+                        eqAddress(condition.getAddress())
                 )
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
@@ -47,6 +45,10 @@ public class AccountRepositoryImpl extends QuerydslSupportCustom implements Acco
                 .selectFrom(account);
 
         return PageableExecutionUtils.getPage(content, pageable, countQuery::fetchCount);
+    }
+
+    private BooleanExpression eqAddress(Address address) {
+        return address != null ? account.address.eq(address) : null;
     }
 
     private BooleanExpression eqRole(Role role) {

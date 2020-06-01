@@ -1,10 +1,11 @@
-package me.nuguri.auth.controller.api;
+package me.nuguri.account.controller.api;
 
-import me.nuguri.auth.common.BaseIntegrationTest;
+import me.nuguri.account.common.BaseIntegrationTest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.hateoas.MediaTypes;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 
 import java.util.Arrays;
@@ -21,6 +22,7 @@ public class ClientApiControllerTest extends BaseIntegrationTest {
     @Test
     @DisplayName("클라이언트 생성 성공적인 경우")
     public void generateClient_V1_Success_200() throws Exception {
+        mockRestTemplate(HttpStatus.OK, accountService.find(properties.getAdminEmail()));
         ClientApiController.GenerateClientRequest request = new ClientApiController.GenerateClientRequest();
         String redirectUri = "https://www.naver.com";
         request.setRedirectUri(redirectUri);
@@ -28,8 +30,7 @@ public class ClientApiControllerTest extends BaseIntegrationTest {
         request.setResourceIds(resourceIds);
 
         mockMvc.perform(post("/api/v1/client")
-                .header(HttpHeaders.AUTHORIZATION, "Bearer " +
-                        getAccessToken(properties.getAdminEmail(), properties.getAdminPassword(), properties.getClientId(), properties.getClientSecret()))
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + getAccessToken())
                 .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaTypes.HAL_JSON)
                 .content(objectMapper.writeValueAsString(request)))

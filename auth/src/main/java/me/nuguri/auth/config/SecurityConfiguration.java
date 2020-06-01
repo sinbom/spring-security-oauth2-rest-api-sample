@@ -45,15 +45,13 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                 .regexMatchers("^(?!/api/).*$")
                 .and()
                 .authorizeRequests()
-                .antMatchers(HttpMethod.GET, "/", "/main", "/oauth/me").permitAll()
-                .antMatchers("/oauth/revoke_token").permitAll()
+                .antMatchers("/", "/main").permitAll()
                 .anyRequest().authenticated();
         http
                 .formLogin()
                 .loginPage("http://localhost:10600/login")
                 .loginProcessingUrl("http://localhost:10600/login");
         http.logout().disable();
-        http.csrf().ignoringAntMatchers("/oauth/revoke_token", "/oauth/me");
         http.httpBasic();
     }
 }

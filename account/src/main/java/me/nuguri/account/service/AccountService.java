@@ -1,7 +1,7 @@
 package me.nuguri.account.service;
 
 import lombok.RequiredArgsConstructor;
-import me.nuguri.account.controller.dto.AccountSearchCondition;
+import me.nuguri.account.dto.AccountSearchCondition;
 import me.nuguri.account.exception.UserNotExistException;
 import me.nuguri.account.repository.AccountRepository;
 import me.nuguri.common.domain.AccountAdapter;

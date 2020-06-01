@@ -1,7 +1,7 @@
-package me.nuguri.auth.service;
+package me.nuguri.account.service;
 
 import lombok.RequiredArgsConstructor;
-import me.nuguri.auth.repository.ClientRepository;
+import me.nuguri.account.repository.ClientRepository;
 import me.nuguri.common.entity.Client;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

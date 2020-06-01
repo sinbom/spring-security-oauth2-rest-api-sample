@@ -100,16 +100,21 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
     }
 
     @ParameterizedTest(name = "{index}. {displayName} parameter(sort: {arguments})")
-    @DisplayName("유저 정보 리스트 성공적으로 얻는 경우")
-    @ValueSource(strings = {"id,asc", "id,name,desc", "id,name,email,asc", "id", ""})
-    public void queryUsers_V1_Success_200(String sort) throws Exception {
+    @DisplayName("유저 정보 리스트 성공적으로 얻는 경우") // TODO 여기 부터 작업 시작하면됨
+    @CsvSource(value = {"user@naver.com::M::USER:id,asc"/*, "id,name,desc", "id,name,email,asc", "id", ""*/}, delimiter = ':')
+    public void queryUsers_V1_Success_200(String email, String name, String gender, String address, String role, String sort) throws Exception {
         generateAccounts();
         mockRestTemplate(HttpStatus.OK, accountService.find(properties.getAdminEmail()));
         mockMvc.perform(get("/api/v1/users")
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + getAccessToken())
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                 .accept(MediaTypes.HAL_JSON)
-                .queryParam("page", "3")
+                .queryParam("email", email)
+                .queryParam("name", name)
+                .queryParam("gender", gender)
+                .queryParam("address", address)
+                .queryParam("role", role)
+                .queryParam("page", "2")
                 .queryParam("size", "10")
                 .queryParam("sort", sort))
                 .andExpect(status().isOk())

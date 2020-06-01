@@ -1,4 +1,4 @@
-package me.nuguri.account.controller.dto;
+package me.nuguri.account.dto;
 
 import lombok.Getter;
 import lombok.Setter;
