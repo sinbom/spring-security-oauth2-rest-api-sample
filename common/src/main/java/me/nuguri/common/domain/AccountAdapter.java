@@ -8,6 +8,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.User;
 
 import java.io.Serializable;
+import java.util.Arrays;
 import java.util.stream.Collectors;
 
 @Getter
@@ -20,10 +21,11 @@ public class AccountAdapter extends User implements Serializable {
     private Account account;
 
     public AccountAdapter(Account account) {
-        super(account.getEmail(), account.getPassword(), account.getRoles()
-                .stream()
-                .map(role -> new SimpleGrantedAuthority("ROLE_" + role.name()))
-                .collect(Collectors.toSet()));
+        super(
+                account.getEmail(),
+                account.getPassword(),
+                Arrays.asList(new SimpleGrantedAuthority("ROLE_" + account.getRole()))
+        );
         this.account = account;
     }
 

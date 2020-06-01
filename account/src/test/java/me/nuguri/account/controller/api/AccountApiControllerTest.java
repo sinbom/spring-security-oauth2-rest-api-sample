@@ -5,7 +5,8 @@ import me.nuguri.common.entity.Account;
 import me.nuguri.common.entity.Address;
 import me.nuguri.common.enums.Gender;
 import me.nuguri.common.enums.Role;
-import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.hateoas.MediaTypes;
@@ -13,9 +14,6 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
 import java.util.UUID;
 import java.util.stream.IntStream;
 
@@ -109,6 +107,7 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + getAccessToken())
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                 .accept(MediaTypes.HAL_JSON)
+                .queryParam("page", "1")
                 .queryParam("size", "10")
                 .queryParam("sort", "id,email,desc"))
                 .andExpect(status().isOk())
@@ -136,8 +135,8 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
                                 headerWithName("X-Frame-Options").description("X-Frame-Options")
                         ),
                         responseFields(
-                                fieldWithPath("_contents[*].id").description("account id"),
-                                fieldWithPath("_contents[*].email").description("account email"),
+                                fieldWithPath("_embedded.*[*].id").description("account id"),
+                                fieldWithPath("_embedded.*.email").description("account email"),
                                 fieldWithPath("_contents[*].name").description("account name"),
                                 fieldWithPath("_contents[*].gender").description("account gender"),
                                 fieldWithPath("_contents[*].address.city").description("address city"),
@@ -312,7 +311,7 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
         account.setPassword("test");
         account.setGender(Gender.F);
         account.setAddress(new Address("경기도 과천시", "부림2길 76 2층", "13830"));
-        account.setRoles(new HashSet<>(Arrays.asList(Role.USER)));
+        account.setRole(Role.USER);
 
         mockMvc.perform(get("/api/v1/user/{id}", accountService.generate(account).getId())
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + getAccessToken())
@@ -361,7 +360,7 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
         request.setPassword("123123");
         request.setGender(Gender.F);
         request.setAddress(new Address("경기도 과천시", "부림2길 76 2층", "13830"));
-        request.setRoles(new HashSet<>(Arrays.asList(Role.USER)));
+        request.setRole(Role.USER);
 
         mockMvc.perform(post("/api/v1/user")
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + getAccessToken())
@@ -453,7 +452,7 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
         request.setPassword("124331");
         request.setGender(Gender.F);
         request.setAddress(new Address("경기도 과천시", "부림2길 76 2층", "13830"));
-        request.setRoles(new HashSet<>(Arrays.asList(Role.USER)));
+        request.setRole(Role.USER);
 
         accountService.generate(modelMapper.map(request, Account.class));
 
@@ -476,12 +475,12 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
         mockRestTemplate(HttpStatus.OK, accountService.find(properties.getAdminEmail()));
         String name = "테스트";
         String password = "123123";
-        Set<Role> roles = new HashSet<>(Arrays.asList(Role.ADMIN));
+        Role role = Role.ADMIN;
 
         AccountApiController.UpdateUserRequest request = new AccountApiController.UpdateUserRequest();
         request.setName(name);
         request.setPassword(password);
-        request.setRoles(roles);
+        request.setRole(role);
 
         mockMvc.perform(patch("/api/v1/user/{id}", accountService.find(properties.getUserEmail()).getId())
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + getAccessToken())
@@ -541,7 +540,7 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
         Account updated = accountService.find(properties.getUserEmail());
         assertEquals(name, updated.getName());
         assertTrue(passwordEncoder.matches(password, updated.getPassword()));
-        assertEquals(roles, updated.getRoles());
+        assertEquals(role, updated.getRole());
     }
 
     @Test
@@ -551,7 +550,7 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
         AccountApiController.UpdateUserRequest request = new AccountApiController.UpdateUserRequest();
         request.setName("테스트");
         request.setPassword("1123123");
-        request.setRoles(new HashSet<>(Arrays.asList(Role.ADMIN)));
+        request.setRole(Role.ADMIN);
 
         mockMvc.perform(patch("/api/v1/user/{id}", "198237981")
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + getAccessToken())
@@ -584,7 +583,7 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
         mockRestTemplate(HttpStatus.UNAUTHORIZED, null);
         AccountApiController.UpdateUserRequest request = new AccountApiController.UpdateUserRequest();
         request.setPassword("1123123");
-        request.setRoles(new HashSet<>(Arrays.asList(Role.USER)));
+        request.setRole(Role.USER);
 
         mockMvc.perform(patch("/api/v1/user/{id}", accountService.find(properties.getAdminEmail()).getId())
                 .header(HttpHeaders.AUTHORIZATION, "Bearer Invalid Token")
@@ -601,7 +600,7 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
         mockRestTemplate(HttpStatus.OK, accountService.find(properties.getUserEmail()));
         AccountApiController.UpdateUserRequest request = new AccountApiController.UpdateUserRequest();
         request.setPassword("1123123");
-        request.setRoles(new HashSet<>(Arrays.asList(Role.USER)));
+        request.setRole(Role.USER);
 
         mockMvc.perform(patch("/api/v1/user/{id}", accountService.find(properties.getAdminEmail()).getId())
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + getAccessToken())
@@ -620,14 +619,14 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
         String password = "1123123";
         Gender gender = Gender.F;
         Address address = new Address("경기도 과천시", "부림2길 76 2층", "13830");
-        Set<Role> roles = new HashSet<>(Arrays.asList(Role.ADMIN, Role.USER));
+        Role role = Role.ADMIN;
 
         AccountApiController.UpdateUserRequest request = new AccountApiController.UpdateUserRequest();
         request.setName(name);
         request.setPassword(password);
         request.setGender(gender);
         request.setAddress(address);
-        request.setRoles(roles);
+        request.setRole(role);
 
         mockMvc.perform(put("/api/v1/user/{id}", accountService.find(properties.getUserEmail()).getId())
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + getAccessToken())
@@ -687,7 +686,7 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
         assertTrue(passwordEncoder.matches(password, merge.getPassword()));
         assertEquals(gender, merge.getGender());
         assertEquals(address, merge.getAddress());
-        assertEquals(roles, merge.getRoles());
+        assertEquals(role, merge.getRole());
     }
 
     @Test
@@ -699,7 +698,7 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
         request.setPassword("1123123");
         request.setGender(Gender.F);
         request.setAddress(new Address("경기도 과천시", "부림2길 76 2층", "13830"));
-        request.setRoles(new HashSet<>(Arrays.asList(Role.USER)));
+        request.setRole(Role.USER);
 
         mockMvc.perform(put("/api/v1/user/{id}", accountService.find(properties.getAdminEmail()).getId())
                 .header(HttpHeaders.AUTHORIZATION, "Bearer Invalid Token")
@@ -719,7 +718,7 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
         request.setPassword("1123123");
         request.setGender(Gender.F);
         request.setAddress(new Address("경기도 과천시", "부림2길 76 2층", "13830"));
-        request.setRoles(new HashSet<>(Arrays.asList(Role.USER)));
+        request.setRole(Role.USER);
 
         mockMvc.perform(put("/api/v1/user/{id}", accountService.find(properties.getAdminEmail()).getId())
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + getAccessToken())
@@ -739,7 +738,7 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
         request.setPassword("1123123");
         request.setGender(Gender.F);
         request.setAddress(new Address("경기도 과천시", "부림2길 76 2층", "13830"));
-        request.setRoles(new HashSet<>(Arrays.asList(Role.ADMIN)));
+        request.setRole(Role.ADMIN);
 
         mockMvc.perform(put("/api/v1/user/{id}", "198237981")
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + getAccessToken())
@@ -759,7 +758,7 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
         request.setPassword("1");
         request.setGender(Gender.F);
         request.setAddress(new Address("", "", ""));
-        request.setRoles(new HashSet<>(Arrays.asList(Role.ADMIN)));
+        request.setRole(Role.ADMIN);
 
         mockMvc.perform(put("/api/v1/user/{id}", accountService.find(properties.getUserEmail()).getId())
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + getAccessToken())
@@ -860,7 +859,7 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
                     account.setPassword("test");
                     account.setGender(n % 2 == 0 ? Gender.M : Gender.F);
                     account.setAddress(new Address("경기도 과천시", "부림2길 76 2층", "13830"));
-                    account.setRoles(new HashSet<>(Arrays.asList(Role.USER)));
+                    account.setRole(Role.USER);
                     accountService.generate(account);
                 }
         );

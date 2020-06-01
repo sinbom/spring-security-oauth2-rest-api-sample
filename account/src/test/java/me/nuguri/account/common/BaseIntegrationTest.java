@@ -7,6 +7,7 @@ import me.nuguri.common.entity.Account;
 import me.nuguri.common.enums.Role;
 import me.nuguri.common.enums.Scope;
 import me.nuguri.common.initializer.EntityInitializer;
+import org.hibernate.mapping.Array;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -43,7 +44,6 @@ import org.springframework.web.client.RestTemplate;
 import redis.embedded.RedisServer;
 
 import javax.persistence.EntityManager;
-import java.lang.reflect.Array;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -126,11 +126,7 @@ public abstract class BaseIntegrationTest {
             Map<String, String> params = new HashMap<>();
             params.put("client_id", "nuguri");
             Set<String> scopes = new HashSet<>(Arrays.asList(Scope.READ.toString(), Scope.WRITE.toString()));
-            Collection<? extends GrantedAuthority> authorities = account
-                    .getRoles()
-                    .stream()
-                    .map(r -> new SimpleGrantedAuthority("ROLE_" + r))
-                    .collect(toList());
+            Collection<? extends GrantedAuthority> authorities = Arrays.asList(new SimpleGrantedAuthority("ROLE_" + account.getRole()));
             UsernamePasswordAuthenticationToken mockUser = new UsernamePasswordAuthenticationToken(account.getEmail(), "N/A", authorities);
             Set<String> resourceIds = new HashSet<>(Arrays.asList("account", "nuguri"));
             OAuth2Request mockRequest = new OAuth2Request(params, "nuguri", authorities, true,

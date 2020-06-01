@@ -50,9 +50,9 @@ public class Account extends BaseEntity implements Serializable {
     private Address address;
 
     /** 권한 */
-    @ElementCollection
     @Enumerated(EnumType.STRING)
-    private Set<Role> roles;
+    @Column(nullable = false)
+    private Role role;
 
     /** 등록 클라이언트 */
     @OneToMany(mappedBy = "account", cascade = CascadeType.ALL)

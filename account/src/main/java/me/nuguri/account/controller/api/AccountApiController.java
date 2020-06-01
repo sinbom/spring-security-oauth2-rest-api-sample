@@ -17,9 +17,12 @@ import me.nuguri.common.enums.Role;
 import me.nuguri.common.validator.PaginationValidator;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.Link;
 import org.springframework.hateoas.MediaTypes;
+import org.springframework.hateoas.PagedModel;
 import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -83,26 +86,21 @@ public class AccountApiController {
             produces = MediaTypes.HAL_JSON_VALUE
     )
     @PreAuthorize("(hasRole('ADMIN') or #oauth2.clientHasRole('ADMIN')) and #oauth2.hasScope('read')")
-    public ResponseEntity<?> queryUsers(Pagination pagination, Errors errors) {
-        paginationValidator.validate(pagination, Account.class, errors);
-        if (errors.hasErrors()) {
+    public ResponseEntity<?> queryUsers(PagedResourcesAssembler<Account> assembler, Pageable pageable) {
+/*        if (errors.hasErrors()) {
             ErrorResponse errorResponse = new ErrorResponse(HttpStatus.BAD_REQUEST, "invalid parameter value", errors);
             return ResponseEntity.badRequest().body(errorResponse);
-        }
-        Page<Account> page = accountService.findAll(pagination.getPageable());
+        }*/
+        Page<Account> page = accountService.findAll(pageable);
         if (page.getNumberOfElements() < 1) {
             String message = page.getTotalElements() < 1 ? "content of all pages does not exist" : "content of current page does not exist";
             ErrorResponse errorResponse = new ErrorResponse(HttpStatus.NOT_FOUND, message);
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
         }
-        PaginationResource<QueryUsersResource> resource = new PaginationResource<>(page, account -> {
-            GetUserResponse getUserResponse = modelMapper.map(account, GetUserResponse.class);
-            return new QueryUsersResource(getUserResponse);
-        });
-        WebMvcLinkBuilder builder = linkTo(methodOn(AccountApiController.class).queryUsers(null, null));
-        resource.addPaginationLink(builder, pagination, null);
-        resource.add(linkTo(AccountApiController.class).slash("/docs/account.html").withRel("document"));
-        return ResponseEntity.ok(resource);
+        PagedModel<GetUserResource> getUserResources = assembler.toModel(page,
+                account -> new GetUserResource(modelMapper.map(account, GetUserResponse.class)));
+        getUserResources.add(linkTo(AccountApiController.class).slash("/docs/account.html").withRel("document"));
+        return ResponseEntity.ok(getUserResources);
     }
 
     /**
@@ -267,7 +265,7 @@ public class AccountApiController {
         @NotNull
         private Address address;
         @NotEmpty
-        private Set<Role> roles;
+        private Role role;
     }
 
     @Getter
@@ -282,7 +280,7 @@ public class AccountApiController {
         @NotNull
         private Address address;
         @NotEmpty
-        private Set<Role> roles;
+        private Role role;
     }
 
     @Getter
@@ -293,7 +291,7 @@ public class AccountApiController {
         private String name;
         private Gender gender;
         private Address address;
-        private Set<Role> roles;
+        private Role role;
     }
 
     @Getter

@@ -101,8 +101,8 @@ public class AccountService implements UserDetailsService {
         if (!StringUtils.isEmpty(account.getName())) {
             update.setName(account.getName());
         }
-        if (!account.getRoles().isEmpty()) {
-            update.setRoles(account.getRoles());
+        if (account.getRole() != null) {
+            update.setRole(account.getRole());
         }
         return update;
     }

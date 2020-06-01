@@ -16,6 +16,10 @@ spring:
       enabled: false
   thymeleaf:
     cache: false
+  data:
+    web:
+      pageable:
+        one-indexed-parameters: false
 
   # Redis Setting
   session:

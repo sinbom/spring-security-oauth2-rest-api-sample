@@ -58,7 +58,7 @@ public class IndexApiController {
             _links.add(linkTo(methodOn(IndexApiController.class).index(null)).withSelfRel());
             _links.add(linkTo(methodOn(AccountApiController.class).generateUser(null, null)).withRel("generateUser").withType("POST"));
             if (account != null) {
-                if (account.getRoles().stream().anyMatch(r -> r.equals(Role.ADMIN))) {
+                if (account.getRole().equals(Role.ADMIN)) {
                     _links.add(linkTo(methodOn(AccountApiController.class).queryUsers(null, null)).withRel("queryUsers").withType("GET"));
                 }
                 _links.add(linkTo(methodOn(AccountApiController.class).getUser(account.getId())).withRel("getUser").withType("GET"));

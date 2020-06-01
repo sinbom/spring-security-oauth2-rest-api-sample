@@ -11,14 +11,11 @@ import java.util.Optional;
 public interface AccountRepository extends JpaRepository<Account, Long> {
 
     @Override
-    @EntityGraph(attributePaths = "roles", type = EntityGraph.EntityGraphType.FETCH)
     Page<Account> findAll(Pageable pageable);
 
     @Override
-    @EntityGraph(attributePaths = "roles", type = EntityGraph.EntityGraphType.FETCH)
     Optional<Account> findById(Long id);
 
-    @EntityGraph(attributePaths = "roles", type = EntityGraph.EntityGraphType.FETCH)
     Optional<Account> findByEmail(String email);
 
     boolean existsByEmail(String email);

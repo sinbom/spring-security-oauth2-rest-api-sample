@@ -14,8 +14,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.EntityManager;
-import java.util.Arrays;
-import java.util.HashSet;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -32,7 +30,7 @@ public class EntityInitializer {
         admin.setPassword(passwordEncoder.encode("1234"));
         admin.setGender(Gender.M);
         admin.setAddress(new Address("경기도 과천시", "부림2길 76 2층", "13830"));
-        admin.setRoles(new HashSet<>(Arrays.asList(Role.ADMIN, Role.USER)));
+        admin.setRole(Role.ADMIN);
 
         Account user = new Account();
         user.setName("사용자");
@@ -40,7 +38,7 @@ public class EntityInitializer {
         user.setPassword(passwordEncoder.encode("1234"));
         user.setGender(Gender.F);
         user.setAddress(new Address("경기도 과천시", "부림2길 76 2층", "13830"));
-        user.setRoles(new HashSet<>(Arrays.asList(Role.USER)));
+        user.setRole(Role.USER);
 
         em.persist(admin);
         em.persist(user);

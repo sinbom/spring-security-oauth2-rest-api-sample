@@ -62,7 +62,7 @@ public class AuthorityCheckInterceptor extends HandlerInterceptorAdapter {
                     return false;
                 }
 
-                if (account.getId().toString().equals(id) || account.getRoles().stream().anyMatch(r -> r.equals(Role.ADMIN))) {
+                if (account.getId().toString().equals(id) || account.getRole().equals(Role.ADMIN)) {
                     return true;
                 } else {
                     ErrorResponse errorResponse = new ErrorResponse(HttpStatus.FORBIDDEN, "have no authority");
