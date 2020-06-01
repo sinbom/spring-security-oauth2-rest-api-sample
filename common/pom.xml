@@ -49,6 +49,8 @@
                         </goals>
                         <configuration>
                             <outputDirectory>../resc/target/generated-sources/java</outputDirectory>
+                            <outputDirectory>../auth/target/generated-sources/java</outputDirectory>
+                            <outputDirectory>../account/target/generated-sources/java</outputDirectory>
                             <processor>com.querydsl.apt.jpa.JPAAnnotationProcessor</processor>
                         </configuration>
                     </execution>

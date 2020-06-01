@@ -41,6 +41,7 @@ public class ResourceServerConfiguration extends ResourceServerConfigurerAdapter
                 .mvcMatchers("/api/**")
                 .and()
                 .authorizeRequests()
+                .mvcMatchers(HttpMethod.GET, "/api/**/index").permitAll()
                 .mvcMatchers(HttpMethod.POST, "/api/**/user").permitAll()
                 .anyRequest().authenticated();
         http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);

@@ -2,6 +2,7 @@ package me.nuguri.resc.controller.api;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
@@ -190,8 +191,8 @@ public class CreatorApiController {
     public ResponseEntity<?> deleteCreator(@PathVariable Long id) {
         try {
             creatorService.delete(id);
-            DeleteCreatorResource deleteCreatorResource = new DeleteCreatorResource(1L);
-            return ResponseEntity.ok(deleteCreatorResource);
+            DeleteCreatorResponse deleteCreatorResponse = new DeleteCreatorResponse(1);
+            return ResponseEntity.ok(deleteCreatorResponse);
         } catch (NoSuchElementException e) {
             ErrorResponse errorResponse = new ErrorResponse(NOT_FOUND, "not exist element of id");
             return ResponseEntity.status(NOT_FOUND).body(errorResponse);
@@ -207,8 +208,8 @@ public class CreatorApiController {
         }
         long count = creatorService.deleteInBatch(request.ids);
         if (count > 0) {
-            DeleteCreatorResource deleteCreatorResource = new DeleteCreatorResource(count);
-            return ResponseEntity.ok(deleteCreatorResource);
+            DeleteCreatorResponse deleteCreatorResponse = new DeleteCreatorResponse(count);
+            return ResponseEntity.ok(deleteCreatorResponse);
         }
         ErrorResponse errorResponse = new ErrorResponse(NOT_FOUND, "not exist element of id");
         return ResponseEntity.status(NOT_FOUND).body(errorResponse);
@@ -260,22 +261,32 @@ public class CreatorApiController {
         }
     }
 
-    public static class DeleteCreatorResource extends EntityModel<Long> {
-        public DeleteCreatorResource(Long id, Link... links) {
-            super(id, links);
-            add(linkTo(CreatorApiController.class).slash("/docs/creator.html").withRel("document"));
-            add(linkTo(methodOn(CreatorApiController.class).deleteCreator(id)).withSelfRel().withType("DELETE"));
-            add(linkTo(methodOn(CreatorApiController.class).getCreator(id)).withRel("getCreator").withType("GET"));
-            add(linkTo(methodOn(CreatorApiController.class).updateCreator(id, null, null)).withRel("updateCreator").withType("PATCH"));
-            add(linkTo(methodOn(CreatorApiController.class).mergeCreator(id, null, null)).withRel("mergeCreator").withType("PUT"));
-        }
-    }
-
-
     // ==========================================================================================================================================
 
     // ==========================================================================================================================================
     // Domain
+    @Getter
+    @Setter
+    public static class GenerateCreatorRequest {
+        @NotBlank
+        private String name;
+        @NotNull
+        private Gender gender;
+        @NotNull
+        @JsonFormat(pattern = "yyyy-MM-dd")
+        private LocalDate birth;
+        @NotNull
+        @JsonFormat(pattern = "yyyy-MM-dd")
+        private LocalDate death;
+    }
+
+    @Getter
+    @Setter
+    public static class DeleteCreatorsRequest {
+        @NotEmpty
+        private List<Long> ids;
+    }
+
     @Getter
     @Setter
     public static class GetCreatorResponse {
@@ -314,24 +325,9 @@ public class CreatorApiController {
 
     @Getter
     @Setter
-    public static class GenerateCreatorRequest {
-        @NotBlank
-        private String name;
-        @NotNull
-        private Gender gender;
-        @NotNull
-        @JsonFormat(pattern = "yyyy-MM-dd")
-        private LocalDate birth;
-        @NotNull
-        @JsonFormat(pattern = "yyyy-MM-dd")
-        private LocalDate death;
-    }
-
-    @Getter
-    @Setter
-    public static class DeleteCreatorsRequest {
-        @NotEmpty
-        private List<Long> ids;
+    @AllArgsConstructor
+    public static class DeleteCreatorResponse {
+        private long count;
     }
     // ==========================================================================================================================================
 

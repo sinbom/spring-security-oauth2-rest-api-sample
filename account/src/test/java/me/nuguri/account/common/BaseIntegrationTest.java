@@ -111,18 +111,18 @@ public abstract class BaseIntegrationTest {
      * @param account mocking 할 계정 정보
      */
     protected void mockRestTemplate(HttpStatus httpStatus, Account account) {
-        when(restTemplate.exchange(
-                eq(properties.getAccessTokenUrl()),
-                eq(HttpMethod.POST),
-                any(HttpEntity.class),
-                eq(String.class)
-                )
-        ).thenReturn(ResponseEntity.ok(
-                "{\"access_token\":\""
-                + "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOlsibnVndXJpIiwiYWNjb3VudCJdLCJ1c2VyX25hbWUiOiJhZG1pbkBuYXZlci5jb20iLCJzY29wZSI6WyJyZWFkIiwid3JpdGUiXSwiZXhwIjoxNTkwOTMxNDU5LCJhdXRob3JpdGllcyI6WyJST0xFX0FETUlOIiwiUk9MRV9VU0VSIl0sImp0aSI6IjlhNjE1OGJhLWZjNTAtNDE1MC1iMTlhLTAxYjg2ODNlODlhMCIsImNsaWVudF9pZCI6Im51Z3VyaSJ9.MJvod1EllyirjqYTatcfkv2xuYRBnK56HVgKKqraa7oSmOvn46FMe_UtnyIp55BL3mgX1KAGecwjqkLFRjan2QVMmoGX81aouqMzbbJj4diqQtHbRqxwduP8Cby9WNu6sUlIgL1UBhVgFWKD7dDNvvft8I95qXcVDy9xy3LLj9vJDNZuDl2ym7gNVTEp3Aa5X-ZV7MjcIliOXfCDJbng40qj7VGVpm8FkJ_LsL_XD_XV0kiPqYeXqY7bpv8nE6SbP7fL4A-GiqZa5wCHXTk1hLclH0Gpd7w7GLkr-gJYR9sYrupXvPeuNzjyNE3JKhj8BYwdZlajm0vkP8LLBke0rQ"
-                + "\"}")
-        );
         if (HttpStatus.OK.equals(httpStatus)) {
+            when(restTemplate.exchange(
+                    eq(properties.getAccessTokenUrl()),
+                    eq(HttpMethod.POST),
+                    any(HttpEntity.class),
+                    eq(String.class)
+                    )
+            ).thenReturn(ResponseEntity.ok(
+                    "{\"access_token\":\""
+                            + "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOlsibnVndXJpIiwiYWNjb3VudCJdLCJ1c2VyX25hbWUiOiJhZG1pbkBuYXZlci5jb20iLCJzY29wZSI6WyJyZWFkIiwid3JpdGUiXSwiZXhwIjoxNTkwOTMxNDU5LCJhdXRob3JpdGllcyI6WyJST0xFX0FETUlOIiwiUk9MRV9VU0VSIl0sImp0aSI6IjlhNjE1OGJhLWZjNTAtNDE1MC1iMTlhLTAxYjg2ODNlODlhMCIsImNsaWVudF9pZCI6Im51Z3VyaSJ9.MJvod1EllyirjqYTatcfkv2xuYRBnK56HVgKKqraa7oSmOvn46FMe_UtnyIp55BL3mgX1KAGecwjqkLFRjan2QVMmoGX81aouqMzbbJj4diqQtHbRqxwduP8Cby9WNu6sUlIgL1UBhVgFWKD7dDNvvft8I95qXcVDy9xy3LLj9vJDNZuDl2ym7gNVTEp3Aa5X-ZV7MjcIliOXfCDJbng40qj7VGVpm8FkJ_LsL_XD_XV0kiPqYeXqY7bpv8nE6SbP7fL4A-GiqZa5wCHXTk1hLclH0Gpd7w7GLkr-gJYR9sYrupXvPeuNzjyNE3JKhj8BYwdZlajm0vkP8LLBke0rQ"
+                            + "\"}")
+            );
             Map<String, String> params = new HashMap<>();
             params.put("client_id", "nuguri");
             Set<String> scopes = new HashSet<>(Arrays.asList(Scope.READ.toString(), Scope.WRITE.toString()));
@@ -139,10 +139,10 @@ public abstract class BaseIntegrationTest {
             when(mockTokenStore.readAccessToken(any())).thenReturn(mockAccessToken);
             when(mockAccessToken.isExpired()).thenReturn(false);
             when(mockTokenStore.readAuthentication(mockAccessToken)).thenReturn(mockAuthentication);
-            defaultTokenServices.setTokenStore(mockTokenStore);
         } else {
             when(mockTokenStore.readAccessToken(any())).thenReturn(null);
         }
+        defaultTokenServices.setTokenStore(mockTokenStore);
     }
 
     /**

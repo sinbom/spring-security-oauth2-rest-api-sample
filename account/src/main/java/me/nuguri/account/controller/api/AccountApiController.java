@@ -1,5 +1,6 @@
 package me.nuguri.account.controller.api;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
@@ -19,7 +20,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.Link;
 import org.springframework.hateoas.MediaTypes;
+import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Component;
@@ -31,6 +34,7 @@ import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
+import java.security.Principal;
 import java.util.Set;
 
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
@@ -50,76 +54,124 @@ public class AccountApiController {
 
     private final ModelMapper modelMapper;
 
+    @GetMapping(
+            value = "/api/v1/user/me",
+            produces = MediaTypes.HAL_JSON_VALUE
+    )
+    public ResponseEntity<?> getMe(Principal principal) {
+        try {
+            String email = principal.getName();
+            Account account = accountService.find(email);
+            GetUserResponse getUserResponse = modelMapper.map(account, GetUserResponse.class);
+            GetUserResource getUserResource = new GetUserResource(getUserResponse);
+            return ResponseEntity.ok(getUserResource);
+        } catch (UserNotExistException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponse(HttpStatus.NOT_FOUND, "not exist account of token"));
+        }
+    }
+
     /**
      * 유저 정보 페이징 조회
+     *
      * @param pagination page 페이지 번호, size 페이지 당 갯수, sort 정렬(방식,기준)
-     * @param errors 에러
+     * @param errors     에러
      * @return
      */
-    @GetMapping(value = "/api/v1/users", produces = MediaTypes.HAL_JSON_VALUE)
+    @GetMapping(
+            value = "/api/v1/users",
+            consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
+            produces = MediaTypes.HAL_JSON_VALUE
+    )
     @PreAuthorize("(hasRole('ADMIN') or #oauth2.clientHasRole('ADMIN')) and #oauth2.hasScope('read')")
     public ResponseEntity<?> queryUsers(Pagination pagination, Errors errors) {
         paginationValidator.validate(pagination, Account.class, errors);
         if (errors.hasErrors()) {
-            return ResponseEntity.badRequest().body(new ErrorResponse(HttpStatus.BAD_REQUEST, "invalid parameter value", errors));
+            ErrorResponse errorResponse = new ErrorResponse(HttpStatus.BAD_REQUEST, "invalid parameter value", errors);
+            return ResponseEntity.badRequest().body(errorResponse);
         }
         Page<Account> page = accountService.findAll(pagination.getPageable());
         if (page.getNumberOfElements() < 1) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(new ErrorResponse(HttpStatus.NOT_FOUND, page.getTotalElements() < 1 ? "content of all pages does not exist" : "content of current page does not exist"));
+            String message = page.getTotalElements() < 1 ? "content of all pages does not exist" : "content of current page does not exist";
+            ErrorResponse errorResponse = new ErrorResponse(HttpStatus.NOT_FOUND, message);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
         }
-        PaginationResource<QueryUsersResource> resource = new PaginationResource<>(page, account -> new QueryUsersResource(modelMapper.map(account, GetUserResponse.class)));
-        resource.addPaginationLink(linkTo(methodOn(AccountApiController.class).queryUsers(null, null)), pagination, null);
+        PaginationResource<QueryUsersResource> resource = new PaginationResource<>(page, account -> {
+            GetUserResponse getUserResponse = modelMapper.map(account, GetUserResponse.class);
+            return new QueryUsersResource(getUserResponse);
+        });
+        WebMvcLinkBuilder builder = linkTo(methodOn(AccountApiController.class).queryUsers(null, null));
+        resource.addPaginationLink(builder, pagination, null);
         resource.add(linkTo(AccountApiController.class).slash("/docs/account.html").withRel("document"));
         return ResponseEntity.ok(resource);
     }
 
     /**
      * 유저 정보 조회
+     *
      * @param id 식별키
      * @return
      */
-    @GetMapping(value = "/api/v1/user/{id}", produces = MediaTypes.HAL_JSON_VALUE)
+    @GetMapping(
+            value = "/api/v1/user/{id}",
+            produces = MediaTypes.HAL_JSON_VALUE
+    )
     @PreAuthorize("#oauth2.hasScope('read')")
     @HasAuthority
     public ResponseEntity<?> getUser(@PathVariable Long id) {
         try {
-            return ResponseEntity.ok(new GetUserResource(modelMapper.map(accountService.find(id), GetUserResponse.class)));
+            Account account = accountService.find(id);
+            GetUserResponse getUserResponse = modelMapper.map(account, GetUserResponse.class);
+            GetUserResource getUserResource = new GetUserResource(getUserResponse);
+            return ResponseEntity.ok(getUserResource);
         } catch (UserNotExistException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponse(HttpStatus.NOT_FOUND, "not exist account of id"));
+            ErrorResponse errorResponse = new ErrorResponse(HttpStatus.NOT_FOUND, "not exist account of id");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
         }
     }
 
     /**
      * 유저 정보 생성
+     *
      * @param request email 이메일, password 비밀번호, roles 권한
-     * @param errors 에러
+     * @param errors  에러
      * @return
      */
-    @PostMapping(value = "/api/v1/user", produces = MediaTypes.HAL_JSON_VALUE)
+    @PostMapping(
+            value = "/api/v1/user",
+            consumes = MediaType.APPLICATION_JSON_VALUE,
+            produces = MediaTypes.HAL_JSON_VALUE)
     public ResponseEntity<?> generateUser(@RequestBody @Valid GenerateUserRequest request, Errors errors) {
         Account account = modelMapper.map(request, Account.class);
         accountValidator.validate(account, errors);
         if (errors.hasErrors()) {
-            return ResponseEntity.badRequest().body(new ErrorResponse(HttpStatus.BAD_REQUEST, "invalid value", errors));
+            ErrorResponse errorResponse = new ErrorResponse(HttpStatus.BAD_REQUEST, "invalid value", errors);
+            return ResponseEntity.badRequest().body(errorResponse);
         }
         if (accountService.exist(request.getEmail())) {
-            return ResponseEntity.badRequest().body(new ErrorResponse(HttpStatus.BAD_REQUEST, "email is already exist"));
+            ErrorResponse errorResponse = new ErrorResponse(HttpStatus.BAD_REQUEST, "email is already exist");
+            return ResponseEntity.badRequest().body(errorResponse);
         }
-        return ResponseEntity.created(linkTo(methodOn(AccountApiController.class)
-                .generateUser(null, null))
-                .toUri())
-                .body(new GenerateUserResource(modelMapper.map(accountService.generate(account), GetUserResponse.class)));
+        Account generate = accountService.generate(account);
+        GetUserResponse getUserResponse = modelMapper.map(generate, GetUserResponse.class);
+        GenerateUserResource generateUserResource = new GenerateUserResource(getUserResponse);
+        return ResponseEntity
+                .created(linkTo(methodOn(AccountApiController.class).generateUser(null, null)).toUri())
+                .body(generateUserResource);
     }
 
     /**
      * 유저 정보 입력된 값만 변경
-     * @param id 식별키
+     *
+     * @param id      식별키
      * @param request password 비밀번호, roles 권한
-     * @param errors 에러
+     * @param errors  에러
      * @return
      */
-    @PatchMapping(value = "/api/v1/user/{id}")
+    @PatchMapping(
+            value = "/api/v1/user/{id}",
+            consumes = MediaType.APPLICATION_JSON_VALUE,
+            produces = MediaTypes.HAL_JSON_VALUE
+    )
     @PreAuthorize("#oauth2.hasScope('write')")
     @HasAuthority
     public ResponseEntity<?> updateUser(@PathVariable Long id, @RequestBody UpdateUserRequest request, Errors errors) {
@@ -127,23 +179,33 @@ public class AccountApiController {
         account.setId(id);
         accountValidator.validate(account, errors);
         if (errors.hasErrors()) {
-            return ResponseEntity.badRequest().body(new ErrorResponse(HttpStatus.BAD_REQUEST, "invalid value", errors));
+            ErrorResponse errorResponse = new ErrorResponse(HttpStatus.BAD_REQUEST, "invalid value", errors);
+            return ResponseEntity.badRequest().body(errorResponse);
         }
         try {
-            return ResponseEntity.ok(new UpdateUserResource(modelMapper.map(accountService.update(account), GetUserResponse.class)));
+            Account update = accountService.update(account);
+            GetUserResponse getUserResponse = modelMapper.map(update, GetUserResponse.class);
+            UpdateUserResource updateUserResource = new UpdateUserResource(getUserResponse);
+            return ResponseEntity.ok(updateUserResource);
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponse(HttpStatus.NOT_FOUND, "not exist account of id"));
+            ErrorResponse errorResponse = new ErrorResponse(HttpStatus.NOT_FOUND, "not exist account of id");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
         }
     }
 
     /**
      * 유저 정보 전체 값 변경, 없는 유저의 경우 생성
-     * @param id 식별키
+     *
+     * @param id      식별키
      * @param request password 비밀번호, roles 권한
-     * @param errors 에러
+     * @param errors  에러
      * @return
      */
-    @PutMapping(value = "/api/v1/user/{id}")
+    @PutMapping(
+            value = "/api/v1/user/{id}",
+            consumes = MediaType.APPLICATION_JSON_VALUE,
+            produces = MediaTypes.HAL_JSON_VALUE
+    )
     @PreAuthorize("#oauth2.hasScope('write')")
     @HasAuthority
     public ResponseEntity<?> mergeUser(@PathVariable Long id, @RequestBody @Valid UpdateUserRequest request, Errors errors) {
@@ -151,34 +213,48 @@ public class AccountApiController {
         account.setId(id);
         accountValidator.validate(account, errors);
         if (errors.hasErrors()) {
-            return ResponseEntity.badRequest().body(new ErrorResponse(HttpStatus.BAD_REQUEST, "invalid value", errors));
+            ErrorResponse errorResponse = new ErrorResponse(HttpStatus.BAD_REQUEST, "invalid value", errors);
+            return ResponseEntity.badRequest().body(errorResponse);
         }
         try {
-            return ResponseEntity.ok(new MergeUserResource(modelMapper.map(accountService.merge(account), GetUserResponse.class)));
+            Account merge = accountService.merge(account);
+            GetUserResponse getUserResponse = modelMapper.map(merge, GetUserResponse.class);
+            MergeUserResource mergeUserResource = new MergeUserResource(getUserResponse);
+            return ResponseEntity.ok(mergeUserResource);
         } catch (UserNotExistException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponse(HttpStatus.NOT_FOUND, "not exist account of id"));
+            ErrorResponse errorResponse = new ErrorResponse(HttpStatus.NOT_FOUND, "not exist account of id");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
         }
     }
 
     /**
      * 유저 정보 삭제
+     *
      * @param id 식별키
      * @return
      */
-    @DeleteMapping(value = "/api/v1/user/{id}")
+    @DeleteMapping(
+            value = "/api/v1/user/{id}",
+            produces = MediaTypes.HAL_JSON_VALUE
+    )
     @PreAuthorize("#oauth2.hasScope('write')")
     @HasAuthority
     public ResponseEntity<?> deleteUser(@PathVariable Long id) {
         try {
-            return ResponseEntity.ok(new DeleteUserResource(modelMapper.map(accountService.delete(id), GetUserResponse.class)));
+            accountService.delete(id);
+            DeleteUserResponse deleteUserResponse = new DeleteUserResponse(1);
+            DeleteUserResource deleteUserResource = new DeleteUserResource(deleteUserResponse, id);
+            return ResponseEntity.ok(deleteUserResource);
         } catch (UserNotExistException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponse(HttpStatus.NOT_FOUND, "not exist account of id"));
+            ErrorResponse errorResponse = new ErrorResponse(HttpStatus.NOT_FOUND, "not exist account of id");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
         }
     }
 
     // ==========================================================================================================================================
     // Domain
-    @Getter @Setter
+    @Getter
+    @Setter
     public static class GenerateUserRequest {
         @NotBlank
         private String email;
@@ -194,7 +270,8 @@ public class AccountApiController {
         private Set<Role> roles;
     }
 
-    @Getter @Setter
+    @Getter
+    @Setter
     public static class UpdateUserRequest {
         @NotBlank
         private String password;
@@ -208,7 +285,8 @@ public class AccountApiController {
         private Set<Role> roles;
     }
 
-    @Getter @Setter
+    @Getter
+    @Setter
     public static class GetUserResponse {
         private Long id;
         private String email;
@@ -216,6 +294,13 @@ public class AccountApiController {
         private Gender gender;
         private Address address;
         private Set<Role> roles;
+    }
+
+    @Getter
+    @Setter
+    @AllArgsConstructor
+    public static class DeleteUserResponse {
+        private long count;
     }
     // ==========================================================================================================================================
 
@@ -276,14 +361,18 @@ public class AccountApiController {
         }
     }
 
-    public static class DeleteUserResource extends EntityModel<GetUserResponse> {
-        public DeleteUserResource(GetUserResponse content, Link... links) {
+    public static class DeleteUserResource extends EntityModel<DeleteUserResponse> {
+        public DeleteUserResource(DeleteUserResponse content, Long id, Link... links) {
             super(content, links);
             add(linkTo(AccountApiController.class).slash("/docs/account.html").withRel("document"));
-            add(linkTo(methodOn(AccountApiController.class).deleteUser(content.getId())).withSelfRel().withType("DELETE"));
-            add(linkTo(methodOn(AccountApiController.class).getUser(content.getId())).withRel("getUser").withType("GET"));
-            add(linkTo(methodOn(AccountApiController.class).mergeUser(content.getId(), null, null)).withRel("mergeUser").withType("PUT"));
-            add(linkTo(methodOn(AccountApiController.class).updateUser(content.getId(), null, null)).withRel("updateUser").withType("PATCH"));
+            add(linkTo(methodOn(AccountApiController.class).deleteUser(id)).withSelfRel().withType("DELETE"));
+        }
+    }
+
+    public static class DeleteUsersResource extends EntityModel<DeleteUserResponse> {
+        public DeleteUsersResource(DeleteUserResponse content, Link... links) {
+            super(content, links);
+            add(linkTo(AccountApiController.class).slash("/docs/account.html").withRel("document"));
         }
     }
     // ==========================================================================================================================================
@@ -294,8 +383,9 @@ public class AccountApiController {
     public static class AccountValidator {
         /**
          * Account 도메인 condition 값 중 이메일, 비밀번호, 주소 검증
+         *
          * @param request email 이메일, password 비밀번호, address 주소(시도 + 도로명 + 우편번호)
-         * @param errors 에러
+         * @param errors  에러
          */
         public void validate(Account request, Errors errors) {
             String email = request.getEmail();
@@ -322,5 +412,5 @@ public class AccountApiController {
         }
     }
     // ==========================================================================================================================================
-    
+
 }

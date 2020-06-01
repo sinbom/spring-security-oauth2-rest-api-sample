@@ -122,12 +122,10 @@ public class AccountService implements UserDetailsService {
     /**
      * 유저 엔티티 제거
      * @param id 식별키
-     * @return 제거한 유저 엔티티 객체
      */
-    public Account delete(Long id) {
+    public void delete(Long id) {
         Account delete = find(id);
         accountRepository.delete(delete);
-        return delete;
     }
 
 

@@ -38,12 +38,76 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 public class AccountApiControllerTest extends BaseIntegrationTest {
 
     @Test
+    @DisplayName("토근으로 유저 정보 성공적으로 얻는 경우")
+    public void getMe_V1_Success_200() throws Exception {
+        mockRestTemplate(HttpStatus.OK, accountService.find(properties.getAdminEmail()));
+        mockMvc.perform(get("/api/v1/user/me")
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + getAccessToken())
+                .accept(MediaTypes.HAL_JSON))
+                .andExpect(status().isOk())
+                .andDo(print())
+                .andDo(document("get-me",
+                        links(
+                                linkWithRel("self").description("self link"),
+                                linkWithRel("document").description("document"),
+                                linkWithRel("updateUser").description("update user link"),
+                                linkWithRel("mergeUser").description("merge user link"),
+                                linkWithRel("deleteUser").description("delete user link")
+                        ),
+                        requestHeaders(
+                                headerWithName(HttpHeaders.AUTHORIZATION).description("bearer token"),
+                                headerWithName(HttpHeaders.ACCEPT).description("Accept Header")
+                        ),
+                        responseHeaders(
+                                headerWithName(HttpHeaders.CACHE_CONTROL).description("cache control"),
+                                headerWithName(HttpHeaders.PRAGMA).description("pragma"),
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type"),
+                                headerWithName("X-Content-Type-Options").description("X-Content-Type-Options"),
+                                headerWithName("X-XSS-Protection").description("X-XSS-Protection"),
+                                headerWithName("X-Frame-Options").description("X-Frame-Options")
+                        ),
+                        responseFields(
+                                fieldWithPath("_links.self.href").description("self link"),
+                                fieldWithPath("_links.document.href").description("document"),
+                                fieldWithPath("_links.updateUser.href").description("update user link"),
+                                fieldWithPath("_links.mergeUser.href").description("merge user link"),
+                                fieldWithPath("_links.deleteUser.href").description("delete user link"),
+                                fieldWithPath("_links.self.type").description("self link http method type"),
+                                fieldWithPath("_links.updateUser.type").description("update user link  http method type"),
+                                fieldWithPath("_links.mergeUser.type").description("merge user link  http method type"),
+                                fieldWithPath("_links.deleteUser.type").description("delete user link  http method type"),
+                                fieldWithPath("id").description("account id"),
+                                fieldWithPath("email").description("account email"),
+                                fieldWithPath("name").description("account name"),
+                                fieldWithPath("gender").description("account gender"),
+                                fieldWithPath("address.city").description("address city"),
+                                fieldWithPath("address.street").description("address street"),
+                                fieldWithPath("address.zipCode").description("address zipCode"),
+                                fieldWithPath("roles").description("account roles")
+                        )
+                        )
+                );
+    }
+
+    @Test
+    @DisplayName("토근으로 유저 정보 유효하지 않은 토큰으로 못 얻는 경우")
+    public void getMe_V1_Success_401() throws Exception {
+        mockRestTemplate(HttpStatus.UNAUTHORIZED, null);
+        mockMvc.perform(get("/api/v1/user/me")
+                .header(HttpHeaders.AUTHORIZATION, "Bearer Invalid Token")
+                .accept(MediaTypes.HAL_JSON))
+                .andExpect(status().isUnauthorized())
+                .andDo(print());
+    }
+
+    @Test
     @DisplayName("유저 정보 리스트 성공적으로 얻는 경우")
     public void queryUsers_V1_Success_200() throws Exception {
         generateAccounts();
         mockRestTemplate(HttpStatus.OK, accountService.find(properties.getAdminEmail()));
         mockMvc.perform(get("/api/v1/users")
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + getAccessToken())
+                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                 .accept(MediaTypes.HAL_JSON)
                 .queryParam("size", "10")
                 .queryParam("sort", "id,email,desc"))
@@ -59,6 +123,8 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
                                 linkWithRel("document").description("document")
                         ),
                         requestHeaders(
+                                headerWithName(HttpHeaders.AUTHORIZATION).description("bearer token"),
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type"),
                                 headerWithName(HttpHeaders.ACCEPT).description("Accept Header")
                         ),
                         responseHeaders(
@@ -102,10 +168,23 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
     }
 
     @Test
+    @DisplayName("유저 정보 리스트 유효하지 않은 토큰으로 못 얻는 경우")
+    public void queryUsers_V1_Unauthorized_401() throws Exception {
+        mockRestTemplate(HttpStatus.UNAUTHORIZED, null);
+        mockMvc.perform(get("/api/v1/users")
+                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                .header(HttpHeaders.AUTHORIZATION, "Bearer Invalid Token")
+                .accept(MediaTypes.HAL_JSON))
+                .andExpect(status().isUnauthorized())
+                .andDo(print());
+    }
+
+    @Test
     @DisplayName("유저 정보 리스트 관리자 권한 없어서 못 얻는 경우")
     public void queryUsers_V1_Forbidden_403() throws Exception {
         mockRestTemplate(HttpStatus.OK, accountService.find(properties.getUserEmail()));
         mockMvc.perform(get("/api/v1/users")
+                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + getAccessToken())
                 .accept(MediaTypes.HAL_JSON))
                 .andExpect(status().isForbidden())
@@ -118,6 +197,7 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
         generateAccounts();
         mockRestTemplate(HttpStatus.OK, accountService.find(properties.getAdminEmail()));
         mockMvc.perform(get("/api/v1/users")
+                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                 .queryParam("page", "18723671")
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + getAccessToken())
                 .accept(MediaTypes.HAL_JSON))
@@ -131,6 +211,7 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
     public void queryUsers_V1_Invalid_Params_400(String page, String size, String sort) throws Exception {
         mockRestTemplate(HttpStatus.OK, accountService.find(properties.getAdminEmail()));
         mockMvc.perform(get("/api/v1/users")
+                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + getAccessToken())
                 .accept(MediaTypes.HAL_JSON)
                 .queryParam("page", page)
@@ -165,6 +246,7 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
                                 parameterWithName("id").description("identifier of account")
                         ),
                         requestHeaders(
+                                headerWithName(HttpHeaders.AUTHORIZATION).description("bearer token"),
                                 headerWithName(HttpHeaders.ACCEPT).description("Accept Header")
                         ),
                         responseHeaders(
@@ -207,6 +289,17 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
                 .accept(MediaTypes.HAL_JSON))
                 .andDo(print())
                 .andExpect(status().isOk());
+    }
+
+    @Test
+    @DisplayName("유저 정보 유효하지 않은 토큰으로 얻지 못하는 경우")
+    public void getUser_V1_User_Unauthorized_401() throws Exception {
+        mockRestTemplate(HttpStatus.UNAUTHORIZED, null);
+        mockMvc.perform(get("/api/v1/user/{id}", accountService.find(properties.getUserEmail()))
+                .header(HttpHeaders.AUTHORIZATION, "Bearer Invalid Token")
+                .accept(MediaTypes.HAL_JSON))
+                .andDo(print())
+                .andExpect(status().isUnauthorized());
     }
 
     @Test
@@ -287,6 +380,7 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
                                 linkWithRel("deleteUser").description("delete user link")
                         ),
                         requestHeaders(
+                                headerWithName(HttpHeaders.AUTHORIZATION).description("bearer token"),
                                 headerWithName(HttpHeaders.CONTENT_TYPE).description("Content Type"),
                                 headerWithName(HttpHeaders.ACCEPT).description("Accept Header")
                         ),
@@ -409,6 +503,7 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
                                 parameterWithName("id").description("identifier of account")
                         ),
                         requestHeaders(
+                                headerWithName(HttpHeaders.AUTHORIZATION).description("bearer token"),
                                 headerWithName(HttpHeaders.CONTENT_TYPE).description("Content Type"),
                                 headerWithName(HttpHeaders.ACCEPT).description("Accept Header")
                         ),
@@ -484,6 +579,23 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
     }
 
     @Test
+    @DisplayName("유저 정보 부분 수정 유효하지 않은 토큰으로 실패하는 경우")
+    public void updateUser_V1_Unauthorized_401() throws Exception {
+        mockRestTemplate(HttpStatus.UNAUTHORIZED, null);
+        AccountApiController.UpdateUserRequest request = new AccountApiController.UpdateUserRequest();
+        request.setPassword("1123123");
+        request.setRoles(new HashSet<>(Arrays.asList(Role.USER)));
+
+        mockMvc.perform(patch("/api/v1/user/{id}", accountService.find(properties.getAdminEmail()).getId())
+                .header(HttpHeaders.AUTHORIZATION, "Bearer Invalid Token")
+                .content(objectMapper.writeValueAsString(request))
+                .accept(MediaTypes.HAL_JSON)
+                .contentType(MediaType.APPLICATION_JSON))
+                .andDo(print())
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
     @DisplayName("유저 정보 부분 수정 권한 없어서 실패하는 경우")
     public void updateUser_V1_Forbidden_403() throws Exception {
         mockRestTemplate(HttpStatus.OK, accountService.find(properties.getUserEmail()));
@@ -536,6 +648,7 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
                                 parameterWithName("id").description("identifier of account")
                         ),
                         requestHeaders(
+                                headerWithName(HttpHeaders.AUTHORIZATION).description("bearer token"),
                                 headerWithName(HttpHeaders.CONTENT_TYPE).description("Content Type"),
                                 headerWithName(HttpHeaders.ACCEPT).description("Accept Header")
                         ),
@@ -575,6 +688,26 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
         assertEquals(gender, merge.getGender());
         assertEquals(address, merge.getAddress());
         assertEquals(roles, merge.getRoles());
+    }
+
+    @Test
+    @DisplayName("유저 정보 전체 수정 권한 없어서 실패하는 경우")
+    public void mergeUser_V1_Unauthorized_401() throws Exception {
+        mockRestTemplate(HttpStatus.UNAUTHORIZED, null);
+        AccountApiController.UpdateUserRequest request = new AccountApiController.UpdateUserRequest();
+        request.setName("테스트");
+        request.setPassword("1123123");
+        request.setGender(Gender.F);
+        request.setAddress(new Address("경기도 과천시", "부림2길 76 2층", "13830"));
+        request.setRoles(new HashSet<>(Arrays.asList(Role.USER)));
+
+        mockMvc.perform(put("/api/v1/user/{id}", accountService.find(properties.getAdminEmail()).getId())
+                .header(HttpHeaders.AUTHORIZATION, "Bearer Invalid Token")
+                .content(objectMapper.writeValueAsString(request))
+                .accept(MediaTypes.HAL_JSON)
+                .contentType(MediaType.APPLICATION_JSON))
+                .andDo(print())
+                .andExpect(status().isUnauthorized());
     }
 
     @Test
@@ -647,18 +780,12 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andDo(document("delete-user",
-                        links(
-                                linkWithRel("self").description("self link"),
-                                linkWithRel("document").description("document"),
-                                linkWithRel("getUser").description("get user link"),
-                                linkWithRel("updateUser").description("update user link"),
-                                linkWithRel("mergeUser").description("merge user link")
-                        ),
                         pathParameters(
                                 parameterWithName("id").description("identifier of account")
                         ),
                         requestHeaders(
-                                headerWithName(HttpHeaders.ACCEPT).description("Accept Header")
+                                headerWithName(HttpHeaders.ACCEPT).description("Accept Header"),
+                                headerWithName(HttpHeaders.AUTHORIZATION).description("bearer token")
                         ),
                         responseHeaders(
                                 headerWithName(HttpHeaders.CACHE_CONTROL).description("cache control"),
@@ -669,26 +796,24 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
                                 headerWithName("X-Frame-Options").description("X-Frame-Options")
                         ),
                         responseFields(
+                                fieldWithPath("count").description("count of delete"),
                                 fieldWithPath("_links.self.href").description("self link"),
                                 fieldWithPath("_links.document.href").description("document"),
-                                fieldWithPath("_links.getUser.href").description("get user link"),
-                                fieldWithPath("_links.updateUser.href").description("update user link"),
-                                fieldWithPath("_links.mergeUser.href").description("merge user link"),
-                                fieldWithPath("_links.self.type").description("self link http method type"),
-                                fieldWithPath("_links.getUser.type").description("get user link  http method type"),
-                                fieldWithPath("_links.updateUser.type").description("update user link  http method type"),
-                                fieldWithPath("_links.mergeUser.type").description("merge user link  http method type"),
-                                fieldWithPath("id").description("account id"),
-                                fieldWithPath("email").description("account email"),
-                                fieldWithPath("name").description("account name"),
-                                fieldWithPath("gender").description("account gender"),
-                                fieldWithPath("address.city").description("address city"),
-                                fieldWithPath("address.street").description("address street"),
-                                fieldWithPath("address.zipCode").description("address zipCode"),
-                                fieldWithPath("roles").description("account roles")
+                                fieldWithPath("_links.self.type").description("self link http method type")
                         )
                         )
                 );
+    }
+
+    @Test
+    @DisplayName("유저 정보 삭제 유효하지 않은 토큰으로 실패하는 경우")
+    public void deleteUser_V1_Unauthorized_401() throws Exception {
+        mockRestTemplate(HttpStatus.UNAUTHORIZED, null);
+        mockMvc.perform(delete("/api/v1/user/{id}", accountService.find(properties.getAdminEmail()).getId())
+                .header(HttpHeaders.AUTHORIZATION, "Bearer Invalid Token")
+                .accept(MediaTypes.HAL_JSON))
+                .andDo(print())
+                .andExpect(status().isUnauthorized());
     }
 
     @Test
