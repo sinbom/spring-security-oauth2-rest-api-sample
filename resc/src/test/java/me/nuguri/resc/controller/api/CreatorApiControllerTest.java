@@ -83,25 +83,10 @@ public class CreatorApiControllerTest extends BaseIntegrationTest {
         entityManager.clear(); // 테스트 시 조회 쿼리 정확히 보기 위해서 영속성 콘텍스트 초기화
     }
 
-    @Test
-    @DisplayName("저자 목록 페이징 조회 성공적인 경우")
-    public void queryCreators_V1_Success_200() throws Exception {
-        mockRestTemplate(HttpStatus.OK);
-
-        mockMvc.perform(get("/api/v1/creators")
-                .header(HttpHeaders.AUTHORIZATION, "Bearer " + getAccessToken())
-                .accept(MediaTypes.HAL_JSON)
-                .queryParam("page", "1")
-                .queryParam("size", "10")
-                .queryParam("sort", "id,asc"))
-                .andExpect(status().isOk())
-                .andDo(print());
-    }
-
     @ParameterizedTest(name = "{index}. {displayName} parameter(sort: {arguments})")
-    @DisplayName("저자 목록 페이징 조건 값 조회 성공적인 경우")
+    @DisplayName("저자 목록 페이징 조회 성공적인 경우")
     @ValueSource(strings = {"id,asc", "id,name,desc", "id,name,birth,asc", "death", ""})
-    public void conditionQueryCreators_V1_Success_200(String sort) throws Exception {
+    public void queryCreators_V1_Success_200(String sort) throws Exception {
         mockRestTemplate(HttpStatus.OK);
 
         mockMvc.perform(get("/api/v1/creators")
@@ -136,14 +121,14 @@ public class CreatorApiControllerTest extends BaseIntegrationTest {
     @ParameterizedTest(name = "{index}. {displayName} parameter(page: {0} / size: {1} / sort : {2}")
     @DisplayName("저자 목록 페이징 조회 잘못된 파라미터로 실패하는 경우")
     @CsvSource(value = {"1-0:0:-98", "asd:08:-12", "zxczxczxc,zxc:zxczxczxc:id,qwe"}, delimiter = ':')
-    public void queryCreators_V1_Invalid_400() throws Exception {
+    public void queryCreators_V1_Invalid_400(String page, String size, String sort) throws Exception {
         mockRestTemplate(HttpStatus.OK);
         mockMvc.perform(get("/api/v1/creators")
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + getAccessToken())
                 .accept(MediaTypes.HAL_JSON)
-                .queryParam("page", "01")
-                .queryParam("size", "asd")
-                .queryParam("sort", "zxc,nbv"))
+                .queryParam("page", page)
+                .queryParam("size", size)
+                .queryParam("sort", sort))
                 .andExpect(status().isBadRequest())
                 .andDo(print());
     }

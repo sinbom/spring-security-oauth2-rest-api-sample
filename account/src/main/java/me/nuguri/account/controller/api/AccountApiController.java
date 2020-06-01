@@ -5,11 +5,11 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import me.nuguri.account.annotation.HasAuthority;
+import me.nuguri.account.controller.dto.AccountSearchCondition;
 import me.nuguri.account.exception.UserNotExistException;
 import me.nuguri.account.service.AccountService;
 import me.nuguri.common.domain.ErrorResponse;
 import me.nuguri.common.domain.Pagination;
-import me.nuguri.common.domain.PaginationResource;
 import me.nuguri.common.entity.Account;
 import me.nuguri.common.entity.Address;
 import me.nuguri.common.enums.Gender;
@@ -17,31 +17,27 @@ import me.nuguri.common.enums.Role;
 import me.nuguri.common.validator.PaginationValidator;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.Link;
 import org.springframework.hateoas.MediaTypes;
 import org.springframework.hateoas.PagedModel;
-import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Component;
-import org.springframework.util.StringUtils;
 import org.springframework.validation.Errors;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import java.security.Principal;
-import java.util.Set;
 
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
+import static org.springframework.http.HttpStatus.BAD_REQUEST;
+import static org.springframework.http.HttpStatus.NOT_FOUND;
 import static org.springframework.util.StringUtils.hasText;
 import static org.springframework.util.StringUtils.isEmpty;
 
@@ -69,15 +65,23 @@ public class AccountApiController {
             GetUserResource getUserResource = new GetUserResource(getUserResponse);
             return ResponseEntity.ok(getUserResource);
         } catch (UserNotExistException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponse(HttpStatus.NOT_FOUND, "not exist account of token"));
+            return ResponseEntity.status(NOT_FOUND).body(new ErrorResponse(NOT_FOUND, "not exist account of token"));
         }
     }
 
     /**
      * 유저 정보 페이징 조회
      *
-     * @param pagination page 페이지 번호, size 페이지 당 갯수, sort 정렬(방식,기준)
-     * @param errors     에러
+     * @param pageable page 페이지 번호, size 페이지 당 갯수, sort 정렬(방식,기준)
+     * @param errors   에러
+     * @return
+     */
+    /**
+     * 유저 정보 페이징 조회
+     * @param assembler 페이징 hateoas 리소스 생성 객체
+     * @param pagination page 페이지, size 사이즈, sort 정렬
+     * @param condition
+     * @param errors 에러
      * @return
      */
     @GetMapping(
@@ -86,19 +90,21 @@ public class AccountApiController {
             produces = MediaTypes.HAL_JSON_VALUE
     )
     @PreAuthorize("(hasRole('ADMIN') or #oauth2.clientHasRole('ADMIN')) and #oauth2.hasScope('read')")
-    public ResponseEntity<?> queryUsers(PagedResourcesAssembler<Account> assembler, Pageable pageable) {
-/*        if (errors.hasErrors()) {
-            ErrorResponse errorResponse = new ErrorResponse(HttpStatus.BAD_REQUEST, "invalid parameter value", errors);
+    public ResponseEntity<?> queryUsers(PagedResourcesAssembler<Account> assembler, Pagination pagination,
+                                        @Valid AccountSearchCondition condition, Errors errors) {
+        paginationValidator.validate(pagination, Account.class, errors);
+        if (errors.hasErrors()) {
+            ErrorResponse errorResponse = new ErrorResponse(BAD_REQUEST, "invalid parameter value", errors);
             return ResponseEntity.badRequest().body(errorResponse);
-        }*/
-        Page<Account> page = accountService.findAll(pageable);
+        }
+        Page<Account> page = accountService.pageByCondition(condition, pagination.getPageable());
         if (page.getNumberOfElements() < 1) {
             String message = page.getTotalElements() < 1 ? "content of all pages does not exist" : "content of current page does not exist";
-            ErrorResponse errorResponse = new ErrorResponse(HttpStatus.NOT_FOUND, message);
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
+            ErrorResponse errorResponse = new ErrorResponse(NOT_FOUND, message);
+            return ResponseEntity.status(NOT_FOUND).body(errorResponse);
         }
-        PagedModel<GetUserResource> getUserResources = assembler.toModel(page,
-                account -> new GetUserResource(modelMapper.map(account, GetUserResponse.class)));
+        PagedModel<QueryUserResource> getUserResources = assembler.toModel(page,
+                account -> new QueryUserResource(modelMapper.map(account, GetUserResponse.class)));
         getUserResources.add(linkTo(AccountApiController.class).slash("/docs/account.html").withRel("document"));
         return ResponseEntity.ok(getUserResources);
     }
@@ -122,8 +128,8 @@ public class AccountApiController {
             GetUserResource getUserResource = new GetUserResource(getUserResponse);
             return ResponseEntity.ok(getUserResource);
         } catch (UserNotExistException e) {
-            ErrorResponse errorResponse = new ErrorResponse(HttpStatus.NOT_FOUND, "not exist account of id");
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
+            ErrorResponse errorResponse = new ErrorResponse(NOT_FOUND, "not exist account of id");
+            return ResponseEntity.status(NOT_FOUND).body(errorResponse);
         }
     }
 
@@ -142,11 +148,11 @@ public class AccountApiController {
         Account account = modelMapper.map(request, Account.class);
         accountValidator.validate(account, errors);
         if (errors.hasErrors()) {
-            ErrorResponse errorResponse = new ErrorResponse(HttpStatus.BAD_REQUEST, "invalid value", errors);
+            ErrorResponse errorResponse = new ErrorResponse(BAD_REQUEST, "invalid value", errors);
             return ResponseEntity.badRequest().body(errorResponse);
         }
         if (accountService.exist(request.getEmail())) {
-            ErrorResponse errorResponse = new ErrorResponse(HttpStatus.BAD_REQUEST, "email is already exist");
+            ErrorResponse errorResponse = new ErrorResponse(BAD_REQUEST, "email is already exist");
             return ResponseEntity.badRequest().body(errorResponse);
         }
         Account generate = accountService.generate(account);
@@ -177,7 +183,7 @@ public class AccountApiController {
         account.setId(id);
         accountValidator.validate(account, errors);
         if (errors.hasErrors()) {
-            ErrorResponse errorResponse = new ErrorResponse(HttpStatus.BAD_REQUEST, "invalid value", errors);
+            ErrorResponse errorResponse = new ErrorResponse(BAD_REQUEST, "invalid value", errors);
             return ResponseEntity.badRequest().body(errorResponse);
         }
         try {
@@ -186,8 +192,8 @@ public class AccountApiController {
             UpdateUserResource updateUserResource = new UpdateUserResource(getUserResponse);
             return ResponseEntity.ok(updateUserResource);
         } catch (Exception e) {
-            ErrorResponse errorResponse = new ErrorResponse(HttpStatus.NOT_FOUND, "not exist account of id");
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
+            ErrorResponse errorResponse = new ErrorResponse(NOT_FOUND, "not exist account of id");
+            return ResponseEntity.status(NOT_FOUND).body(errorResponse);
         }
     }
 
@@ -211,7 +217,7 @@ public class AccountApiController {
         account.setId(id);
         accountValidator.validate(account, errors);
         if (errors.hasErrors()) {
-            ErrorResponse errorResponse = new ErrorResponse(HttpStatus.BAD_REQUEST, "invalid value", errors);
+            ErrorResponse errorResponse = new ErrorResponse(BAD_REQUEST, "invalid value", errors);
             return ResponseEntity.badRequest().body(errorResponse);
         }
         try {
@@ -220,8 +226,8 @@ public class AccountApiController {
             MergeUserResource mergeUserResource = new MergeUserResource(getUserResponse);
             return ResponseEntity.ok(mergeUserResource);
         } catch (UserNotExistException e) {
-            ErrorResponse errorResponse = new ErrorResponse(HttpStatus.NOT_FOUND, "not exist account of id");
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
+            ErrorResponse errorResponse = new ErrorResponse(NOT_FOUND, "not exist account of id");
+            return ResponseEntity.status(NOT_FOUND).body(errorResponse);
         }
     }
 
@@ -244,8 +250,8 @@ public class AccountApiController {
             DeleteUserResource deleteUserResource = new DeleteUserResource(deleteUserResponse, id);
             return ResponseEntity.ok(deleteUserResource);
         } catch (UserNotExistException e) {
-            ErrorResponse errorResponse = new ErrorResponse(HttpStatus.NOT_FOUND, "not exist account of id");
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
+            ErrorResponse errorResponse = new ErrorResponse(NOT_FOUND, "not exist account of id");
+            return ResponseEntity.status(NOT_FOUND).body(errorResponse);
         }
     }
 
@@ -264,7 +270,7 @@ public class AccountApiController {
         private Gender gender;
         @NotNull
         private Address address;
-        @NotEmpty
+        @NotNull
         private Role role;
     }
 
@@ -279,7 +285,7 @@ public class AccountApiController {
         private Gender gender;
         @NotNull
         private Address address;
-        @NotEmpty
+        @NotNull
         private Role role;
     }
 
@@ -306,6 +312,16 @@ public class AccountApiController {
     // Resource
     public static class QueryUsersResource extends EntityModel<GetUserResponse> {
         public QueryUsersResource(GetUserResponse content, Link... links) {
+            super(content, links);
+            add(linkTo(methodOn(AccountApiController.class).getUser(content.getId())).withRel("getUser").withType("GET"));
+            add(linkTo(methodOn(AccountApiController.class).updateUser(content.getId(), null, null)).withRel("updateUser").withType("PATCH"));
+            add(linkTo(methodOn(AccountApiController.class).mergeUser(content.getId(), null, null)).withRel("mergeUser").withType("PUT"));
+            add(linkTo(methodOn(AccountApiController.class).deleteUser(content.getId())).withRel("deleteUser").withType("DELETE"));
+        }
+    }
+
+    public static class QueryUserResource extends EntityModel<GetUserResponse> {
+        public QueryUserResource(GetUserResponse content, Link... links) {
             super(content, links);
             add(linkTo(methodOn(AccountApiController.class).getUser(content.getId())).withRel("getUser").withType("GET"));
             add(linkTo(methodOn(AccountApiController.class).updateUser(content.getId(), null, null)).withRel("updateUser").withType("PATCH"));

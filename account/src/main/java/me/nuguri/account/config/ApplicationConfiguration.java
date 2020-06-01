@@ -1,5 +1,6 @@
 package me.nuguri.account.config;
 
+import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import me.nuguri.account.property.AccountServerProperties;
 import me.nuguri.common.enums.Role;
@@ -81,10 +82,15 @@ public class ApplicationConfiguration {
     }
 
     @Bean
+    public JPAQueryFactory jpaQueryFactory(EntityManager em) {
+        return new JPAQueryFactory(em);
+    }
+
+    @Bean
     @Profile("local")
     @ConditionalOnProperty(name = "spring.jpa.hibernate.ddl-auto", havingValue = "create")
-    public ApplicationRunner applicationRunner(EntityInitializer entityInitializer, EntityManager em) {
-        return (args) -> entityInitializer.init(em);
+    public ApplicationRunner applicationRunner(EntityInitializer initializer, EntityManager em) {
+        return (args) -> initializer.init(em);
     }
 
     /*    *//**

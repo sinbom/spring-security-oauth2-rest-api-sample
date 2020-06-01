@@ -8,7 +8,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import me.nuguri.common.domain.ErrorResponse;
 import me.nuguri.common.domain.Pagination;
-import me.nuguri.common.domain.PaginationResource;
 import me.nuguri.common.entity.Book;
 import me.nuguri.common.entity.Creator;
 import me.nuguri.common.enums.Gender;

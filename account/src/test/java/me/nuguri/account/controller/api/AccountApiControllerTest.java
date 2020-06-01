@@ -9,6 +9,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.hateoas.MediaTypes;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -81,7 +82,7 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
                                 fieldWithPath("address.city").description("address city"),
                                 fieldWithPath("address.street").description("address street"),
                                 fieldWithPath("address.zipCode").description("address zipCode"),
-                                fieldWithPath("roles").description("account roles")
+                                fieldWithPath("role").description("account role")
                         )
                         )
                 );
@@ -98,18 +99,19 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
                 .andDo(print());
     }
 
-    @Test
+    @ParameterizedTest(name = "{index}. {displayName} parameter(sort: {arguments})")
     @DisplayName("유저 정보 리스트 성공적으로 얻는 경우")
-    public void queryUsers_V1_Success_200() throws Exception {
+    @ValueSource(strings = {"id,asc", "id,name,desc", "id,name,email,asc", "id", ""})
+    public void queryUsers_V1_Success_200(String sort) throws Exception {
         generateAccounts();
         mockRestTemplate(HttpStatus.OK, accountService.find(properties.getAdminEmail()));
         mockMvc.perform(get("/api/v1/users")
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + getAccessToken())
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                 .accept(MediaTypes.HAL_JSON)
-                .queryParam("page", "1")
+                .queryParam("page", "3")
                 .queryParam("size", "10")
-                .queryParam("sort", "id,email,desc"))
+                .queryParam("sort", sort))
                 .andExpect(status().isOk())
                 .andDo(print())
                 .andDo(document("query-users",
@@ -136,21 +138,21 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
                         ),
                         responseFields(
                                 fieldWithPath("_embedded.*[*].id").description("account id"),
-                                fieldWithPath("_embedded.*.email").description("account email"),
-                                fieldWithPath("_contents[*].name").description("account name"),
-                                fieldWithPath("_contents[*].gender").description("account gender"),
-                                fieldWithPath("_contents[*].address.city").description("address city"),
-                                fieldWithPath("_contents[*].address.street").description("address street"),
-                                fieldWithPath("_contents[*].address.zipCode").description("address zipCode"),
-                                fieldWithPath("_contents[*].roles").description("account roles"),
-                                fieldWithPath("_contents[*]._links.getUser.href").description("getUser link"),
-                                fieldWithPath("_contents[*]._links.updateUser.href").description("updateUser link"),
-                                fieldWithPath("_contents[*]._links.mergeUser.href").description("mergeUser link"),
-                                fieldWithPath("_contents[*]._links.deleteUser.href").description("deleteUser link"),
-                                fieldWithPath("_contents[*]._links.getUser.type").description("getUser link http method type"),
-                                fieldWithPath("_contents[*]._links.updateUser.type").description("updateUser link http method type"),
-                                fieldWithPath("_contents[*]._links.mergeUser.type").description("mergeUser link http method type"),
-                                fieldWithPath("_contents[*]._links.deleteUser.type").description("deleteUser link http method type"),
+                                fieldWithPath("_embedded.*[*].email").description("account email"),
+                                fieldWithPath("_embedded.*[*].name").description("account name"),
+                                fieldWithPath("_embedded.*[*].gender").description("account gender"),
+                                fieldWithPath("_embedded.*[*].address.city").description("address city"),
+                                fieldWithPath("_embedded.*[*].address.street").description("address street"),
+                                fieldWithPath("_embedded.*[*].address.zipCode").description("address zipCode"),
+                                fieldWithPath("_embedded.*[*].role").description("account role"),
+                                fieldWithPath("_embedded.*[*]._links.getUser.href").description("getUser link"),
+                                fieldWithPath("_embedded.*[*]._links.updateUser.href").description("updateUser link"),
+                                fieldWithPath("_embedded.*[*]._links.mergeUser.href").description("mergeUser link"),
+                                fieldWithPath("_embedded.*[*]._links.deleteUser.href").description("deleteUser link"),
+                                fieldWithPath("_embedded.*[*]._links.getUser.type").description("getUser link http method type"),
+                                fieldWithPath("_embedded.*[*]._links.updateUser.type").description("updateUser link http method type"),
+                                fieldWithPath("_embedded.*[*]._links.mergeUser.type").description("mergeUser link http method type"),
+                                fieldWithPath("_embedded.*[*]._links.deleteUser.type").description("deleteUser link http method type"),
                                 fieldWithPath("_links.first.href").description("first page link"),
                                 fieldWithPath("_links.prev.href").description("prev page link"),
                                 fieldWithPath("_links.self.href").description("self link"),
@@ -217,10 +219,6 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
                 .queryParam("size", size)
                 .queryParam("sort", sort))
                 .andDo(print())
-                .andExpect(jsonPath("timestamp").exists())
-                .andExpect(jsonPath("status").exists())
-                .andExpect(jsonPath("error").exists())
-                .andExpect(jsonPath("message").exists())
                 .andExpect(status().isBadRequest());
     }
 
@@ -273,7 +271,7 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
                                 fieldWithPath("address.city").description("address city"),
                                 fieldWithPath("address.street").description("address street"),
                                 fieldWithPath("address.zipCode").description("address zipCode"),
-                                fieldWithPath("roles").description("account roles")
+                                fieldWithPath("role").description("account role")
                         )
                         )
                 );
@@ -411,7 +409,7 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
                                 fieldWithPath("address.city").description("address city"),
                                 fieldWithPath("address.street").description("address street"),
                                 fieldWithPath("address.zipCode").description("address zipCode"),
-                                fieldWithPath("roles").description("account roles")
+                                fieldWithPath("role").description("account role")
                         )
                         )
                 );
@@ -489,7 +487,6 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
                 .contentType(MediaType.APPLICATION_JSON))
                 .andDo(print())
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("roles").value(Role.ADMIN.toString()))
                 .andDo(document("update-user",
                         links(
                                 linkWithRel("self").description("self link"),
@@ -531,7 +528,7 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
                                 fieldWithPath("address.city").description("address city"),
                                 fieldWithPath("address.street").description("address street"),
                                 fieldWithPath("address.zipCode").description("address zipCode"),
-                                fieldWithPath("roles").description("account roles")
+                                fieldWithPath("role").description("account role")
                         )
                         )
                 );
@@ -676,7 +673,7 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
                                 fieldWithPath("address.city").description("address city"),
                                 fieldWithPath("address.street").description("address street"),
                                 fieldWithPath("address.zipCode").description("address zipCode"),
-                                fieldWithPath("roles").description("account roles")
+                                fieldWithPath("role").description("account role")
                         )
                         )
                 );

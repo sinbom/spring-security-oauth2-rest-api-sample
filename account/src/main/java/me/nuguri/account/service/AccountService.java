@@ -1,6 +1,7 @@
 package me.nuguri.account.service;
 
 import lombok.RequiredArgsConstructor;
+import me.nuguri.account.controller.dto.AccountSearchCondition;
 import me.nuguri.account.exception.UserNotExistException;
 import me.nuguri.account.repository.AccountRepository;
 import me.nuguri.common.domain.AccountAdapter;
@@ -40,12 +41,14 @@ public class AccountService implements UserDetailsService {
 
     /**
      * 유저 엔티티 페이지 조회
-     * @param pageable 페이징
+     * @param condition
+     * @param pageable page 페이지, size 사이즈, sort 정렬
      * @return 조회한 유저 엔티티 페이징 객체
      */
     @Transactional(readOnly = true)
-    public Page<Account> findAll(Pageable pageable) {
-        return accountRepository.findAll(pageable);
+    public Page<Account> pageByCondition(AccountSearchCondition condition, Pageable pageable) {
+        Page<Account> page = accountRepository.pageByCondition(condition, pageable);
+        return page;
     }
 
     /**

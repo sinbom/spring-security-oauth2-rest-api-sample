@@ -36,6 +36,7 @@ public class Account extends BaseEntity implements Serializable {
     @Column(nullable = false)
     private String password;
 
+    /** 이름 */
     @Column(nullable = false)
     private String name;
 

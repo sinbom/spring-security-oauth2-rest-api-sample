@@ -18,18 +18,19 @@ public class Pagination {
     private String sort;
 
     public Pageable getPageable() {
-        String page = StringUtils.isEmpty(this.page) ? "1" : this.page;
-        String size = StringUtils.isEmpty(this.size) ? "10" : this.size;
+        int page = StringUtils.isEmpty(this.page) ? 0 : Integer.parseInt(this.page) - 1;
+        int size = StringUtils.isEmpty(this.size) ? 10 : Integer.parseInt(this.size);
         if (StringUtils.isEmpty(sort)) {
-            return PageRequest.of(Integer.parseInt(page) - 1, Integer.parseInt(size));
+            return PageRequest.of(page, size);
         } else {
             String[] sorts = sort.split(",");
             if (sorts.length == 1) {
-                return PageRequest.of(Integer.parseInt(page) - 1, Integer.parseInt(size), Sort.by(sorts[0]));
+                return PageRequest.of(page, size, Sort.by(sorts[0]));
             } else {
                 String direction = sorts[sorts.length - 1];
+                Sort.Direction sort = Sort.Direction.fromString(direction);
                 String[] properties = Arrays.copyOfRange(sorts, 0, sorts.length - 1);
-                return PageRequest.of(Integer.parseInt(page) - 1, Integer.parseInt(size), Sort.Direction.fromString(direction), properties);
+                return PageRequest.of(page, size, sort, properties);
             }
         }
     }
