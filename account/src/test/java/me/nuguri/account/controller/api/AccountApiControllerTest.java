@@ -49,6 +49,7 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
                         links(
                                 linkWithRel("self").description("self link"),
                                 linkWithRel("document").description("document"),
+                                linkWithRel("getUser").description("get user link"),
                                 linkWithRel("updateUser").description("update user link"),
                                 linkWithRel("mergeUser").description("merge user link"),
                                 linkWithRel("deleteUser").description("delete user link")
@@ -68,10 +69,12 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
                         responseFields(
                                 fieldWithPath("_links.self.href").description("self link"),
                                 fieldWithPath("_links.document.href").description("document"),
+                                fieldWithPath("_links.getUser.href").description("get user link"),
                                 fieldWithPath("_links.updateUser.href").description("update user link"),
                                 fieldWithPath("_links.mergeUser.href").description("merge user link"),
                                 fieldWithPath("_links.deleteUser.href").description("delete user link"),
                                 fieldWithPath("_links.self.type").description("self link http method type"),
+                                fieldWithPath("_links.getUser.type").description("get user link http method type"),
                                 fieldWithPath("_links.updateUser.type").description("update user link  http method type"),
                                 fieldWithPath("_links.mergeUser.type").description("merge user link  http method type"),
                                 fieldWithPath("_links.deleteUser.type").description("delete user link  http method type"),

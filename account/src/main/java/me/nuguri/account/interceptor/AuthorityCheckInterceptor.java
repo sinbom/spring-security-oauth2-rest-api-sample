@@ -22,6 +22,9 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.util.Map;
 
+import static org.springframework.http.HttpStatus.FORBIDDEN;
+import static org.springframework.http.HttpStatus.UNAUTHORIZED;
+
 @Component
 @RequiredArgsConstructor
 public class AuthorityCheckInterceptor extends HandlerInterceptorAdapter {
@@ -56,8 +59,8 @@ public class AuthorityCheckInterceptor extends HandlerInterceptorAdapter {
                     String email = (String) authentication.getPrincipal();
                     account = accountService.find(email);
                 } else {
-                    ErrorResponse errorResponse = new ErrorResponse(HttpStatus.FORBIDDEN, "unauthorized");
-                    response.setStatus(HttpStatus.UNAUTHORIZED.value());
+                    ErrorResponse errorResponse = new ErrorResponse(UNAUTHORIZED, "unauthorized");
+                    response.setStatus(UNAUTHORIZED.value());
                     response.getWriter().write(objectMapper.writeValueAsString(errorResponse));
                     return false;
                 }
@@ -65,8 +68,8 @@ public class AuthorityCheckInterceptor extends HandlerInterceptorAdapter {
                 if (account.getId().toString().equals(id) || account.getRole().equals(Role.ADMIN)) {
                     return true;
                 } else {
-                    ErrorResponse errorResponse = new ErrorResponse(HttpStatus.FORBIDDEN, "have no authority");
-                    response.setStatus(HttpStatus.FORBIDDEN.value());
+                    ErrorResponse errorResponse = new ErrorResponse(FORBIDDEN, "have no authority");
+                    response.setStatus(FORBIDDEN.value());
                     response.getWriter().write(objectMapper.writeValueAsString(errorResponse));
                     return false;
                 }

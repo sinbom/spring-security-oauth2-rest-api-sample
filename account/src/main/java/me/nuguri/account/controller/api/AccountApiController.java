@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import me.nuguri.account.annotation.HasAuthority;
+import me.nuguri.account.annotation.TokenAuthenticationUser;
 import me.nuguri.account.dto.AccountSearchCondition;
 import me.nuguri.account.service.AccountService;
 import me.nuguri.common.dto.ErrorResponse;
@@ -31,8 +32,6 @@ import javax.persistence.EntityNotFoundException;
 import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
-import java.security.Principal;
-import java.util.NoSuchElementException;
 
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
@@ -57,16 +56,10 @@ public class AccountApiController {
             value = "/api/v1/user/me",
             produces = MediaTypes.HAL_JSON_VALUE
     )
-    public ResponseEntity<?> getMe(Principal principal) {
-        try {
-            String email = principal.getName();
-            Account account = accountService.find(email);
-            GetUserResponse getUserResponse = modelMapper.map(account, GetUserResponse.class);
-            GetUserResource getUserResource = new GetUserResource(getUserResponse);
-            return ResponseEntity.ok(getUserResource);
-        } catch (NoSuchElementException e) {
-            return ResponseEntity.status(NOT_FOUND).body(new ErrorResponse(NOT_FOUND, "not exist account of token"));
-        }
+    public ResponseEntity<?> getMe(@TokenAuthenticationUser Account account) {
+        GetUserResponse getUserResponse = modelMapper.map(account, GetUserResponse.class);
+        GetMeResource getMeResource = new GetMeResource(getUserResponse);
+        return ResponseEntity.ok(getMeResource);
     }
 
     /**
@@ -315,6 +308,18 @@ public class AccountApiController {
     public static class QueryUserResource extends EntityModel<GetUserResponse> {
         public QueryUserResource(GetUserResponse content, Link... links) {
             super(content, links);
+            add(linkTo(methodOn(AccountApiController.class).getUser(content.getId())).withRel("getUser").withType("GET"));
+            add(linkTo(methodOn(AccountApiController.class).updateUser(content.getId(), null, null)).withRel("updateUser").withType("PATCH"));
+            add(linkTo(methodOn(AccountApiController.class).mergeUser(content.getId(), null, null)).withRel("mergeUser").withType("PUT"));
+            add(linkTo(methodOn(AccountApiController.class).deleteUser(content.getId())).withRel("deleteUser").withType("DELETE"));
+        }
+    }
+
+    public static class GetMeResource extends EntityModel<GetUserResponse> {
+        public GetMeResource(GetUserResponse content, Link... links) {
+            super(content, links);
+            add(linkTo(AccountApiController.class).slash("/docs/account.html").withRel("document"));
+            add(linkTo(methodOn(AccountApiController.class).getMe(null)).withSelfRel().withType("GET"));
             add(linkTo(methodOn(AccountApiController.class).getUser(content.getId())).withRel("getUser").withType("GET"));
             add(linkTo(methodOn(AccountApiController.class).updateUser(content.getId(), null, null)).withRel("updateUser").withType("PATCH"));
             add(linkTo(methodOn(AccountApiController.class).mergeUser(content.getId(), null, null)).withRel("mergeUser").withType("PUT"));

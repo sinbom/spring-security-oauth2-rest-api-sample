@@ -2,11 +2,16 @@ package me.nuguri.account.config;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import me.nuguri.common.enums.Role;
 import org.springframework.boot.autoconfigure.security.servlet.PathRequest;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.access.AccessDecisionManager;
+import org.springframework.security.access.AccessDecisionVoter;
 import org.springframework.security.access.expression.SecurityExpressionHandler;
+import org.springframework.security.access.hierarchicalroles.RoleHierarchyImpl;
+import org.springframework.security.access.vote.AffirmativeBased;
+import org.springframework.security.access.vote.RoleHierarchyVoter;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -14,7 +19,10 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.oauth2.provider.expression.OAuth2WebSecurityExpressionHandler;
 import org.springframework.security.web.FilterInvocation;
+import org.springframework.security.web.access.expression.DefaultWebSecurityExpressionHandler;
+import org.springframework.security.web.access.expression.WebExpressionVoter;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationFailureHandler;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.logout.SimpleUrlLogoutSuccessHandler;
@@ -25,6 +33,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.util.Arrays;
+import java.util.List;
 
 @Configuration
 @EnableWebSecurity
@@ -34,8 +44,6 @@ import java.time.LocalDateTime;
 public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 
     private final UserDetailsService userDetailsService;
-
-    private final SecurityExpressionHandler<FilterInvocation> customExpressionHandler;
 
     /**
      * 필터 접근 이전 필터링에서 제외할 리소스 패턴 설정
@@ -57,14 +65,24 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
      */
     @Override
     protected void configure(HttpSecurity http) throws Exception {
+//        RoleHierarchyImpl roleHierarchy = new RoleHierarchyImpl();
+//        roleHierarchy.setHierarchy("ROLE_" + Role.ADMIN + " > ROLE_" + Role.USER);
+//
+//        DefaultWebSecurityExpressionHandler handler = new DefaultWebSecurityExpressionHandler();
+//        handler.setRoleHierarchy(roleHierarchy);
+//
+//        WebExpressionVoter webExpressionVoter = new WebExpressionVoter();
+//        webExpressionVoter.setExpressionHandler(handler);
+//
+//        List<AccessDecisionVoter<?>> decisionVoters = Arrays.asList(webExpressionVoter);
+//        AffirmativeBased affirmativeBased = new AffirmativeBased(decisionVoters);
         http
                 .requestMatchers()
                 .regexMatchers("^(?!/api/).*$")
                 .and()
                 .authorizeRequests()
                 .mvcMatchers("/", "/main").permitAll()
-                .anyRequest().authenticated()
-                .expressionHandler(customExpressionHandler);
+                .anyRequest().authenticated();
         http
                 .formLogin()
                 .loginPage("/login")

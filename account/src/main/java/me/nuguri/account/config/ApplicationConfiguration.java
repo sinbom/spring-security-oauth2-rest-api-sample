@@ -2,7 +2,6 @@ package me.nuguri.account.config;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
-import me.nuguri.account.property.AccountServerProperties;
 import me.nuguri.common.enums.Role;
 import me.nuguri.common.initializer.EntityInitializer;
 import org.springframework.boot.ApplicationRunner;
@@ -13,29 +12,18 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
-import org.springframework.security.access.AccessDecisionManager;
-import org.springframework.security.access.AccessDecisionVoter;
-import org.springframework.security.access.expression.SecurityExpressionHandler;
+import org.springframework.security.access.hierarchicalroles.RoleHierarchy;
 import org.springframework.security.access.hierarchicalroles.RoleHierarchyImpl;
-import org.springframework.security.access.vote.AffirmativeBased;
-import org.springframework.security.jwt.Jwt;
 import org.springframework.security.oauth2.provider.token.DefaultTokenServices;
 import org.springframework.security.oauth2.provider.token.TokenStore;
 import org.springframework.security.oauth2.provider.token.store.JwtAccessTokenConverter;
 import org.springframework.security.oauth2.provider.token.store.JwtTokenStore;
-import org.springframework.security.oauth2.provider.token.store.KeyStoreKeyFactory;
-import org.springframework.security.web.FilterInvocation;
-import org.springframework.security.web.access.expression.DefaultWebSecurityExpressionHandler;
-import org.springframework.security.web.access.expression.WebExpressionVoter;
 import org.springframework.util.StreamUtils;
-import sun.misc.IOUtils;
 
 import javax.persistence.EntityManager;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
-import java.util.List;
 
 @Configuration
 @EnableJpaAuditing
@@ -44,6 +32,21 @@ public class ApplicationConfiguration {
 
     private final ResourceLoader resourceLoader;
 
+    /**
+     * 시큐리티 계층형 권한 설정 시큐리티와 리소스 체인 모두 적용
+     * @return
+     */
+    @Bean
+    public RoleHierarchy roleHierarchy() {
+        RoleHierarchyImpl roleHierarchy = new RoleHierarchyImpl();
+        roleHierarchy.setHierarchy("ROLE_" + Role.ADMIN + " > ROLE_" + Role.USER);
+        return roleHierarchy;
+    }
+
+    /**
+     * JWT 토큰 컨버터 인증 서버의 키로 암호화한 토큰을 복호화 하도록 PK 설정
+     * @return
+     */
     @Bean
     public JwtAccessTokenConverter jwtAccessTokenConverter() {
         Resource resource = resourceLoader.getResource("classpath:/publicKey.txt");
@@ -59,26 +62,26 @@ public class ApplicationConfiguration {
         return jwtAccessTokenConverter;
     }
 
+    /**
+     * 토큰 컨버터를 사용하여 토큰을 복호화하고 인증 객체를 추출하는 토큰 스토어
+     * @return
+     */
     @Bean
     public TokenStore tokenStore() {
         return new JwtTokenStore(jwtAccessTokenConverter());
     }
 
+    /**
+     * 리소스 서버로 token_key 엔드포인트로 PK 얻지 않고 서버내에 PK를 보관해서 복호화 하도록
+     * 기본 토큰 서비스 설정(기본으로 설정 되지만 같은 이름으로 2개가 등록되어 test mocking시 autowired가 불가능해서 별도로 설정)
+     * @return
+     */
     @Bean
     public DefaultTokenServices defaultTokenServices() {
         DefaultTokenServices defaultTokenServices = new DefaultTokenServices();
         defaultTokenServices.setTokenStore(tokenStore());
         defaultTokenServices.setTokenEnhancer(jwtAccessTokenConverter());
         return defaultTokenServices;
-    }
-
-    @Bean
-    public SecurityExpressionHandler<FilterInvocation> customExpressionHandler() {
-        RoleHierarchyImpl roleHierarchy = new RoleHierarchyImpl();
-        roleHierarchy.setHierarchy("ROLE_" + Role.ADMIN + " > ROLE_" + Role.USER);
-        DefaultWebSecurityExpressionHandler handler = new DefaultWebSecurityExpressionHandler();
-        handler.setRoleHierarchy(roleHierarchy);
-        return handler;
     }
 
     @Bean
