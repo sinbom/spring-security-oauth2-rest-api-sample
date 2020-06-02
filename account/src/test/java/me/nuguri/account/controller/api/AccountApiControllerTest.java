@@ -100,20 +100,15 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
     }
 
     @ParameterizedTest(name = "{index}. {displayName} parameter(sort: {arguments})")
-    @DisplayName("유저 정보 리스트 성공적으로 얻는 경우") // TODO 여기 부터 작업 시작하면됨
-    @CsvSource(value = {"user@naver.com::M::USER:id,asc"/*, "id,name,desc", "id,name,email,asc", "id", ""*/}, delimiter = ':')
-    public void queryUsers_V1_Success_200(String email, String name, String gender, String address, String role, String sort) throws Exception {
+    @DisplayName("유저 정보 리스트 성공적으로 얻는 경우")
+    @ValueSource(strings = {"id,asc", "id,name,desc", "id,name,email,asc"})
+    public void queryUsers_V1_Success_200(String sort) throws Exception {
         generateAccounts();
         mockRestTemplate(HttpStatus.OK, accountService.find(properties.getAdminEmail()));
         mockMvc.perform(get("/api/v1/users")
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + getAccessToken())
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                 .accept(MediaTypes.HAL_JSON)
-                .queryParam("email", email)
-                .queryParam("name", name)
-                .queryParam("gender", gender)
-                .queryParam("address", address)
-                .queryParam("role", role)
                 .queryParam("page", "2")
                 .queryParam("size", "10")
                 .queryParam("sort", sort))
@@ -173,6 +168,40 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
                 );
     }
 
+    @ParameterizedTest(name = "{index}. {displayName} parameter(sort: {arguments})")
+    @DisplayName("유저 정보 리스트 조건 값 조회 성공적으로 얻는 경우")
+    @CsvSource(
+            value = {
+                    "id,asc:user@naver.com::F::USER:2019-01-01:2021-01-01:2018-05-05:2022-01-01",
+                    "id,name,desc:admin@naver.com::M::ADMIN:2018-05-01:::2022-01-01",
+                    "id,name,email,asc:::::::::",
+                    ":::::::::"},
+            delimiter = ':'
+    )
+    public void conditionQueryUsers_V1_Success_200(String sort, String email, String name, String gender, String address, String role,
+                                                   String startCreated, String endCreated, String startUpdated, String endUpdated) throws Exception {
+        generateAccounts();
+        mockRestTemplate(HttpStatus.OK, accountService.find(properties.getAdminEmail()));
+        mockMvc.perform(get("/api/v1/users")
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + getAccessToken())
+                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                .accept(MediaTypes.HAL_JSON)
+                .queryParam("page", "1")
+                .queryParam("size", "10")
+                .queryParam("sort", sort)
+                .queryParam("email", email)
+                .queryParam("name", name)
+                .queryParam("gender", gender)
+                .queryParam("address", address)
+                .queryParam("role", role)
+                .queryParam("startCreated", startCreated)
+                .queryParam("endCreated", endCreated)
+                .queryParam("startUpdated", startUpdated)
+                .queryParam("endUpdated", endUpdated))
+                .andExpect(status().isOk())
+                .andDo(print());
+    }
+
     @Test
     @DisplayName("유저 정보 리스트 유효하지 않은 토큰으로 못 얻는 경우")
     public void queryUsers_V1_Unauthorized_401() throws Exception {
@@ -213,7 +242,7 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
 
     @ParameterizedTest(name = "{index}. {displayName} parameter(page: {0} / size: {1} / sort : {2}")
     @DisplayName("유저 정보 리스트 잘못된 파라미터로 못 얻는 경우")
-    @CsvSource(value = {"1-0:0:-98", "asd:08:-12", "zxczxczxc,zxc:zxczxczxc:id,qwe"}, delimiter = ':')
+    @CsvSource(value = {"1-0:0:-98", "asd:08:-12", "0:-2:id,qwe"}, delimiter = ':')
     public void queryUsers_V1_Invalid_Params_400(String page, String size, String sort) throws Exception {
         mockRestTemplate(HttpStatus.OK, accountService.find(properties.getAdminEmail()));
         mockMvc.perform(get("/api/v1/users")
@@ -861,7 +890,7 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
                     account.setPassword("test");
                     account.setGender(n % 2 == 0 ? Gender.M : Gender.F);
                     account.setAddress(new Address("경기도 과천시", "부림2길 76 2층", "13830"));
-                    account.setRole(Role.USER);
+                    account.setRole(n % 2 == 0 ? Role.USER : Role.ADMIN);
                     accountService.generate(account);
                 }
         );

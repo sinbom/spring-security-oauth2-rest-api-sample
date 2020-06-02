@@ -2,9 +2,8 @@ package me.nuguri.account.service;
 
 import lombok.RequiredArgsConstructor;
 import me.nuguri.account.dto.AccountSearchCondition;
-import me.nuguri.account.exception.UserNotExistException;
 import me.nuguri.account.repository.AccountRepository;
-import me.nuguri.common.domain.AccountAdapter;
+import me.nuguri.common.dto.AccountAdapter;
 import me.nuguri.common.entity.Account;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
@@ -16,6 +15,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
+
+import javax.persistence.EntityNotFoundException;
 
 @Service
 @RequiredArgsConstructor
@@ -58,7 +59,7 @@ public class AccountService implements UserDetailsService {
      */
     @Transactional(readOnly = true)
     public Account find(Long id) {
-        return accountRepository.findById(id).orElseThrow(UserNotExistException::new);
+        return accountRepository.findById(id).orElseThrow(EntityNotFoundException::new);
     }
 
     /**
@@ -68,7 +69,7 @@ public class AccountService implements UserDetailsService {
      */
     @Transactional(readOnly = true)
     public Account find(String email) {
-        return accountRepository.findByEmail(email).orElseThrow(UserNotExistException::new);
+        return accountRepository.findByEmail(email).orElseThrow(EntityNotFoundException::new);
     }
 
     /**

@@ -6,7 +6,7 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import me.nuguri.account.dto.AccountSearchCondition;
 import me.nuguri.account.repository.AccountRepositoryCustom;
-import me.nuguri.account.repository.support.QuerydslSupportCustom;
+import me.nuguri.common.support.QuerydslSupportCustom;
 import me.nuguri.common.entity.Account;
 import me.nuguri.common.entity.Address;
 import me.nuguri.common.enums.Gender;
@@ -34,7 +34,9 @@ public class AccountRepositoryImpl extends QuerydslSupportCustom implements Acco
                         eqName(condition.getName()),
                         eqGender(condition.getGender()),
                         eqRole(condition.getRole()),
-                        eqAddress(condition.getAddress())
+                        eqAddress(condition.getAddress()),
+                        betweenCreated(account, condition.getStartCreated(), condition.getEndCreated()),
+                        betweenUpdated(account, condition.getStartUpdated(), condition.getEndUpdated())
                 )
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())

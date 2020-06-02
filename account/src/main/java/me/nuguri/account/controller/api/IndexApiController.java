@@ -4,18 +4,14 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import me.nuguri.account.repository.AccountRepository;
-import me.nuguri.account.service.AccountService;
 import me.nuguri.common.entity.Account;
 import me.nuguri.common.enums.Role;
-import org.jboss.jandex.Index;
 import org.springframework.hateoas.Link;
 import org.springframework.hateoas.MediaTypes;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import javax.print.attribute.standard.Media;
 import java.security.Principal;
 import java.util.ArrayList;
 import java.util.List;
@@ -58,7 +54,7 @@ public class IndexApiController {
             _links.add(linkTo(methodOn(AccountApiController.class).generateUser(null, null)).withRel("generateUser").withType("POST"));
             if (account != null) {
                 if (account.getRole().equals(Role.ADMIN)) {
-                    _links.add(linkTo(methodOn(AccountApiController.class).queryUsers(null, null, null, null)).withRel("queryUsers").withType("GET"));
+                    _links.add(linkTo(methodOn(AccountApiController.class).queryUsers(null, null, null)).withRel("queryUsers").withType("GET"));
                 }
                 _links.add(linkTo(methodOn(AccountApiController.class).getUser(account.getId())).withRel("getUser").withType("GET"));
                 _links.add(linkTo(methodOn(AccountApiController.class).updateUser(account.getId(), null, null)).withRel("updateUser").withType("PATCH"));

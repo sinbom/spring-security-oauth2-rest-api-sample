@@ -2,7 +2,7 @@ package me.nuguri.auth.service;
 
 import lombok.RequiredArgsConstructor;
 import me.nuguri.auth.repository.AccountRepository;
-import me.nuguri.common.domain.AccountAdapter;
+import me.nuguri.common.dto.AccountAdapter;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;

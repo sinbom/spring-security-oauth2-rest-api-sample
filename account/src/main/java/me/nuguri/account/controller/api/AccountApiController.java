@@ -6,10 +6,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import me.nuguri.account.annotation.HasAuthority;
 import me.nuguri.account.dto.AccountSearchCondition;
-import me.nuguri.account.exception.UserNotExistException;
 import me.nuguri.account.service.AccountService;
-import me.nuguri.common.domain.ErrorResponse;
-import me.nuguri.common.domain.Pagination;
+import me.nuguri.common.dto.ErrorResponse;
 import me.nuguri.common.entity.Account;
 import me.nuguri.common.entity.Address;
 import me.nuguri.common.enums.Gender;
@@ -29,10 +27,12 @@ import org.springframework.stereotype.Component;
 import org.springframework.validation.Errors;
 import org.springframework.web.bind.annotation.*;
 
+import javax.persistence.EntityNotFoundException;
 import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import java.security.Principal;
+import java.util.NoSuchElementException;
 
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
@@ -64,7 +64,7 @@ public class AccountApiController {
             GetUserResponse getUserResponse = modelMapper.map(account, GetUserResponse.class);
             GetUserResource getUserResource = new GetUserResource(getUserResponse);
             return ResponseEntity.ok(getUserResource);
-        } catch (UserNotExistException e) {
+        } catch (NoSuchElementException e) {
             return ResponseEntity.status(NOT_FOUND).body(new ErrorResponse(NOT_FOUND, "not exist account of token"));
         }
     }
@@ -72,16 +72,9 @@ public class AccountApiController {
     /**
      * 유저 정보 페이징 조회
      *
-     * @param pageable page 페이지 번호, size 페이지 당 갯수, sort 정렬(방식,기준)
-     * @param errors   에러
-     * @return
-     */
-    /**
-     * 유저 정보 페이징 조회
      * @param assembler 페이징 hateoas 리소스 생성 객체
-     * @param pagination page 페이지, size 사이즈, sort 정렬
      * @param condition
-     * @param errors 에러
+     * @param errors    에러
      * @return
      */
     @GetMapping(
@@ -90,14 +83,13 @@ public class AccountApiController {
             produces = MediaTypes.HAL_JSON_VALUE
     )// clientHasRole은 접두어 ROLE_ 없을때 허가, 즉 client_credentails일 때 허가, 하지만 client detail service 직접 구현후 접두어 붙혀줄 수 있음
     @PreAuthorize("(hasRole('ADMIN') or #oauth2.clientHasRole('ADMIN')) and #oauth2.hasScope('read')")
-    public ResponseEntity<?> queryUsers(PagedResourcesAssembler<Account> assembler, Pagination pagination,
-                                        @Valid AccountSearchCondition condition, Errors errors) {
-        paginationValidator.validate(pagination, Account.class, errors);
+    public ResponseEntity<?> queryUsers(PagedResourcesAssembler<Account> assembler, @Valid AccountSearchCondition condition, Errors errors) {
+        paginationValidator.validate(condition, Account.class, errors);
         if (errors.hasErrors()) {
             ErrorResponse errorResponse = new ErrorResponse(BAD_REQUEST, "invalid parameter value", errors);
             return ResponseEntity.badRequest().body(errorResponse);
         }
-        Page<Account> page = accountService.pageByCondition(condition, pagination.getPageable());
+        Page<Account> page = accountService.pageByCondition(condition, condition.getPageable());
         if (page.getNumberOfElements() < 1) {
             String message = page.getTotalElements() < 1 ? "content of all pages does not exist" : "content of current page does not exist";
             ErrorResponse errorResponse = new ErrorResponse(NOT_FOUND, message);
@@ -127,7 +119,7 @@ public class AccountApiController {
             GetUserResponse getUserResponse = modelMapper.map(account, GetUserResponse.class);
             GetUserResource getUserResource = new GetUserResource(getUserResponse);
             return ResponseEntity.ok(getUserResource);
-        } catch (UserNotExistException e) {
+        } catch (EntityNotFoundException e) {
             ErrorResponse errorResponse = new ErrorResponse(NOT_FOUND, "not exist account of id");
             return ResponseEntity.status(NOT_FOUND).body(errorResponse);
         }
@@ -191,7 +183,7 @@ public class AccountApiController {
             GetUserResponse getUserResponse = modelMapper.map(update, GetUserResponse.class);
             UpdateUserResource updateUserResource = new UpdateUserResource(getUserResponse);
             return ResponseEntity.ok(updateUserResource);
-        } catch (Exception e) {
+        } catch (EntityNotFoundException e) {
             ErrorResponse errorResponse = new ErrorResponse(NOT_FOUND, "not exist account of id");
             return ResponseEntity.status(NOT_FOUND).body(errorResponse);
         }
@@ -225,7 +217,7 @@ public class AccountApiController {
             GetUserResponse getUserResponse = modelMapper.map(merge, GetUserResponse.class);
             MergeUserResource mergeUserResource = new MergeUserResource(getUserResponse);
             return ResponseEntity.ok(mergeUserResource);
-        } catch (UserNotExistException e) {
+        } catch (EntityNotFoundException e) {
             ErrorResponse errorResponse = new ErrorResponse(NOT_FOUND, "not exist account of id");
             return ResponseEntity.status(NOT_FOUND).body(errorResponse);
         }
@@ -249,7 +241,7 @@ public class AccountApiController {
             DeleteUserResponse deleteUserResponse = new DeleteUserResponse(1);
             DeleteUserResource deleteUserResource = new DeleteUserResource(deleteUserResponse, id);
             return ResponseEntity.ok(deleteUserResource);
-        } catch (UserNotExistException e) {
+        } catch (EntityNotFoundException e) {
             ErrorResponse errorResponse = new ErrorResponse(NOT_FOUND, "not exist account of id");
             return ResponseEntity.status(NOT_FOUND).body(errorResponse);
         }

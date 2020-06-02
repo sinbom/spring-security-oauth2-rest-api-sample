@@ -6,8 +6,8 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
-import me.nuguri.common.domain.ErrorResponse;
-import me.nuguri.common.domain.Pagination;
+import me.nuguri.common.dto.ErrorResponse;
+import me.nuguri.common.dto.PageableCondition;
 import me.nuguri.common.entity.Book;
 import me.nuguri.common.entity.Creator;
 import me.nuguri.common.enums.Gender;
@@ -54,19 +54,19 @@ public class CreatorApiController {
     /**
      * 저자 정보 페이징 조회
      *
-     * @param pagination page 페이지 번호, size 페이지 당 갯수, sort 정렬(방식,기준)
+     * @param pageableCondition page 페이지 번호, size 페이지 당 갯수, sort 정렬(방식,기준)
      * @param errors     에러
      * @return 응답
      */
     @GetMapping(value = "/api/v1/creators", produces = HAL_JSON_VALUE)
-    public ResponseEntity<?> queryCreators(CreatorSearchCondition condition, Pagination pagination, Errors errors) {
-        paginationValidator.validate(pagination, Creator.class, errors);
+    public ResponseEntity<?> queryCreators(CreatorSearchCondition condition, PageableCondition pageableCondition, Errors errors) {
+        paginationValidator.validate(pageableCondition, Creator.class, errors);
         if (errors.hasErrors()) {
             ErrorResponse errorResponse = new ErrorResponse(BAD_REQUEST, "invalid parameters", errors);
             return ResponseEntity.badRequest().body(errorResponse);
         }
 
-        Page<Creator> page = creatorService.pagingWithCondition(condition, pagination.getPageable());
+        Page<Creator> page = creatorService.pagingWithCondition(condition, pageableCondition.getPageable());
         if (page.getNumberOfElements() < 1) {
             String message = page.getTotalElements() < 1 ? "content of all pages does not exist" : "content of current page does not exist";
             ErrorResponse errorResponse = new ErrorResponse(NOT_FOUND, message);
@@ -76,7 +76,7 @@ public class CreatorApiController {
                 creator -> new QueryCreatorsResource(new GetCreatorResponse(creator)));
 
         WebMvcLinkBuilder builder = linkTo(methodOn(CreatorApiController.class).queryCreators(null, null, null));
-        queryCreatorsResources.addPaginationLink(builder, pagination, condition.paramsToMap());
+        queryCreatorsResources.addPaginationLink(builder, pageableCondition, condition.paramsToMap());
         queryCreatorsResources.add(linkTo(CreatorApiController.class).slash("/docs/creator.html").withRel("document"));
         return ResponseEntity.ok(queryCreatorsResources);
     }

@@ -1,14 +1,17 @@
-package me.nuguri.common.domain;
+package me.nuguri.common.dto;
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 import me.nuguri.common.serializer.ErrorsSerializer;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.Errors;
 
 import java.time.LocalDateTime;
 
-@Data
+@Getter
+@Setter
 public class ErrorResponse {
 
     private LocalDateTime timestamp = LocalDateTime.now();

@@ -1,6 +1,7 @@
-package me.nuguri.common.domain;
+package me.nuguri.common.dto;
 
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -8,8 +9,9 @@ import org.springframework.util.StringUtils;
 
 import java.util.Arrays;
 
-@Data
-public class Pagination {
+@Getter
+@Setter
+public class PageableCondition extends BaseSearchCondition {
 
     private String page;
 
