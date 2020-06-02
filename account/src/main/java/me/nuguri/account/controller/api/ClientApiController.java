@@ -4,22 +4,18 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import me.nuguri.account.annotation.TokenAuthenticationUser;
-import me.nuguri.account.service.AccountService;
 import me.nuguri.account.service.ClientService;
-import me.nuguri.common.dto.AccountAdapter;
+import me.nuguri.common.dto.BaseResponse;
 import me.nuguri.common.dto.ErrorResponse;
 import me.nuguri.common.entity.Account;
 import me.nuguri.common.entity.Client;
 import me.nuguri.common.enums.GrantType;
-import me.nuguri.common.enums.Role;
 import me.nuguri.common.enums.Scope;
-import org.modelmapper.ModelMapper;
 import org.springframework.hateoas.MediaTypes;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.oauth2.provider.OAuth2Authentication;
 import org.springframework.stereotype.Component;
 import org.springframework.validation.Errors;
 import org.springframework.web.bind.annotation.*;
@@ -27,7 +23,6 @@ import org.springframework.web.bind.annotation.*;
 import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotEmpty;
-import java.security.Principal;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
@@ -42,6 +37,9 @@ public class ClientApiController {
     private final ClientValidator clientValidator;
 
     @GetMapping("/api/v1/clients")
+    public ResponseEntity<?> queryClients() {
+        return null;
+    }
 
 //    @GetMapping("/api/v1/client/{id}")
 //    @PostMapping("/api/v1/client")
@@ -56,7 +54,11 @@ public class ClientApiController {
      * @param account 현재 인증 토큰 기반 인증 객체
      * @return
      */
-    @PostMapping(value = "/api/v1/client", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaTypes.HAL_JSON_VALUE)
+    @PostMapping(
+            value = "/api/v1/client",
+            consumes = MediaType.APPLICATION_JSON_VALUE,
+            produces = MediaTypes.HAL_JSON_VALUE
+    )
     @PreAuthorize("(hasRole('USER') or #oauth2.clientHasRole('USER')) and #oauth2.hasScope('write')")
     public ResponseEntity<?> generateClient(@RequestBody @Valid GenerateClientRequest request, Errors errors, @TokenAuthenticationUser Account account) {
         Client client = request.toClient(account);
@@ -97,7 +99,7 @@ public class ClientApiController {
 
     @Getter
     @Setter
-    public static class GenerateClientResponse {
+    public static class GenerateClientResponse extends BaseResponse {
         private String clientId;
         private String clientSecret;
         private List<String> resourceIds;

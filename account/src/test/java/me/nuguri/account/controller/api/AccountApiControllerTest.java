@@ -85,7 +85,9 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
                                 fieldWithPath("address.city").description("address city"),
                                 fieldWithPath("address.street").description("address street"),
                                 fieldWithPath("address.zipCode").description("address zipCode"),
-                                fieldWithPath("role").description("account role")
+                                fieldWithPath("role").description("account role"),
+                                fieldWithPath("created").description("account created date"),
+                                fieldWithPath("updated").description("account last updated date")
                         )
                         )
                 );
@@ -110,7 +112,6 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
         mockRestTemplate(HttpStatus.OK, accountService.find(properties.getAdminEmail()));
         mockMvc.perform(get("/api/v1/users")
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + getAccessToken())
-                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                 .accept(MediaTypes.HAL_JSON)
                 .queryParam("page", "2")
                 .queryParam("size", "10")
@@ -128,7 +129,6 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
                         ),
                         requestHeaders(
                                 headerWithName(HttpHeaders.AUTHORIZATION).description("bearer token"),
-                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type"),
                                 headerWithName(HttpHeaders.ACCEPT).description("Accept Header")
                         ),
                         responseHeaders(
@@ -148,6 +148,8 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
                                 fieldWithPath("_embedded.*[*].address.street").description("address street"),
                                 fieldWithPath("_embedded.*[*].address.zipCode").description("address zipCode"),
                                 fieldWithPath("_embedded.*[*].role").description("account role"),
+                                fieldWithPath("_embedded.*[*].created").description("account created date"),
+                                fieldWithPath("_embedded.*[*].updated").description("account last updated date"),
                                 fieldWithPath("_embedded.*[*]._links.getUser.href").description("getUser link"),
                                 fieldWithPath("_embedded.*[*]._links.updateUser.href").description("updateUser link"),
                                 fieldWithPath("_embedded.*[*]._links.mergeUser.href").description("mergeUser link"),
@@ -187,7 +189,6 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
         mockRestTemplate(HttpStatus.OK, accountService.find(properties.getAdminEmail()));
         mockMvc.perform(get("/api/v1/users")
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + getAccessToken())
-                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                 .accept(MediaTypes.HAL_JSON)
                 .queryParam("page", "1")
                 .queryParam("size", "10")
@@ -210,7 +211,6 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
     public void queryUsers_V1_Unauthorized_401() throws Exception {
         mockRestTemplate(HttpStatus.UNAUTHORIZED, null);
         mockMvc.perform(get("/api/v1/users")
-                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                 .header(HttpHeaders.AUTHORIZATION, "Bearer Invalid Token")
                 .accept(MediaTypes.HAL_JSON))
                 .andExpect(status().isUnauthorized())
@@ -222,7 +222,6 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
     public void queryUsers_V1_Forbidden_403() throws Exception {
         mockRestTemplate(HttpStatus.OK, accountService.find(properties.getUserEmail()));
         mockMvc.perform(get("/api/v1/users")
-                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + getAccessToken())
                 .accept(MediaTypes.HAL_JSON))
                 .andExpect(status().isForbidden())
@@ -235,7 +234,6 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
         generateAccounts();
         mockRestTemplate(HttpStatus.OK, accountService.find(properties.getAdminEmail()));
         mockMvc.perform(get("/api/v1/users")
-                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                 .queryParam("page", "18723671")
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + getAccessToken())
                 .accept(MediaTypes.HAL_JSON))
@@ -249,7 +247,6 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
     public void queryUsers_V1_Invalid_Params_400(String page, String size, String sort) throws Exception {
         mockRestTemplate(HttpStatus.OK, accountService.find(properties.getAdminEmail()));
         mockMvc.perform(get("/api/v1/users")
-                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + getAccessToken())
                 .accept(MediaTypes.HAL_JSON)
                 .queryParam("page", page)
@@ -260,9 +257,9 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
     }
 
     @Test
-    @DisplayName("관리자가 유저 정보 성공적으로 얻는 경우")
+    @DisplayName("유저 정보 성공적으로 얻는 경우")
     public void getUser_V1_Admin_Success_200() throws Exception {
-        mockRestTemplate(HttpStatus.OK, accountService.find(properties.getAdminEmail()));
+        mockRestTemplate(HttpStatus.OK, accountService.find(properties.getUserEmail()));
         mockMvc.perform(get("/api/v1/user/{id}", accountService.find(properties.getUserEmail()).getId())
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + getAccessToken())
                 .accept(MediaTypes.HAL_JSON))
@@ -308,21 +305,12 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
                                 fieldWithPath("address.city").description("address city"),
                                 fieldWithPath("address.street").description("address street"),
                                 fieldWithPath("address.zipCode").description("address zipCode"),
-                                fieldWithPath("role").description("account role")
+                                fieldWithPath("role").description("account role"),
+                                fieldWithPath("created").description("account created date"),
+                                fieldWithPath("updated").description("account last updated date")
                         )
                         )
                 );
-    }
-
-    @Test
-    @DisplayName("사용자 자신의 유저 정보 성공적으로 얻는 경우")
-    public void getUser_V1_User_Success_200() throws Exception {
-        mockRestTemplate(HttpStatus.OK, accountService.find(properties.getUserEmail()));
-        mockMvc.perform(get("/api/v1/user/{id}", accountService.find(properties.getUserEmail()).getId())
-                .header(HttpHeaders.AUTHORIZATION, "Bearer " + getAccessToken())
-                .accept(MediaTypes.HAL_JSON))
-                .andDo(print())
-                .andExpect(status().isOk());
     }
 
     @Test
@@ -446,7 +434,9 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
                                 fieldWithPath("address.city").description("address city"),
                                 fieldWithPath("address.street").description("address street"),
                                 fieldWithPath("address.zipCode").description("address zipCode"),
-                                fieldWithPath("role").description("account role")
+                                fieldWithPath("role").description("account role"),
+                                fieldWithPath("created").description("account created date"),
+                                fieldWithPath("updated").description("account last updated date")
                         )
                         )
                 );
@@ -565,11 +555,12 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
                                 fieldWithPath("address.city").description("address city"),
                                 fieldWithPath("address.street").description("address street"),
                                 fieldWithPath("address.zipCode").description("address zipCode"),
-                                fieldWithPath("role").description("account role")
+                                fieldWithPath("role").description("account role"),
+                                fieldWithPath("created").description("account created date"),
+                                fieldWithPath("updated").description("account last updated date")
                         )
                         )
                 );
-        ;
 
         Account updated = accountService.find(properties.getUserEmail());
         assertEquals(name, updated.getName());
@@ -710,7 +701,9 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
                                 fieldWithPath("address.city").description("address city"),
                                 fieldWithPath("address.street").description("address street"),
                                 fieldWithPath("address.zipCode").description("address zipCode"),
-                                fieldWithPath("role").description("account role")
+                                fieldWithPath("role").description("account role"),
+                                fieldWithPath("created").description("account created date"),
+                                fieldWithPath("updated").description("account last updated date")
                         )
                         )
                 );

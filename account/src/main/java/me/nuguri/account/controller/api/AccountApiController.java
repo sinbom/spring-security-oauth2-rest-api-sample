@@ -8,6 +8,7 @@ import me.nuguri.account.annotation.HasAuthority;
 import me.nuguri.account.annotation.TokenAuthenticationUser;
 import me.nuguri.account.dto.AccountSearchCondition;
 import me.nuguri.account.service.AccountService;
+import me.nuguri.common.dto.BaseResponse;
 import me.nuguri.common.dto.ErrorResponse;
 import me.nuguri.common.entity.Account;
 import me.nuguri.common.entity.Address;
@@ -72,7 +73,6 @@ public class AccountApiController {
      */
     @GetMapping(
             value = "/api/v1/users",
-            consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
             produces = MediaTypes.HAL_JSON_VALUE
     )// clientHasRole은 접두어 ROLE_ 없을때 허가, 즉 client_credentails일 때 허가, 하지만 client detail service 직접 구현후 접두어 붙혀줄 수 있음
     @PreAuthorize("(hasRole('ADMIN') or #oauth2.clientHasRole('ADMIN')) and #oauth2.hasScope('read')")
@@ -276,7 +276,7 @@ public class AccountApiController {
 
     @Getter
     @Setter
-    public static class GetUserResponse {
+    public static class GetUserResponse extends BaseResponse {
         private Long id;
         private String email;
         private String name;

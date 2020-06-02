@@ -8,7 +8,7 @@ import java.time.LocalDate;
 
 @Getter
 @Setter
-public abstract class BaseSearchCondition {
+public class BaseSearchCondition {
 
     /** 등록 날짜 검색 시작 날짜*/
     @DateTimeFormat(pattern = "yyyy-MM-dd")
