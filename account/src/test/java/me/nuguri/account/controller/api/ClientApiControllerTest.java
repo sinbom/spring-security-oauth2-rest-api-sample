@@ -153,9 +153,6 @@ public class ClientApiControllerTest extends BaseIntegrationTest {
                 .andDo(print());
     }
 
-
-
-
     @Test
     @DisplayName("클라이언트 생성 성공적인 경우")
     public void generateClient_V1_Success_200() throws Exception {

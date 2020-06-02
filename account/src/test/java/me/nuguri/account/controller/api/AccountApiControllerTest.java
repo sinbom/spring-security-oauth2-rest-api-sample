@@ -360,7 +360,7 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
 
     @Test
     @DisplayName("유저 정보 존재하지 않는 식별자로 얻지 못하는 경우")
-    public void getUser_No_Exist_404() throws Exception {
+    public void getUser_NotFound_404() throws Exception {
         mockRestTemplate(HttpStatus.OK, accountService.find(properties.getAdminEmail()));
         mockMvc.perform(get("/api/v1/user/{id}", "1928361836")
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + getAccessToken())
