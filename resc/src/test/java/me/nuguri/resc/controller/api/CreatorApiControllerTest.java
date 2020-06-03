@@ -379,6 +379,30 @@ public class CreatorApiControllerTest extends BaseIntegrationTest {
     }
 
     @Test
+    @DisplayName("저자 전체 수정 존재하지 않아서 생성하는 경우")
+    public void mergeCreator_V1_Success_201() throws Exception {
+        mockRestTemplate(HttpStatus.OK);
+        CreatorApiController.GenerateCreatorRequest request = new CreatorApiController.GenerateCreatorRequest();
+        String name = "TEST";
+        Gender gender = Gender.F;
+        LocalDate birth = LocalDate.of(1996, 9, 17);
+        LocalDate death = LocalDate.now();
+
+        request.setName(name);
+        request.setGender(gender);
+        request.setBirth(birth);
+        request.setDeath(death);
+
+        mockMvc.perform(put("/api/v1/creator/{id}", 123641564)
+                .accept(MediaTypes.HAL_JSON)
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + getAccessToken())
+                .content(objectMapper.writeValueAsString(request))
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isCreated())
+                .andDo(print());
+    }
+
+    @Test
     @DisplayName("저자 전체 수정 잘못된 엑세스 토큰으로 실패하는 경우")
     public void mergeCreator_V1_Unauthorized_401() throws Exception {
         mockRestTemplate(HttpStatus.UNAUTHORIZED);
@@ -399,30 +423,6 @@ public class CreatorApiControllerTest extends BaseIntegrationTest {
                 .content(objectMapper.writeValueAsString(request))
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isUnauthorized())
-                .andDo(print());
-    }
-
-    @Test
-    @DisplayName("저자 전체 수정 존재하지 않아서 생성하는 경우")
-    public void mergeCreator_V1_NotFound_201() throws Exception {
-        mockRestTemplate(HttpStatus.OK);
-        CreatorApiController.GenerateCreatorRequest request = new CreatorApiController.GenerateCreatorRequest();
-        String name = "TEST";
-        Gender gender = Gender.F;
-        LocalDate birth = LocalDate.of(1996, 9, 17);
-        LocalDate death = LocalDate.now();
-
-        request.setName(name);
-        request.setGender(gender);
-        request.setBirth(birth);
-        request.setDeath(death);
-
-        mockMvc.perform(put("/api/v1/creator/{id}", 123641564)
-                .accept(MediaTypes.HAL_JSON)
-                .header(HttpHeaders.AUTHORIZATION, "Bearer " + getAccessToken())
-                .content(objectMapper.writeValueAsString(request))
-                .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isCreated())
                 .andDo(print());
     }
 

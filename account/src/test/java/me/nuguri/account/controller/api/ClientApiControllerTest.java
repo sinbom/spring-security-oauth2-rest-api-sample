@@ -21,8 +21,7 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.IntStream;
 
-import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.get;
-import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.post;
+import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -155,7 +154,7 @@ public class ClientApiControllerTest extends BaseIntegrationTest {
 
     @Test
     @DisplayName("클라이언트 생성 성공적인 경우")
-    public void generateClient_V1_Success_200() throws Exception {
+    public void generateClient_V1_Success_201() throws Exception {
         mockRestTemplate(HttpStatus.OK, accountService.find(properties.getUserEmail()));
         ClientApiController.GenerateClientRequest request = new ClientApiController.GenerateClientRequest();
         String redirectUri = "https://www.naver.com";
@@ -168,7 +167,7 @@ public class ClientApiControllerTest extends BaseIntegrationTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaTypes.HAL_JSON)
                 .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isOk())
+                .andExpect(status().isCreated())
                 .andDo(print())
                 .andExpect(jsonPath("redirectUri").value(redirectUri))
                 .andExpect(jsonPath("resourceIds[0]").value(resourceIds.get(0)))
@@ -193,6 +192,7 @@ public class ClientApiControllerTest extends BaseIntegrationTest {
                 .andExpect(status().isUnauthorized())
                 .andDo(print());
     }
+
 
 /*    @Test
     @DisplayName("클라이언트 생성 권한 없어서 실패하는 경우")
@@ -230,6 +230,252 @@ public class ClientApiControllerTest extends BaseIntegrationTest {
                 .accept(MediaTypes.HAL_JSON)
                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest())
+                .andDo(print());
+    }
+
+    @Test
+    @DisplayName("클라이언트 부분 수정 성공적인 경우")
+    public void updateClient_V1_Success_200() throws Exception {
+        mockRestTemplate(HttpStatus.OK, accountService.find(properties.getUserEmail()));
+        ClientApiController.GenerateClientRequest request = new ClientApiController.GenerateClientRequest();
+        String redirectUri = "https://www.test.com";
+        request.setRedirectUri(redirectUri);
+        List<String> resourceIds = Arrays.asList("account", "nuguri");
+        request.setResourceIds(resourceIds);
+
+        mockMvc.perform(patch("/api/v1/client/{id}", accountService.find(properties.getUserEmail()).getId())
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + getAccessToken())
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaTypes.HAL_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk())
+                .andDo(print());
+    }
+
+    @Test
+    @DisplayName("클라이언트 부분 수정 유효하지 않은 토큰으로 실패하는 경우")
+    public void updateClient_V1_Unauthorized_401() throws Exception {
+        mockRestTemplate(HttpStatus.UNAUTHORIZED, null);
+        ClientApiController.GenerateClientRequest request = new ClientApiController.GenerateClientRequest();
+        String redirectUri = "https://www.test.com";
+        request.setRedirectUri(redirectUri);
+        List<String> resourceIds = Arrays.asList("account", "nuguri");
+        request.setResourceIds(resourceIds);
+
+        mockMvc.perform(patch("/api/v1/client/{id}", accountService.find(properties.getAdminEmail()).getId())
+                .header(HttpHeaders.AUTHORIZATION, "Bearer Invalid Token")
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaTypes.HAL_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isUnauthorized())
+                .andDo(print());
+    }
+
+    @Test
+    @DisplayName("클라이언트 부분 수정 권한 없어서 실패하는 경우")
+    public void updateClient_V1_Forbidden_403() throws Exception {
+        mockRestTemplate(HttpStatus.OK, accountService.find(properties.getUserEmail()));
+        ClientApiController.GenerateClientRequest request = new ClientApiController.GenerateClientRequest();
+        String redirectUri = "https://www.test.com";
+        request.setRedirectUri(redirectUri);
+        List<String> resourceIds = Arrays.asList("account", "nuguri");
+        request.setResourceIds(resourceIds);
+
+        mockMvc.perform(patch("/api/v1/client/{id}", accountService.find(properties.getAdminEmail()).getId())
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + getAccessToken())
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaTypes.HAL_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isForbidden())
+                .andDo(print());
+    }
+
+    @Test
+    @DisplayName("클라이언트 부분 수정 유효하지 않은 입력 값으로 실패하는 경우")
+    public void updateClient_V1_Invalid_400() throws Exception {
+        mockRestTemplate(HttpStatus.OK, accountService.find(properties.getUserEmail()));
+        ClientApiController.GenerateClientRequest request = new ClientApiController.GenerateClientRequest();
+        String redirectUri = "asdsadsad";
+        request.setRedirectUri(redirectUri);
+        List<String> resourceIds = Arrays.asList("account", "nuguri");
+        request.setResourceIds(resourceIds);
+
+        mockMvc.perform(patch("/api/v1/client/{id}", accountService.find(properties.getUserEmail()).getId())
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + getAccessToken())
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaTypes.HAL_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest())
+                .andDo(print());
+    }
+
+    @Test
+    @DisplayName("클라이언트 부분 수정 성공적인 경우")
+    public void updateClient_V1_NotFound_404() throws Exception {
+        mockRestTemplate(HttpStatus.OK, accountService.find(properties.getUserEmail()));
+        ClientApiController.GenerateClientRequest request = new ClientApiController.GenerateClientRequest();
+        String redirectUri = "https://www.test.com";
+        request.setRedirectUri(redirectUri);
+        List<String> resourceIds = Arrays.asList("account", "nuguri");
+        request.setResourceIds(resourceIds);
+
+        mockMvc.perform(patch("/api/v1/client/{id}", "12312343")
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + getAccessToken())
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaTypes.HAL_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isNotFound())
+                .andDo(print());
+    }
+
+    @Test
+    @DisplayName("클라이언트 전체 수정 성공하는 경우")
+    public void mergeClient_V1_Success_200() throws Exception {
+        mockRestTemplate(HttpStatus.OK, accountService.find(properties.getUserEmail()));
+        ClientApiController.GenerateClientRequest request = new ClientApiController.GenerateClientRequest();
+        String redirectUri = "https://www.test.com";
+        request.setRedirectUri(redirectUri);
+        List<String> resourceIds = Arrays.asList("account", "nuguri");
+        request.setResourceIds(resourceIds);
+
+        mockMvc.perform(put("/api/v1/client/{id}", accountService.find(properties.getUserEmail()).getId())
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + getAccessToken())
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaTypes.HAL_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk())
+                .andDo(print());
+    }
+
+    @Test
+    @DisplayName("클라이언트 전체 수정 존재하지 않아서 생성하는 경우")
+    public void mergeClient_V1_Success_201() throws Exception {
+        mockRestTemplate(HttpStatus.OK, accountService.find(properties.getUserEmail()));
+        ClientApiController.GenerateClientRequest request = new ClientApiController.GenerateClientRequest();
+        String redirectUri = "https://www.test.com";
+        request.setRedirectUri(redirectUri);
+        List<String> resourceIds = Arrays.asList("account", "nuguri");
+        request.setResourceIds(resourceIds);
+
+        mockMvc.perform(put("/api/v1/client/{id}", "1231123")
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + getAccessToken())
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaTypes.HAL_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isCreated())
+                .andDo(print());
+    }
+
+
+    @Test
+    @DisplayName("클라이언트 전체 수정 유효하지 않은 토큰으로 실패하는 경우")
+    public void mergeClient_V1_Unauthorized_401() throws Exception {
+        mockRestTemplate(HttpStatus.UNAUTHORIZED, null);
+        ClientApiController.GenerateClientRequest request = new ClientApiController.GenerateClientRequest();
+        String redirectUri = "https://www.test.com";
+        request.setRedirectUri(redirectUri);
+        List<String> resourceIds = Arrays.asList("account", "nuguri");
+        request.setResourceIds(resourceIds);
+
+        mockMvc.perform(put("/api/v1/client/{id}", accountService.find(properties.getUserEmail()).getId())
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + getAccessToken())
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaTypes.HAL_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isUnauthorized())
+                .andDo(print());
+    }
+
+    @Test
+    @DisplayName("클라이언트 전체 수정 권한 없어서 실패하는 경우")
+    public void mergeClient_V1_Forbidden_403() throws Exception {
+        mockRestTemplate(HttpStatus.OK, accountService.find(properties.getUserEmail()));
+        ClientApiController.GenerateClientRequest request = new ClientApiController.GenerateClientRequest();
+        String redirectUri = "https://www.test.com";
+        request.setRedirectUri(redirectUri);
+        List<String> resourceIds = Arrays.asList("account", "nuguri");
+        request.setResourceIds(resourceIds);
+
+        mockMvc.perform(put("/api/v1/client/{id}", accountService.find(properties.getAdminEmail()).getId())
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + getAccessToken())
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaTypes.HAL_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isForbidden())
+                .andDo(print());
+    }
+
+    @Test
+    @DisplayName("클라이언트 전체 수정 유효하지 않은 입력 값으로 실패하는 경우")
+    public void mergeClient_V1_Invalid_400() throws Exception {
+        mockRestTemplate(HttpStatus.OK, accountService.find(properties.getUserEmail()));
+        ClientApiController.GenerateClientRequest request = new ClientApiController.GenerateClientRequest();
+        String redirectUri = "sad";
+        request.setRedirectUri(redirectUri);
+        List<String> resourceIds = Arrays.asList("account", "nuguri");
+        request.setResourceIds(resourceIds);
+
+        mockMvc.perform(put("/api/v1/client/{id}", accountService.find(properties.getUserEmail()).getId())
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + getAccessToken())
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaTypes.HAL_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest())
+                .andDo(print());
+    }
+
+    @Test
+    @DisplayName("클라이언트 삭제 성공하는 경우")
+    public void deleteClient_V1_Success_200() throws Exception {
+        mockRestTemplate(HttpStatus.OK, accountService.find(properties.getUserEmail()));
+        mockMvc.perform(put("/api/v1/client/{id}", accountService.find(properties.getUserEmail()).getId())
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + getAccessToken())
+                .accept(MediaTypes.HAL_JSON))
+                .andExpect(status().isOk())
+                .andDo(print());
+    }
+
+    @Test
+    @DisplayName("클라이언트 삭제 유효하지 않은 토큰으로 실패하는 경우")
+    public void deleteClient_V1_Unauthorized_401() throws Exception {
+        mockRestTemplate(HttpStatus.UNAUTHORIZED, null);
+        mockMvc.perform(put("/api/v1/client/{id}", accountService.find(properties.getUserEmail()).getId())
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + getAccessToken())
+                .accept(MediaTypes.HAL_JSON))
+                .andExpect(status().isUnauthorized())
+                .andDo(print());
+    }
+
+    @Test
+    @DisplayName("클라이언트 삭제 성공하는 경우")
+    public void deleteClient_V1_Forbidden_403() throws Exception {
+        mockRestTemplate(HttpStatus.OK, accountService.find(properties.getUserEmail()));
+        mockMvc.perform(put("/api/v1/client/{id}", accountService.find(properties.getAdminEmail()).getId())
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + getAccessToken())
+                .accept(MediaTypes.HAL_JSON))
+                .andExpect(status().isForbidden())
+                .andDo(print());
+    }
+
+    @Test
+    @DisplayName("클라이언트 삭제 유효하지 않은 입력 값으로 실패하는 경우")
+    public void deleteClient_V1_Invalid_400() throws Exception {
+        mockRestTemplate(HttpStatus.OK, accountService.find(properties.getUserEmail()));
+        mockMvc.perform(put("/api/v1/client/{id}", "asdsad")
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + getAccessToken())
+                .accept(MediaTypes.HAL_JSON))
+                .andExpect(status().isBadRequest())
+                .andDo(print());
+    }
+
+    @Test
+    @DisplayName("클라이언트 삭제 존재하지 않아서 실패하는 경우")
+    public void deleteClient_V1_NotFound_404() throws Exception {
+        mockRestTemplate(HttpStatus.OK, accountService.find(properties.getUserEmail()));
+        mockMvc.perform(put("/api/v1/client/{id}", "1231233")
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + getAccessToken())
+                .accept(MediaTypes.HAL_JSON))
+                .andExpect(status().isNotFound())
                 .andDo(print());
     }
 
