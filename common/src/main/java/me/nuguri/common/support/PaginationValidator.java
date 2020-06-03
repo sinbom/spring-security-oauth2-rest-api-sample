@@ -1,4 +1,4 @@
-package me.nuguri.common.validator;
+package me.nuguri.common.support;
 
 import me.nuguri.common.dto.PageableCondition;
 import org.springframework.util.StringUtils;
@@ -6,13 +6,6 @@ import org.springframework.validation.Errors;
 
 public class PaginationValidator {
 
-    /**
-     * page, size 및 페이징 엔티티 도메인 프로퍼티로 sort 검증
-     * @param pageable page 페이지 번호, size 페이지 사이즈, sort 정렬 방식
-     * @param entityType 페이징 객체 엔티티 타입 클래스
-     * @param errors 에러
-     * @param <T> 페이징 객체 엔티티 타입
-     */
     /**
      * Pagination 도메인 condition 값 중 페이지, 페이지 사이즈, 정렬 방식 검증
      * @param pageableCondition page 페이지 번호, size 페이지 사이즈, sort 정렬 방식

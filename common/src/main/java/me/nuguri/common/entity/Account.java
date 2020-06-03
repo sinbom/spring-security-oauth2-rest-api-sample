@@ -1,8 +1,6 @@
 package me.nuguri.common.entity;
 
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 import me.nuguri.common.enums.Gender;
 import me.nuguri.common.enums.Role;
 
@@ -18,6 +16,7 @@ import java.util.Set;
 @Entity
 @Getter
 @Setter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @EqualsAndHashCode(of ="id", callSuper = false)
 public class Account extends BaseEntity implements Serializable {
 
@@ -62,5 +61,16 @@ public class Account extends BaseEntity implements Serializable {
     /** 주문 목록 */
     @OneToMany(mappedBy = "account", cascade = CascadeType.ALL)
     private List<Order> orders = new ArrayList<>();
+
+    @Builder
+    protected Account(Long id, String email, String password, String name, Gender gender, Address address, Role role) {
+        this.id = id;
+        this.email = email;
+        this.password = password;
+        this.name = name;
+        this.gender = gender;
+        this.address = address;
+        this.role = role;
+    }
 
 }

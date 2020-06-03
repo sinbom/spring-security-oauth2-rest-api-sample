@@ -328,13 +328,14 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
     @DisplayName("사용자가 자신의 유저 정보가 아닌 다른 정보를 얻지 못하는 경우")
     public void getUser_V1_User_Forbidden_403() throws Exception {
         mockRestTemplate(HttpStatus.OK, accountService.find(properties.getUserEmail()));
-        Account account = new Account();
-        account.setName("테스트");
-        account.setEmail("bvcncvbncvnbt@test.com");
-        account.setPassword("test");
-        account.setGender(Gender.F);
-        account.setAddress(new Address("경기도 과천시", "부림2길 76 2층", "13830"));
-        account.setRole(Role.USER);
+        Account account = Account.builder()
+                .name("테스트")
+                .email("bvcncvbncvnbt@test.com")
+                .password("test")
+                .gender(Gender.F)
+                .address(new Address("경기도 과천시", "부림2길 76 2층", "13830"))
+                .role(Role.USER)
+                .build();
 
         mockMvc.perform(get("/api/v1/user/{id}", accountService.generate(account).getId())
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + getAccessToken())
@@ -880,13 +881,14 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
      */
     private void generateAccounts() {
         IntStream.range(0, 30).forEach(n -> {
-                    Account account = new Account();
-                    account.setName("테스트" + n);
-                    account.setEmail(UUID.randomUUID().toString() + "@test.com");
-                    account.setPassword("test");
-                    account.setGender(n % 2 == 0 ? Gender.M : Gender.F);
-                    account.setAddress(new Address("경기도 과천시", "부림2길 76 2층", "13830"));
-                    account.setRole(n % 2 == 0 ? Role.USER : Role.ADMIN);
+                    Account account = Account.builder()
+                            .name("테스트" + n)
+                            .email(UUID.randomUUID().toString() + "@test.com")
+                            .password("test")
+                            .gender(n % 2 == 0 ? Gender.M : Gender.F)
+                            .address(new Address("경기도 과천시", "부림2길 76 2층", "13830"))
+                            .role(n % 2 == 0 ? Role.USER : Role.ADMIN)
+                            .build();
                     accountService.generate(account);
                 }
         );

@@ -1,8 +1,6 @@
 package me.nuguri.common.entity;
 
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 import me.nuguri.common.enums.DeliveryStatus;
 
 import javax.persistence.*;
@@ -10,6 +8,9 @@ import javax.persistence.*;
 @Entity
 @Getter
 @Setter
+@Builder
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor(access = AccessLevel.PROTECTED)
 @EqualsAndHashCode(of = "id")
 public class Delivery {
 

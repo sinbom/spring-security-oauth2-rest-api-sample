@@ -1,7 +1,7 @@
 package me.nuguri.common.config;
 
-import me.nuguri.common.initializer.EntityInitializer;
-import me.nuguri.common.validator.PaginationValidator;
+import me.nuguri.common.support.EntityInitializer;
+import me.nuguri.common.support.PaginationValidator;
 import org.modelmapper.ModelMapper;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;

@@ -14,7 +14,7 @@ import me.nuguri.common.entity.Account;
 import me.nuguri.common.entity.Address;
 import me.nuguri.common.enums.Gender;
 import me.nuguri.common.enums.Role;
-import me.nuguri.common.validator.PaginationValidator;
+import me.nuguri.common.support.PaginationValidator;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.web.PagedResourcesAssembler;

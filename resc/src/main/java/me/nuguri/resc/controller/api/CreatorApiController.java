@@ -11,7 +11,7 @@ import me.nuguri.common.dto.PageableCondition;
 import me.nuguri.common.entity.Book;
 import me.nuguri.common.entity.Creator;
 import me.nuguri.common.enums.Gender;
-import me.nuguri.common.validator.PaginationValidator;
+import me.nuguri.common.support.PaginationValidator;
 import me.nuguri.resc.domain.CreatorSearchCondition;
 import me.nuguri.resc.service.CreatorService;
 import org.modelmapper.ModelMapper;

@@ -1,8 +1,7 @@
 package me.nuguri.common.entity;
 
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
+import lombok.experimental.SuperBuilder;
 import me.nuguri.common.enums.ProductType;
 
 import javax.persistence.*;
@@ -17,8 +16,9 @@ import java.util.List;
 @DiscriminatorColumn(name = "PTYPE", length = 1)
 @Getter
 @Setter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @EqualsAndHashCode(of = "id", callSuper = false)
-public class Product extends BaseEntity{
+public abstract class Product extends BaseEntity {
 
     /** 식별키 */
     @Id
@@ -51,6 +51,15 @@ public class Product extends BaseEntity{
     /** 카테고리  */
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL)
     private List<ProductCategory> productCategories = new ArrayList<>();
+
+    protected Product(Long id, String name, int price, int stockCount, Creator creator, Company company) {
+        this.id = id;
+        this.name = name;
+        this.price = price;
+        this.stockCount = stockCount;
+        this.addCreator(creator);
+        this.addCompany(company);
+    }
 
     /**
      * 양방향 관계 설정

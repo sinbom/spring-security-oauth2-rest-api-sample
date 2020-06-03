@@ -1,8 +1,6 @@
 package me.nuguri.common.entity;
 
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 import javax.persistence.*;
 
@@ -12,6 +10,7 @@ import javax.persistence.*;
 @Entity
 @Getter
 @Setter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @EqualsAndHashCode(of = "id", callSuper = false)
 public class OrderProduct {
 
@@ -23,13 +22,21 @@ public class OrderProduct {
     /** 슈량 */
     private int count;
 
-    /** 상품 */
+    /** 상품 (단방향)*/
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
     private Product product;
 
     /** 주문 */
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
     private Order order;
+
+    @Builder
+    protected OrderProduct(Long id, int count, Product product, Order order) {
+        this.id = id;
+        this.count = count;
+        this.product = product;
+        this.addOrder(order);
+    }
 
     /**
      * 양방향 관계 설정

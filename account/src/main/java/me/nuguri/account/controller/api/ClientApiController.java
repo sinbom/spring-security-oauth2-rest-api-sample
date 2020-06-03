@@ -18,7 +18,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Component;
 import org.springframework.validation.Errors;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
@@ -49,8 +52,9 @@ public class ClientApiController {
 
     /**
      * 클라이언트 정보 생성
+     *
      * @param request resourceIds 접근 리소스, redirectUri 리다이렉트 uri
-     * @param errors 에러
+     * @param errors  에러
      * @param account 현재 인증 토큰 기반 인증 객체
      * @return
      */
@@ -84,16 +88,16 @@ public class ClientApiController {
         private String redirectUri;
 
         public Client toClient(Account account) {
-            Client client = new Client();
-            client.setClientId(UUID.randomUUID().toString());
-            client.setClientSecret(UUID.randomUUID().toString());
-            client.setGrantTypes(GrantType.AUTHORIZATION_CODE.toString());
-            client.setAuthorities(account.getRole().toString());
-            client.setScope(String.join(",", Scope.READ.toString(), Scope.WRITE.toString()));
-            client.setRedirectUri(redirectUri);
-            client.setResourceIds(String.join(",", resourceIds));
-            client.setAccount(account);
-            return client;
+            return Client.builder()
+                    .clientId(UUID.randomUUID().toString())
+                    .clientSecret(UUID.randomUUID().toString())
+                    .grantTypes(GrantType.AUTHORIZATION_CODE.toString())
+                    .authorities(account.getRole().toString())
+                    .scope(String.join(",", Scope.READ.toString(), Scope.WRITE.toString()))
+                    .redirectUri(redirectUri)
+                    .resourceIds(String.join(",", resourceIds))
+                    .account(account)
+                    .build();
         }
     }
 
@@ -122,13 +126,14 @@ public class ClientApiController {
             this.redirectUri = client.getRedirectUri();
         }
     }
+
     // ==========================================================================================================================================
     // Validator
     @Component
     public static class ClientValidator {
         public void validate(Client client, Errors errors) {
             if (!Pattern.matches("^(http|https)://.*$", client.getRedirectUri())) {
-                errors.rejectValue("redirectUri", "wrong value" ,"redirec uri is must be starts with http or https");
+                errors.rejectValue("redirectUri", "wrong value", "redirec uri is must be starts with http or https");
             }
         }
     }

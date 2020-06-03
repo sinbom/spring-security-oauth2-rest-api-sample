@@ -1,8 +1,6 @@
 package me.nuguri.common.entity;
 
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 import javax.persistence.*;
 
@@ -12,6 +10,7 @@ import javax.persistence.*;
 @Entity
 @Getter
 @Setter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @EqualsAndHashCode(of = "id", callSuper = false)
 public class ProductCategory extends BaseEntity {
 
@@ -22,17 +21,24 @@ public class ProductCategory extends BaseEntity {
 
     /** 카테고리 */
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
-    private MinorCategory category;
+    private Category category;
 
     /** 책 */
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
     private Product product;
 
+    @Builder
+    protected ProductCategory(Long id, Category category, Product product) {
+        this.id = id;
+        this.addCategory(category);
+        this.addProduct(product);
+    }
+
     /**
      * 양방향 관계 설정
      * @param category 카테고리
      */
-    public void addMinorCategory(MinorCategory category) {
+    public void addCategory(Category category) {
         this.category = category;
         category.getProductCategories().add(this);
     }

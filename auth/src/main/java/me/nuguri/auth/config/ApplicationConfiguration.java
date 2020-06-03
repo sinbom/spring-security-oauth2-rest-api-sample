@@ -1,8 +1,7 @@
 package me.nuguri.auth.config;
 
 import lombok.RequiredArgsConstructor;
-import me.nuguri.common.initializer.EntityInitializer;
-import org.springframework.beans.factory.annotation.Required;
+import me.nuguri.common.support.EntityInitializer;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
@@ -10,17 +9,13 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
-import org.springframework.security.oauth2.provider.token.AccessTokenConverter;
 import org.springframework.security.oauth2.provider.token.TokenStore;
-import org.springframework.security.oauth2.provider.token.store.JdbcTokenStore;
 import org.springframework.security.oauth2.provider.token.store.JwtAccessTokenConverter;
 import org.springframework.security.oauth2.provider.token.store.JwtTokenStore;
 import org.springframework.security.oauth2.provider.token.store.KeyStoreKeyFactory;
 
 import javax.persistence.EntityManager;
-import javax.sql.DataSource;
 import java.security.KeyPair;
-import java.security.KeyStore;
 
 @Configuration
 @RequiredArgsConstructor

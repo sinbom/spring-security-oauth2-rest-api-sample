@@ -13,10 +13,13 @@ import java.util.Arrays;
 @Setter
 public class PageableCondition extends BaseSearchCondition {
 
+    /** 페이지 */
     private String page;
 
+    /** 사이즈 */
     private String size;
 
+     /** 정렬 */
     private String sort;
 
     public Pageable getPageable() {

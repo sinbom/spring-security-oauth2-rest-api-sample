@@ -3,7 +3,7 @@ package me.nuguri.auth.common;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import me.nuguri.auth.property.AuthServerConfigProperties;
 import me.nuguri.common.enums.GrantType;
-import me.nuguri.common.initializer.EntityInitializer;
+import me.nuguri.common.support.EntityInitializer;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,8 +16,6 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
 import javax.persistence.EntityManager;
 
 import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.post;

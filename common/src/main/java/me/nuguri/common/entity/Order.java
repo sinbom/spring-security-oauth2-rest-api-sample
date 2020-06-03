@@ -1,8 +1,6 @@
 package me.nuguri.common.entity;
 
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 import javax.persistence.*;
 import java.util.ArrayList;
@@ -12,6 +10,7 @@ import java.util.List;
 @Table(name = "orders")
 @Getter
 @Setter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @EqualsAndHashCode(of = "id", callSuper = false)
 public class Order extends BaseEntity {
 
@@ -20,7 +19,7 @@ public class Order extends BaseEntity {
     @GeneratedValue
     private Long id;
 
-    /** 배송 */
+    /** 배송 (단방향)*/
     @OneToOne(optional = false, fetch = FetchType.LAZY)
     private Delivery delivery;
 
@@ -31,6 +30,13 @@ public class Order extends BaseEntity {
     /** 주문 목록 */
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL)
     private List<OrderProduct> orderProducts = new ArrayList<>();
+
+    @Builder
+    protected Order(Long id, Delivery delivery, Account account) {
+        this.id = id;
+        this.delivery = delivery;
+        this.addAccount(account);
+    }
 
     /**
      * 양방향 관계 설정

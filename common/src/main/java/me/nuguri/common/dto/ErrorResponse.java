@@ -1,10 +1,9 @@
 package me.nuguri.common.dto;
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
-import me.nuguri.common.serializer.ErrorsSerializer;
+import me.nuguri.common.support.ErrorsSerializer;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.Errors;
 
@@ -14,14 +13,19 @@ import java.time.LocalDateTime;
 @Setter
 public class ErrorResponse {
 
+    /** 응답 시간 */
     private LocalDateTime timestamp = LocalDateTime.now();
 
+    /** 상태 값 */
     private int status;
 
+    /** 에러 코드 */
     private String error;
 
+    /** 에러 메시지 */
     private String message;
 
+    /** 에러 상세 정보 */
     @JsonSerialize(using = ErrorsSerializer.class)
     private Errors errors;
 

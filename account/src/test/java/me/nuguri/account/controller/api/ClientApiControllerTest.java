@@ -481,18 +481,19 @@ public class ClientApiControllerTest extends BaseIntegrationTest {
 
     private void generateClients() {
         Account account = accountService.find(properties.getAdminEmail());
-        IntStream.range(0, 30).forEach(n -> {
-            Client client = new Client();
-            client.setClientId(UUID.randomUUID().toString());
-            client.setClientSecret(UUID.randomUUID().toString());
-            client.setGrantTypes(GrantType.AUTHORIZATION_CODE.toString());
-            client.setAuthorities(account.getRole().toString());
-            client.setScope(String.join(",", Scope.READ.toString(), Scope.WRITE.toString()));
-            client.setRedirectUri("https://www.test.com");
-            client.setResourceIds(String.join(",", "account", "nuguri"));
-            client.addAccount(account);
-            clientService.generate(client);
-        });
+        IntStream.range(0, 30).forEach(n -> clientService.generate(
+                Client.builder()
+                        .clientId(UUID.randomUUID().toString())
+                        .clientSecret(UUID.randomUUID().toString())
+                        .grantTypes(GrantType.AUTHORIZATION_CODE.toString())
+                        .authorities(account.getRole().toString())
+                        .scope(String.join(",", Scope.READ.toString(), Scope.WRITE.toString()))
+                        .redirectUri("https://www.test.com")
+                        .resourceIds(String.join(",", "account", "nuguri"))
+                        .account(account)
+                        .build()
+                )
+        );
     }
 
 }

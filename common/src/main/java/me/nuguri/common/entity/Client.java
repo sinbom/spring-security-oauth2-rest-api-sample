@@ -1,8 +1,6 @@
 package me.nuguri.common.entity;
 
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 import javax.persistence.*;
 import java.io.Serializable;
@@ -14,6 +12,7 @@ import java.io.Serializable;
 @Table(name = "oauth_client_details")
 @Getter
 @Setter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @EqualsAndHashCode(of ="id", callSuper = false)
 public class Client extends BaseEntity implements Serializable {
 
@@ -53,11 +52,11 @@ public class Client extends BaseEntity implements Serializable {
 
     /** 토근 유효 시간 초 */
     @Column(nullable = false)
-    private Integer accessTokenValidity = 600;
+    private Integer accessTokenValidity;
 
     /** 재발급 토큰 유효 시간 초 */
     @Column(nullable = false)
-    private Integer refreshTokenValidity = 3600;
+    private Integer refreshTokenValidity;
 
     /** 토큰 추가 정보 */
     private String additionalInformation;
@@ -69,6 +68,28 @@ public class Client extends BaseEntity implements Serializable {
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
     private Account account;
 
+    @Builder
+    protected Client(Long id, String clientId, String resourceIds, String clientSecret, String scope, String grantTypes, String redirectUri, String authorities,
+                     Integer accessTokenValidity, Integer refreshTokenValidity, String additionalInformation, String autoapprove, Account account) {
+        this.id = id;
+        this.clientId = clientId;
+        this.resourceIds = resourceIds;
+        this.clientSecret = clientSecret;
+        this.scope = scope;
+        this.grantTypes = grantTypes;
+        this.redirectUri = redirectUri;
+        this.authorities = authorities;
+        this.accessTokenValidity = accessTokenValidity != null ? accessTokenValidity : 600;
+        this.refreshTokenValidity = refreshTokenValidity != null ? refreshTokenValidity : 3600;
+        this.additionalInformation = additionalInformation;
+        this.autoapprove = autoapprove;
+        this.addAccount(account);
+    }
+
+    /**
+     * 양방향 관계 설정
+     * @param account 계정
+     */
     public void addAccount(Account account) {
         this.account = account;
         this.account.getClients().add(this);

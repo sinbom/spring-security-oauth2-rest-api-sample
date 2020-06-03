@@ -1,4 +1,4 @@
-package me.nuguri.common.serializer;
+package me.nuguri.common.support;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.JsonSerializer;

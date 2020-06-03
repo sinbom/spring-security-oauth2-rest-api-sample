@@ -6,7 +6,7 @@ import me.nuguri.common.entity.*;
 import me.nuguri.common.enums.Gender;
 import me.nuguri.resc.repository.CompanyRepository;
 import me.nuguri.resc.repository.CreatorRepository;
-import me.nuguri.resc.repository.MajorCategoryRepository;
+import me.nuguri.resc.repository.CategoryRepository;
 import me.nuguri.resc.repository.ProductCategoryRepository;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.ApplicationArguments;
@@ -25,7 +25,7 @@ public class ApplicationRunner implements org.springframework.boot.ApplicationRu
 
     private final CreatorRepository creatorRepository;
 
-    private final MajorCategoryRepository majorCategoryRepository;
+    private final CategoryRepository categoryRepository;
 
     private final ProductCategoryRepository productCategoryRepository;
 
@@ -77,11 +77,11 @@ public class ApplicationRunner implements org.springframework.boot.ApplicationRu
                 companyRepository.save(company);
             }
 
-            List<MajorCategory> majorCategoryList = new ArrayList<>();
+            List<Category> majorCategoryList = new ArrayList<>();
             String[] majorCategoryNames = {"국내도서", "외국도서", "eBook"};
 
             for (String majorCategoryName : majorCategoryNames) {
-                MajorCategory category = new MajorCategory();
+                Category category = new Category();
                 category.setName(majorCategoryName);
                 majorCategoryList.add(category);
             }
@@ -107,7 +107,7 @@ public class ApplicationRunner implements org.springframework.boot.ApplicationRu
                 }
             }
 
-            majorCategoryRepository.saveAll(majorCategoryList);
+            categoryRepository.saveAll(majorCategoryList);
 
             for (int i = 0; i < bookList.size(); i++) {
                 Book book = bookList.get(i);

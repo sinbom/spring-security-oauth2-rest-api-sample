@@ -3,7 +3,7 @@ package me.nuguri.account.config;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import me.nuguri.common.enums.Role;
-import me.nuguri.common.initializer.EntityInitializer;
+import me.nuguri.common.support.EntityInitializer;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;

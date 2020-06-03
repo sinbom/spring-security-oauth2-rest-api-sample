@@ -1,8 +1,6 @@
 package me.nuguri.common.entity;
 
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 import me.nuguri.common.enums.Gender;
 
 import javax.persistence.*;
@@ -16,6 +14,7 @@ import java.util.List;
 @Entity
 @Getter
 @Setter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @EqualsAndHashCode(of = "id", callSuper = false)
 public class Creator extends BaseEntity {
 
@@ -41,4 +40,12 @@ public class Creator extends BaseEntity {
     @OneToMany(mappedBy = "creator", cascade = CascadeType.ALL)
     private List<Product> products = new ArrayList<>();
 
+    @Builder
+    protected Creator(Long id, String name, Gender gender, LocalDate birth, LocalDate death) {
+        this.id = id;
+        this.name = name;
+        this.gender = gender;
+        this.birth = birth;
+        this.death = death;
+    }
 }
