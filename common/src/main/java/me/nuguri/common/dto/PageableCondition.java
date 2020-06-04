@@ -14,17 +14,17 @@ import java.util.Arrays;
 public class PageableCondition extends BaseSearchCondition {
 
     /** 페이지 */
-    private String page;
+    private String page = "1";
 
     /** 사이즈 */
-    private String size;
+    private String size = "10";
 
      /** 정렬 */
     private String sort;
 
     public Pageable getPageable() {
-        int page = StringUtils.isEmpty(this.page) ? 0 : Integer.parseInt(this.page) - 1;
-        int size = StringUtils.isEmpty(this.size) ? 10 : Integer.parseInt(this.size);
+        int page = Integer.parseInt(this.page) - 1;
+        int size = Integer.parseInt(this.size);
         if (StringUtils.isEmpty(sort)) {
             return PageRequest.of(page, size);
         } else {
