@@ -3,16 +3,14 @@ package me.nuguri.account.interceptor;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import me.nuguri.account.annotation.HasAuthority;
-import me.nuguri.account.service.AccountService;
+import me.nuguri.account.repository.AccountRepository;
 import me.nuguri.common.dto.AccountAdapter;
 import me.nuguri.common.dto.ErrorResponse;
 import me.nuguri.common.entity.Account;
 import me.nuguri.common.enums.Role;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.oauth2.provider.OAuth2Authentication;
 import org.springframework.stereotype.Component;
 import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.HandlerMapping;
@@ -21,6 +19,7 @@ import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.util.Map;
+import java.util.Optional;
 
 import static org.springframework.http.HttpStatus.FORBIDDEN;
 import static org.springframework.http.HttpStatus.UNAUTHORIZED;
@@ -29,7 +28,7 @@ import static org.springframework.http.HttpStatus.UNAUTHORIZED;
 @RequiredArgsConstructor
 public class AuthorityCheckInterceptor extends HandlerInterceptorAdapter {
 
-    private final AccountService accountService;
+    private final AccountRepository accountRepository;
 
     private final ObjectMapper objectMapper;
 
@@ -55,14 +54,17 @@ public class AuthorityCheckInterceptor extends HandlerInterceptorAdapter {
 
                 if (authentication instanceof UsernamePasswordAuthenticationToken) {
                     account = ((AccountAdapter) authentication.getPrincipal()).getAccount();
-                } else if (authentication instanceof OAuth2Authentication) {
-                    String email = (String) authentication.getPrincipal();
-                    account = accountService.find(email);
                 } else {
-                    ErrorResponse errorResponse = new ErrorResponse(UNAUTHORIZED, "unauthorized");
-                    response.setStatus(UNAUTHORIZED.value());
-                    response.getWriter().write(objectMapper.writeValueAsString(errorResponse));
-                    return false;
+                    String email = (String) authentication.getPrincipal();
+                    Optional<Account> optional = accountRepository.findByEmail(email);
+                    if (optional.isPresent()) {
+                        account = optional.get();
+                    } else {
+                        ErrorResponse errorResponse = new ErrorResponse(UNAUTHORIZED, "unauthorized");
+                        response.setStatus(UNAUTHORIZED.value());
+                        response.getWriter().write(objectMapper.writeValueAsString(errorResponse));
+                        return false;
+                    }
                 }
 
                 if (account.getId().toString().equals(id) || account.getRole().equals(Role.ADMIN)) {

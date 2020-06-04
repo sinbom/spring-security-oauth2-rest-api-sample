@@ -39,18 +39,18 @@
     <build>
         <plugins>
             <plugin>
+                <inherited>false</inherited>
                 <groupId>com.mysema.maven</groupId>
                 <artifactId>apt-maven-plugin</artifactId>
                 <version>1.1.3</version>
                 <executions>
                     <execution>
+                        <id>querydsl-processor-generate</id>
                         <goals>
                             <goal>process</goal>
                         </goals>
                         <configuration>
-                            <outputDirectory>../resc/target/generated-sources/java</outputDirectory>
-                            <outputDirectory>../auth/target/generated-sources/java</outputDirectory>
-                            <outputDirectory>../account/target/generated-sources/java</outputDirectory>
+                            <outputDirectory>target/generated-sources/java</outputDirectory>
                             <processor>com.querydsl.apt.jpa.JPAAnnotationProcessor</processor>
                         </configuration>
                     </execution>

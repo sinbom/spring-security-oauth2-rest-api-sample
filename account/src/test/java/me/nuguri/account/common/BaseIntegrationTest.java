@@ -2,6 +2,7 @@ package me.nuguri.account.common;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import me.nuguri.account.property.AccountServerProperties;
+import me.nuguri.account.repository.AccountRepository;
 import me.nuguri.account.service.AccountService;
 import me.nuguri.common.entity.Account;
 import me.nuguri.common.enums.Scope;
@@ -11,7 +12,6 @@ import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.json.JacksonJsonParser;
 import org.springframework.boot.test.autoconfigure.restdocs.AutoConfigureRestDocs;
@@ -35,12 +35,12 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
+import javax.persistence.EntityExistsException;
 import javax.persistence.EntityManager;
 import java.util.*;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 @SpringBootTest
@@ -63,19 +63,20 @@ public abstract class BaseIntegrationTest {
     protected ObjectMapper objectMapper;
 
     @Autowired
-    protected ModelMapper modelMapper;
-
-    @Autowired
     protected PasswordEncoder passwordEncoder;
 
     @Autowired
     protected AccountService accountService;
 
     @Autowired
+    protected AccountRepository accountRepository;
+
+    @Autowired
     protected EntityInitializer entityInitializer;
 
     @Autowired
     protected EntityManager entityManager;
+
 
     @Autowired
     private DefaultTokenServices defaultTokenServices;
@@ -97,11 +98,13 @@ public abstract class BaseIntegrationTest {
     /**
      * 1. JWT 토큰을 인증 서버에서 발급 받는 외부 API 요청 mocking (/oauth/token)
      * 2. JWT 토큰 유효 여부 검사 로직을 담당하는 TokenStore 및 결과 AccessToken mocking
+     *
      * @param httpStatus HttpStatus.ok 인 경우 1,2번(성공) mocking 그 외의 경우 2번(실패) mocking
-     * @param account mocking 할 계정 정보
+     * @param email    mocking 할 계정의 이메일 정보
      */
-    protected void mockRestTemplate(HttpStatus httpStatus, Account account) {
+    protected void mockRestTemplate(HttpStatus httpStatus, String email) {
         if (HttpStatus.OK.equals(httpStatus)) {
+            Account account = accountRepository.findByEmail(email).orElseThrow(EntityExistsException::new);
             when(restTemplate.exchange(
                     eq(properties.getAccessTokenUrl()),
                     eq(HttpMethod.POST),

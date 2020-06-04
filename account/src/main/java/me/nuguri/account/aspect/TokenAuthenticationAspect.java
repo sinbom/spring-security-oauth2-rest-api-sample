@@ -2,7 +2,7 @@ package me.nuguri.account.aspect;
 
 import lombok.RequiredArgsConstructor;
 import me.nuguri.account.annotation.TokenAuthenticationUser;
-import me.nuguri.account.service.AccountService;
+import me.nuguri.account.repository.AccountRepository;
 import me.nuguri.common.dto.ErrorResponse;
 import me.nuguri.common.entity.Account;
 import org.aspectj.lang.ProceedingJoinPoint;
@@ -13,8 +13,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
-import javax.persistence.EntityNotFoundException;
 import java.lang.reflect.Parameter;
+import java.util.Optional;
 
 import static org.springframework.http.HttpStatus.NOT_FOUND;
 
@@ -23,7 +23,7 @@ import static org.springframework.http.HttpStatus.NOT_FOUND;
 @RequiredArgsConstructor
 public class TokenAuthenticationAspect {
 
-    private final AccountService accountService;
+    private final AccountRepository accountRepository;
 
     @Around("execution(* *(.., @me.nuguri.account.annotation.TokenAuthenticationUser (*), ..))")
     public Object getTokenAuthentication(ProceedingJoinPoint joinPoint) throws Throwable {
@@ -35,9 +35,10 @@ public class TokenAuthenticationAspect {
             if (parameters[i].isAnnotationPresent(TokenAuthenticationUser.class) && parameters[i].getType().equals(Account.class)) {
                 if (account == null) {
                     String email = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-                    try {
-                        account = accountService.find(email);
-                    } catch (EntityNotFoundException e) {
+                    Optional<Account> optional = accountRepository.findByEmail(email);
+                    if (optional.isPresent()) {
+                        account = optional.get();
+                    } else {
                         ErrorResponse errorResponse = new ErrorResponse(NOT_FOUND, "not exist account of token");
                         return ResponseEntity.status(NOT_FOUND).body(errorResponse);
                     }
