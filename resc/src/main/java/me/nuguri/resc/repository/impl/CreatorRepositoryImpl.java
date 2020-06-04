@@ -97,7 +97,7 @@ public class CreatorRepositoryImpl implements CreatorRepositoryCustom {
                     .execute();
         }
 
-        // 상품 카테고리 엔티티 삭제
+        // 상품 엔티티 삭제
         if (!productGroups.isEmpty()) {
             for (Class<? extends Product> ptype : productGroups.keySet()) {
                 List<Long> productIds = productGroups

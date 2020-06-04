@@ -80,6 +80,12 @@ public class AccountRepositoryImpl extends QuerydslSupportCustom implements Acco
         return Optional.ofNullable(result);
     }
 
+    @Override
+    public long deleteByIdBatchInQuery(List<Long> ids) {
+
+        return 0;
+    }
+
     private BooleanExpression eqAddress(Address address) {
         return address != null ? account.address.eq(address) : null;
     }

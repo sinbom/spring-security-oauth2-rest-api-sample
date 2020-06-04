@@ -6,6 +6,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Optional;
 
 @Transactional
@@ -14,5 +15,7 @@ public interface AccountRepositoryCustom {
     Page<Account> pageByCondition(AccountSearchCondition condition, Pageable pageable);
 
     Optional<Account> findByEmailFetchClients(String email);
+
+    long deleteByIdBatchInQuery(List<Long> ids);
 
 }
