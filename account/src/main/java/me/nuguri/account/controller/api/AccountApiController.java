@@ -67,6 +67,7 @@ public class AccountApiController {
             value = "/api/v1/user/me",
             produces = MediaTypes.HAL_JSON_VALUE
     )
+    @PreAuthorize("hasRole('USER') and #oauth2.hasScope('read')")
     public ResponseEntity<?> getMe(@TokenAuthenticationUser Account account) {
         GetUserResponse getUserResponse = new GetUserResponse(account);
         GetMeResource getMeResource = new GetMeResource(getUserResponse);
@@ -85,8 +86,8 @@ public class AccountApiController {
     @GetMapping(
             value = "/api/v1/users",
             produces = MediaTypes.HAL_JSON_VALUE
-    )// clientHasRole은 접두어 ROLE_ 없을때 허가, 즉 client_credentails일 때 허가, 하지만 client detail service 직접 구현후 접두어 붙혀줄 수 있음
-    @PreAuthorize("(hasRole('ADMIN') or #oauth2.clientHasRole('ADMIN')) and #oauth2.hasScope('read')")
+    )
+    @PreAuthorize("hasRole('ADMIN') and #oauth2.hasScope('read')")
     public ResponseEntity<?> queryUsers(PagedResourcesAssembler<Account> assembler, @Valid AccountSearchCondition condition, Errors errors) {
         paginationValidator.validate(condition, Account.class, errors);
         if (errors.hasErrors()) {
@@ -99,10 +100,10 @@ public class AccountApiController {
             ErrorResponse errorResponse = new ErrorResponse(NOT_FOUND, message);
             return ResponseEntity.status(NOT_FOUND).body(errorResponse);
         }
-        PagedModel<QueryUsersResource> getUserResources = assembler.toModel(page,
+        PagedModel<QueryUsersResource> pagedResources = assembler.toModel(page,
                 account -> new QueryUsersResource(new GetUserResponse(account)));
-        getUserResources.add(linkTo(AccountApiController.class).slash("/docs/account.html").withRel("document"));
-        return ResponseEntity.ok(getUserResources);
+        pagedResources.add(linkTo(AccountApiController.class).slash("/docs/account.html").withRel("document"));
+        return ResponseEntity.ok(pagedResources);
     }
 
     /**
@@ -115,7 +116,7 @@ public class AccountApiController {
             value = "/api/v1/user/{id}",
             produces = MediaTypes.HAL_JSON_VALUE
     )
-    @PreAuthorize("#oauth2.hasScope('read')")
+    @PreAuthorize("hasRole('USER') and #oauth2.hasScope('read')")
     @HasAuthority
     public ResponseEntity<?> getUser(@PathVariable Long id) {
         Optional<Account> optional = accountRepository.findById(id);
@@ -139,7 +140,9 @@ public class AccountApiController {
     @PostMapping(
             value = "/api/v1/user",
             consumes = MediaType.APPLICATION_JSON_VALUE,
-            produces = MediaTypes.HAL_JSON_VALUE)
+            produces = MediaTypes.HAL_JSON_VALUE
+    ) // clientHasRole은 접두어 일반 토큰 인증과 다르게 ROLE_ 없는 client_credentials 토큰의 허가
+    @PreAuthorize("(hasRole('USER') or #oauth2.clientHasRole('ADMIN') and #oauth2.hasScope('write'))")
     public ResponseEntity<?> generateUser(@RequestBody @Valid GenerateUserRequest request, Errors errors) {
         Account account = Account.builder()
                 .email(request.getEmail())
@@ -180,7 +183,7 @@ public class AccountApiController {
             consumes = MediaType.APPLICATION_JSON_VALUE,
             produces = MediaTypes.HAL_JSON_VALUE
     )
-    @PreAuthorize("#oauth2.hasScope('write')")
+    @PreAuthorize("hasRole('USER') and #oauth2.hasScope('write')")
     @HasAuthority
     public ResponseEntity<?> updateUser(@PathVariable Long id, @RequestBody UpdateUserRequest request, Errors errors) {
         Account account = Account.builder()
@@ -220,7 +223,7 @@ public class AccountApiController {
             consumes = MediaType.APPLICATION_JSON_VALUE,
             produces = MediaTypes.HAL_JSON_VALUE
     )
-    @PreAuthorize("#oauth2.hasScope('write')")
+    @PreAuthorize("hasRole('USER')and #oauth2.hasScope('write')")
     @HasAuthority
     public ResponseEntity<?> mergeUser(@PathVariable Long id, @RequestBody @Valid UpdateUserRequest request, Errors errors) {
         Account account = Account.builder()
@@ -257,7 +260,7 @@ public class AccountApiController {
             value = "/api/v1/user/{id}",
             produces = MediaTypes.HAL_JSON_VALUE
     )
-    @PreAuthorize("#oauth2.hasScope('write')")
+    @PreAuthorize("hasRole('USER')and #oauth2.hasScope('write')")
     @HasAuthority
     public ResponseEntity<?> deleteUser(@PathVariable Long id) {
         Optional<Account> optional = accountRepository.findById(id);
@@ -284,7 +287,7 @@ public class AccountApiController {
             consumes = MediaType.APPLICATION_JSON_VALUE,
             produces = MediaTypes.HAL_JSON_VALUE
     )
-    @PreAuthorize("(hasRole('ADMIN') or #oauth2.clientHasRole('ADMIN')) and #oauth2.hasScope('write')")
+    @PreAuthorize("hasRole('ADMIN') and #oauth2.hasScope('write')")
     public ResponseEntity<?> deleteUsers(@RequestBody @Valid DeleteUsersRequest request, Errors errors) {
         List<Long> ids = request.getIds();
         accountValidator.validate(ids, errors);
@@ -295,7 +298,8 @@ public class AccountApiController {
         long count = accountRepository.deleteByIdBatchInQuery(ids);
         if (count > 0) {
             DeleteUserResponse deleteUserResponse = new DeleteUserResponse(count);
-            return ResponseEntity.ok(deleteUserResponse);
+            DeleteUsersResource deleteUsersResource = new DeleteUsersResource(deleteUserResponse);
+            return ResponseEntity.ok(deleteUsersResource);
         }
         ErrorResponse errorResponse = new ErrorResponse(NOT_FOUND, "not exist element of id");
         return ResponseEntity.status(NOT_FOUND).body(errorResponse);
@@ -359,6 +363,8 @@ public class AccountApiController {
             this.gender = account.getGender();
             this.address = account.getAddress();
             this.role = account.getRole();
+            this.setCreated(account.getCreated());
+            this.setUpdated(account.getUpdated());
         }
     }
 
@@ -451,6 +457,7 @@ public class AccountApiController {
         public DeleteUsersResource(DeleteUserResponse content, Link... links) {
             super(content, links);
             add(linkTo(AccountApiController.class).slash("/docs/account.html").withRel("document"));
+            add(linkTo(methodOn(AccountApiController.class).deleteUsers(null, null)).withSelfRel().withType("DELETE"));
         }
     }
     // ==========================================================================================================================================

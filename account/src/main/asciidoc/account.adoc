@@ -22,14 +22,14 @@ account REST API는 계정 관련 CRUD 서비스를 제공한다.
 
 `GET` 요청과 토큰을 사용하여 계정을 조회할 수 있다.
 
-operation::get-user[snippets='curl-request,http-request,request-headers,http-response,response-headers,response-fields',links]
+operation::get-me[snippets='curl-request,http-request,request-headers,http-response,response-headers,response-fields',links]
 
 [[query-users]]
 === 계정 리스트 페이징 조회
 
 `GET` 요청을 사용하여 계정 리스트를 페이징 조회할 수 있다.
 
-operation::query-users[snippets='curl-request,http-request,request-headers,http-response,response-headers,response-fields',links]
+operation::query-users[snippets='curl-request,http-request,request-headers,request-parameters,http-response,response-headers,response-fields',links]
 
 [[get-user]]
 === 계정 조회
@@ -64,4 +64,11 @@ operation::merge-user[snippets='curl-request,http-request,request-headers,path-p
 
 `DELETE` 요청을 사용하여 계정을 삭제할 수 있다.
 
-operation::delete-user[snippets='curl-request,http-request,request-headers,path-parameters,request-body,http-response,response-headers,response-fields',links]
+operation::delete-user[snippets='curl-request,http-request,request-headers,path-parameters,http-response,response-headers,response-fields',links]
+
+[[delete-users]]
+=== 계정 제거
+
+`DELETE` 요청을 사용하여 계정을 배치 삭제할 수 있다.
+
+operation::delete-users[snippets='curl-request,http-request,request-headers,http-response,response-headers,response-fields',links]

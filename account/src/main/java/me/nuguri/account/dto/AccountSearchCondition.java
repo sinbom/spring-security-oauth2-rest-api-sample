@@ -23,8 +23,14 @@ public class AccountSearchCondition extends PageableCondition {
     /** 성별 */
     private Gender gender;
 
-    /** 주소 */
-    private Address address;
+    /** 시,도 */
+    private String city;
+
+    /** 도로명 주소 */
+    private String street;
+
+    /** 우편 번호 */
+    private String zipCode;
 
     /** 권한 */
     private Role role;

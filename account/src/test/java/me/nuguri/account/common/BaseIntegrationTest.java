@@ -77,7 +77,6 @@ public abstract class BaseIntegrationTest {
     @Autowired
     protected EntityManager entityManager;
 
-
     @Autowired
     private DefaultTokenServices defaultTokenServices;
 
@@ -100,22 +99,19 @@ public abstract class BaseIntegrationTest {
      * 2. JWT 토큰 유효 여부 검사 로직을 담당하는 TokenStore 및 결과 AccessToken mocking
      *
      * @param httpStatus HttpStatus.ok 인 경우 1,2번(성공) mocking 그 외의 경우 2번(실패) mocking
-     * @param email    mocking 할 계정의 이메일 정보
+     * @param email      mocking 할 계정의 이메일 정보
      */
     protected void mockRestTemplate(HttpStatus httpStatus, String email) {
         if (HttpStatus.OK.equals(httpStatus)) {
             Account account = accountRepository.findByEmail(email).orElseThrow(EntityExistsException::new);
-            when(restTemplate.exchange(
-                    eq(properties.getAccessTokenUrl()),
-                    eq(HttpMethod.POST),
-                    any(HttpEntity.class),
-                    eq(String.class)
+            when(
+                    restTemplate.exchange(
+                            eq(properties.getAccessTokenUrl()),
+                            eq(HttpMethod.POST),
+                            any(HttpEntity.class),
+                            eq(String.class)
                     )
-            ).thenReturn(ResponseEntity.ok(
-                    "{\"access_token\":\""
-                            + "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOlsibnVndXJpIiwiYWNjb3VudCJdLCJ1c2VyX25hbWUiOiJhZG1pbkBuYXZlci5jb20iLCJzY29wZSI6WyJyZWFkIiwid3JpdGUiXSwiZXhwIjoxNTkwOTMxNDU5LCJhdXRob3JpdGllcyI6WyJST0xFX0FETUlOIiwiUk9MRV9VU0VSIl0sImp0aSI6IjlhNjE1OGJhLWZjNTAtNDE1MC1iMTlhLTAxYjg2ODNlODlhMCIsImNsaWVudF9pZCI6Im51Z3VyaSJ9.MJvod1EllyirjqYTatcfkv2xuYRBnK56HVgKKqraa7oSmOvn46FMe_UtnyIp55BL3mgX1KAGecwjqkLFRjan2QVMmoGX81aouqMzbbJj4diqQtHbRqxwduP8Cby9WNu6sUlIgL1UBhVgFWKD7dDNvvft8I95qXcVDy9xy3LLj9vJDNZuDl2ym7gNVTEp3Aa5X-ZV7MjcIliOXfCDJbng40qj7VGVpm8FkJ_LsL_XD_XV0kiPqYeXqY7bpv8nE6SbP7fL4A-GiqZa5wCHXTk1hLclH0Gpd7w7GLkr-gJYR9sYrupXvPeuNzjyNE3JKhj8BYwdZlajm0vkP8LLBke0rQ"
-                            + "\"}")
-            );
+            ).thenReturn(ResponseEntity.ok("{\"access_token\":\"mockedAccessToken\"}"));
             Map<String, String> params = new HashMap<>();
             params.put("client_id", "nuguri");
             Set<String> scopes = new HashSet<>(Arrays.asList(Scope.READ.toString(), Scope.WRITE.toString()));

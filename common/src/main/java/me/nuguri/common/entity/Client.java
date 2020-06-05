@@ -18,6 +18,7 @@ public class Client extends BaseEntity implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
+    /** 식별키 */
     @Id
     @GeneratedValue
     private Long id;

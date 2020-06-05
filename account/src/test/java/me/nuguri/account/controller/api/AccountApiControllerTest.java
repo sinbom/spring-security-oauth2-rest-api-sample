@@ -17,7 +17,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.IntStream;
@@ -31,8 +30,7 @@ import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.docu
 import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.*;
 import static org.springframework.restdocs.payload.PayloadDocumentation.fieldWithPath;
 import static org.springframework.restdocs.payload.PayloadDocumentation.responseFields;
-import static org.springframework.restdocs.request.RequestDocumentation.parameterWithName;
-import static org.springframework.restdocs.request.RequestDocumentation.pathParameters;
+import static org.springframework.restdocs.request.RequestDocumentation.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -41,7 +39,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 public class AccountApiControllerTest extends BaseIntegrationTest {
 
     @Test
-    @DisplayName("토근으로 유저 정보 성공적으로 얻는 경우")
+    @DisplayName("토큰으로 유저 정보 성공적으로 얻는 경우")
     public void getMe_V1_Success_200() throws Exception {
         mockRestTemplate(HttpStatus.OK, properties.getAdminEmail());
         mockMvc.perform(get("/api/v1/user/me")
@@ -119,7 +117,18 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
                 .accept(MediaTypes.HAL_JSON)
                 .queryParam("page", "2")
                 .queryParam("size", "10")
-                .queryParam("sort", sort))
+                .queryParam("sort", sort)
+                .queryParam("email", "")
+                .queryParam("name", "")
+                .queryParam("gender", "")
+                .queryParam("city", "경기도 과천시")
+                .queryParam("street", "부림2길 76 2층")
+                .queryParam("zipCode", "13830")
+                .queryParam("role", "")
+                .queryParam("startCreated", "")
+                .queryParam("endCreated", "")
+                .queryParam("startUpdated", "")
+                .queryParam("endUpdated", ""))
                 .andExpect(status().isOk())
                 .andDo(print())
                 .andDo(document("query-users",
@@ -130,6 +139,22 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
                                 linkWithRel("next").description("next page link"),
                                 linkWithRel("last").description("last page link"),
                                 linkWithRel("document").description("document")
+                        ),
+                        requestParameters(
+                                parameterWithName("page").description("page of pagination"),
+                                parameterWithName("size").description("page size of pagination"),
+                                parameterWithName("sort").description("sort property and direction of pagination"),
+                                parameterWithName("email").description("search condition of account email"),
+                                parameterWithName("name").description("search condition of account name"),
+                                parameterWithName("gender").description("search condition of account gender"),
+                                parameterWithName("city").description("search condition of account address city"),
+                                parameterWithName("street").description("search condition of account address street"),
+                                parameterWithName("zipCode").description("search condition of account address zipCode"),
+                                parameterWithName("role").description("search condition of account role"),
+                                parameterWithName("startCreated").description("search condition of account created date"),
+                                parameterWithName("endCreated").description("search condition of account created date"),
+                                parameterWithName("startUpdated").description("search condition of account updated date"),
+                                parameterWithName("endUpdated").description("search condition of account updated date")
                         ),
                         requestHeaders(
                                 headerWithName(HttpHeaders.AUTHORIZATION).description("bearer token"),
@@ -202,6 +227,9 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
                 .queryParam("gender", gender)
                 .queryParam("address", address)
                 .queryParam("role", role)
+                .queryParam("city", "경기도 과천시")
+                .queryParam("street", "부림2길 76 2층")
+                .queryParam("zipCode", "13830")
                 .queryParam("startCreated", startCreated)
                 .queryParam("endCreated", endCreated)
                 .queryParam("startUpdated", startUpdated)
@@ -824,6 +852,10 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andDo(document("delete-user",
+                        links(
+                                linkWithRel("self").description("self link"),
+                                linkWithRel("document").description("document")
+                        ),
                         pathParameters(
                                 parameterWithName("id").description("identifier of account")
                         ),
@@ -911,7 +943,33 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
-                .andDo(print());
+                .andDo(print())
+                .andDo(document("delete-users",
+                        links(
+                                linkWithRel("self").description("self link"),
+                                linkWithRel("document").description("document")
+                        ),
+                        requestHeaders(
+                                headerWithName(HttpHeaders.ACCEPT).description("Accept Header"),
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type"),
+                                headerWithName(HttpHeaders.AUTHORIZATION).description("bearer token")
+                        ),
+                        responseHeaders(
+                                headerWithName(HttpHeaders.CACHE_CONTROL).description("cache control"),
+                                headerWithName(HttpHeaders.PRAGMA).description("pragma"),
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type"),
+                                headerWithName("X-Content-Type-Options").description("X-Content-Type-Options"),
+                                headerWithName("X-XSS-Protection").description("X-XSS-Protection"),
+                                headerWithName("X-Frame-Options").description("X-Frame-Options")
+                        ),
+                        responseFields(
+                                fieldWithPath("count").description("count of delete"),
+                                fieldWithPath("_links.self.href").description("self link"),
+                                fieldWithPath("_links.document.href").description("document"),
+                                fieldWithPath("_links.self.type").description("self link http method type")
+                        )
+                        )
+                );
     }
 
     @Test

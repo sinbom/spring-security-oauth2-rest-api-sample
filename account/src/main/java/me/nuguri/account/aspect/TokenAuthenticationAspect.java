@@ -10,6 +10,7 @@ import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.reflect.MethodSignature;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
@@ -17,6 +18,7 @@ import java.lang.reflect.Parameter;
 import java.util.Optional;
 
 import static org.springframework.http.HttpStatus.NOT_FOUND;
+import static org.springframework.http.HttpStatus.UNAUTHORIZED;
 
 @Aspect
 @Component
@@ -34,13 +36,15 @@ public class TokenAuthenticationAspect {
         for (int i = 0; i < parameters.length; i++) {
             if (parameters[i].isAnnotationPresent(TokenAuthenticationUser.class) && parameters[i].getType().equals(Account.class)) {
                 if (account == null) {
+                    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+                    String name = authentication.getName();
                     String email = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
                     Optional<Account> optional = accountRepository.findByEmail(email);
                     if (optional.isPresent()) {
                         account = optional.get();
                     } else {
-                        ErrorResponse errorResponse = new ErrorResponse(NOT_FOUND, "not exist account of token");
-                        return ResponseEntity.status(NOT_FOUND).body(errorResponse);
+                        ErrorResponse errorResponse = new ErrorResponse(UNAUTHORIZED, "not exist account of token");
+                        return ResponseEntity.status(UNAUTHORIZED).body(errorResponse);
                     }
                 }
                 args[i] = account;

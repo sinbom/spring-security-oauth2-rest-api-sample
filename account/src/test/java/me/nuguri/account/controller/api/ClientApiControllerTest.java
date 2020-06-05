@@ -12,6 +12,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.MediaTypes;
 import org.springframework.http.HttpHeaders;
@@ -35,14 +36,18 @@ public class ClientApiControllerTest extends BaseIntegrationTest {
     @Autowired
     private ClientRepository clientRepository;
 
-    @Test
+    @ParameterizedTest(name = "{index}. {displayName} parameter(sort: {arguments})")
     @DisplayName("클라이언트 정보 리스트 성공적으로 얻는 경우")
-    public void queryClients_V1_Success_200() throws Exception {
+    @ValueSource(strings = {"id,asc", "id,client_id,desc", "id,client_id,account_id,asc"})
+    public void queryClients_V1_Success_200(String sort) throws Exception {
         generateClients();
         mockRestTemplate(HttpStatus.OK, properties.getAdminEmail());
         mockMvc.perform(get("/api/v1/clients")
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + getAccessToken())
-                .accept(MediaTypes.HAL_JSON))
+                .accept(MediaTypes.HAL_JSON)
+                .queryParam("page", "2")
+                .queryParam("size", "10")
+                .queryParam("sort", sort))
                 .andExpect(status().isOk())
                 .andDo(print());
     }

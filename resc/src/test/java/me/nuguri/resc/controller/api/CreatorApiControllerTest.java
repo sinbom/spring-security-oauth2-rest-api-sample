@@ -498,10 +498,8 @@ public class CreatorApiControllerTest extends BaseIntegrationTest {
         for (int i = 0; i < 5; i++) {
             ids.add(generateCreator().getId());
         }
-
         CreatorApiController.DeleteCreatorsRequest request = new CreatorApiController.DeleteCreatorsRequest();
         request.setIds(ids);
-
         mockMvc.perform(delete("/api/v1/creators")
                 .content(objectMapper.writeValueAsString(request))
                 .contentType(MediaType.APPLICATION_JSON)
@@ -519,10 +517,8 @@ public class CreatorApiControllerTest extends BaseIntegrationTest {
         for (int i = 0; i < 5; i++) {
             ids.add(generateCreator().getId());
         }
-
         CreatorApiController.DeleteCreatorsRequest request = new CreatorApiController.DeleteCreatorsRequest();
         request.setIds(ids);
-
         mockMvc.perform(delete("/api/v1/creators")
                 .content(objectMapper.writeValueAsString(request))
                 .contentType(MediaType.APPLICATION_JSON)
@@ -537,10 +533,8 @@ public class CreatorApiControllerTest extends BaseIntegrationTest {
     public void deleteCreators_V1_Invalid_400() throws Exception {
         mockRestTemplate(HttpStatus.OK);
         List<Long> ids = Arrays.asList(-1L, 2L, 3L);
-
         CreatorApiController.DeleteCreatorsRequest request = new CreatorApiController.DeleteCreatorsRequest();
         request.setIds(ids);
-
         mockMvc.perform(delete("/api/v1/creators")
                 .content(objectMapper.writeValueAsString(request))
                 .contentType(MediaType.APPLICATION_JSON)
@@ -555,10 +549,8 @@ public class CreatorApiControllerTest extends BaseIntegrationTest {
     public void deleteCreators_V1_NotFound_404() throws Exception {
         mockRestTemplate(HttpStatus.OK);
         List<Long> ids = Arrays.asList(123123L, 234234L, 345345L);
-
         CreatorApiController.DeleteCreatorsRequest request = new CreatorApiController.DeleteCreatorsRequest();
         request.setIds(ids);
-
         mockMvc.perform(delete("/api/v1/creators")
                 .content(objectMapper.writeValueAsString(request))
                 .contentType(MediaType.APPLICATION_JSON)

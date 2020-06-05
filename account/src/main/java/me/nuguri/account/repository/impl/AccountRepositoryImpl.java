@@ -8,7 +8,6 @@ import lombok.RequiredArgsConstructor;
 import me.nuguri.account.dto.AccountSearchCondition;
 import me.nuguri.account.repository.AccountRepositoryCustom;
 import me.nuguri.common.entity.Account;
-import me.nuguri.common.entity.Address;
 import me.nuguri.common.enums.Gender;
 import me.nuguri.common.enums.Role;
 import me.nuguri.common.support.QuerydslSupportCustom;
@@ -44,25 +43,24 @@ public class AccountRepositoryImpl extends QuerydslSupportCustom implements Acco
     @Transactional(readOnly = true)
     @Override
     public Page<Account> pageByCondition(AccountSearchCondition condition, Pageable pageable) {
-        List<Account> content = jpaQueryFactory
+        JPAQuery<Account> countQuery = jpaQueryFactory
                 .selectFrom(account)
                 .where(
                         eqEmail(condition.getEmail()),
                         eqName(condition.getName()),
                         eqGender(condition.getGender()),
                         eqRole(condition.getRole()),
-                        eqAddress(condition.getAddress()),
+                        eqCity(condition.getCity()),
+                        eqStreet(condition.getStreet()),
+                        eqZipCode(condition.getZipCode()),
                         betweenCreated(account, condition.getStartCreated(), condition.getEndCreated()),
                         betweenUpdated(account, condition.getStartUpdated(), condition.getEndUpdated())
-                )
+                );
+        List<Account> content = countQuery
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
                 .orderBy(getOrderSpecifiers(account, pageable))
                 .fetch();
-
-        JPAQuery<Account> countQuery = jpaQueryFactory
-                .selectFrom(account);
-
         return PageableExecutionUtils.getPage(content, pageable, countQuery::fetchCount);
     }
 
@@ -81,7 +79,6 @@ public class AccountRepositoryImpl extends QuerydslSupportCustom implements Acco
                 .fetchJoin()
                 .where(eqEmail(email))
                 .fetchOne();
-
         return Optional.ofNullable(result);
     }
 
@@ -140,8 +137,16 @@ public class AccountRepositoryImpl extends QuerydslSupportCustom implements Acco
         return account.id.in(ids);
     }
 
-    private BooleanExpression eqAddress(Address address) {
-        return address != null ? account.address.eq(address) : null;
+    private BooleanExpression eqCity(String city) {
+        return hasText(city) ? account.address.city.eq(city) : null;
+    }
+
+    private BooleanExpression eqStreet(String street) {
+        return hasText(street) ? account.address.street.eq(street) : null;
+    }
+
+    private BooleanExpression eqZipCode(String zipCode) {
+        return hasText(zipCode) ? account.address.zipCode.eq(zipCode) : null;
     }
 
     private BooleanExpression eqRole(Role role) {
