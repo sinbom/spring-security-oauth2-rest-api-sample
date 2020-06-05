@@ -42,7 +42,7 @@ public class CreatorRepositoryImpl implements CreatorRepositoryCustom {
     private final JPAQueryFactory jpaQueryFactory;
 
     @Override
-    public long deleteByIds(List<Long> ids) {
+    public long deleteByIdBatchInQuery(List<Long> ids) {
         // 저자와 연관된 상품 엔티티, 상품 카테고리 식별키 조회
         List<Tuple> result = jpaQueryFactory
                 .select(creator.id, product, productCategory.id)
@@ -70,6 +70,7 @@ public class CreatorRepositoryImpl implements CreatorRepositoryCustom {
                 .distinct()
                 .collect(toList());
 
+        // 제거할 저자 엔티티가 없는 경우
         if (creatorIds.isEmpty()) {
             return 0;
         }
@@ -123,7 +124,7 @@ public class CreatorRepositoryImpl implements CreatorRepositoryCustom {
 
     @Override
     @Transactional(readOnly = true)
-    public Page<Creator> findByCondition(CreatorSearchCondition condition, Pageable pageable) {
+    public Page<Creator> pageByCondition(CreatorSearchCondition condition, Pageable pageable) {
         // 페이징 쿼리
         List<Creator> content = jpaQueryFactory
                 .selectFrom(creator)

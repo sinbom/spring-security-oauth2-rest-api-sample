@@ -11,8 +11,8 @@ import java.util.List;
 @Transactional
 public interface CreatorRepositoryCustom {
 
-    long deleteByIds(List<Long> ids);
+    long deleteByIdBatchInQuery(List<Long> ids);
 
-    Page<Creator> findByCondition(CreatorSearchCondition condition, Pageable pageable);
+    Page<Creator> pageByCondition(CreatorSearchCondition condition, Pageable pageable);
 
 }

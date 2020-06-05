@@ -29,7 +29,7 @@ public class CreatorService {
      */
     @Transactional(readOnly = true)
     public Page<Creator> pagingWithCondition(CreatorSearchCondition condition, Pageable pageable) {
-        Page<Creator> page = creatorRepository.findByCondition(condition, pageable);
+        Page<Creator> page = creatorRepository.pageByCondition(condition, pageable);
         // TODO lazy Loading 부분 서비스 로직과 분리해야함
         page
                 .stream()
@@ -116,7 +116,7 @@ public class CreatorService {
      * @param ids 식별키
      */
     public long deleteInBatch(List<Long> ids) {
-        return creatorRepository.deleteByIds(ids);
+        return creatorRepository.deleteByIdBatchInQuery(ids);
     }
 
 }

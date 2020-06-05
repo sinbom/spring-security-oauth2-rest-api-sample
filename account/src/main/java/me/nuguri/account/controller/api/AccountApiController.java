@@ -15,6 +15,7 @@ import me.nuguri.common.entity.Account;
 import me.nuguri.common.entity.Address;
 import me.nuguri.common.enums.Gender;
 import me.nuguri.common.enums.Role;
+import me.nuguri.common.support.BaseValidator;
 import me.nuguri.common.support.PaginationValidator;
 import org.springframework.data.domain.Page;
 import org.springframework.data.web.PagedResourcesAssembler;
@@ -32,7 +33,9 @@ import org.springframework.web.bind.annotation.*;
 import javax.persistence.EntityNotFoundException;
 import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
+import java.util.List;
 import java.util.Optional;
 
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
@@ -269,6 +272,35 @@ public class AccountApiController {
         return ResponseEntity.status(NOT_FOUND).body(errorResponse);
     }
 
+    /**
+     * 유저 정보 벌크 삭제
+     *
+     * @param request ids 식별키
+     * @param errors  에러
+     * @return
+     */
+    @DeleteMapping(
+            value = "/api/v1/users",
+            consumes = MediaType.APPLICATION_JSON_VALUE,
+            produces = MediaTypes.HAL_JSON_VALUE
+    )
+    @PreAuthorize("(hasRole('ADMIN') or #oauth2.clientHasRole('ADMIN')) and #oauth2.hasScope('write')")
+    public ResponseEntity<?> deleteUsers(@RequestBody @Valid DeleteUsersRequest request, Errors errors) {
+        List<Long> ids = request.getIds();
+        accountValidator.validate(ids, errors);
+        if (errors.hasErrors()) {
+            ErrorResponse errorResponse = new ErrorResponse(BAD_REQUEST, "invalid value", errors);
+            return ResponseEntity.badRequest().body(errorResponse);
+        }
+        long count = accountRepository.deleteByIdBatchInQuery(ids);
+        if (count > 0) {
+            DeleteUserResponse deleteUserResponse = new DeleteUserResponse(count);
+            return ResponseEntity.ok(deleteUserResponse);
+        }
+        ErrorResponse errorResponse = new ErrorResponse(NOT_FOUND, "not exist element of id");
+        return ResponseEntity.status(NOT_FOUND).body(errorResponse);
+    }
+
     // ==========================================================================================================================================
     // Domain
     @Getter
@@ -305,6 +337,13 @@ public class AccountApiController {
 
     @Getter
     @Setter
+    public static class DeleteUsersRequest {
+        @NotEmpty
+        private List<Long> ids;
+    }
+
+    @Getter
+    @Setter
     public static class GetUserResponse extends BaseResponse {
         private Long id;
         private String email;
@@ -312,6 +351,7 @@ public class AccountApiController {
         private Gender gender;
         private Address address;
         private Role role;
+
         public GetUserResponse(Account account) {
             this.id = account.getId();
             this.email = account.getEmail();
@@ -418,7 +458,7 @@ public class AccountApiController {
     // ==========================================================================================================================================
     // Validator
     @Component
-    public static class AccountValidator {
+    public static class AccountValidator extends BaseValidator {
         /**
          * Account 도메인 condition 값 중 이메일, 비밀번호, 주소 검증
          *
@@ -448,6 +488,7 @@ public class AccountApiController {
                 }
             }
         }
+
     }
     // ==========================================================================================================================================
 

@@ -11,6 +11,7 @@ import me.nuguri.common.dto.PageableCondition;
 import me.nuguri.common.entity.Book;
 import me.nuguri.common.entity.Creator;
 import me.nuguri.common.enums.Gender;
+import me.nuguri.common.support.BaseValidator;
 import me.nuguri.common.support.PaginationValidator;
 import me.nuguri.resc.domain.CreatorSearchCondition;
 import me.nuguri.resc.service.CreatorService;
@@ -199,7 +200,7 @@ public class CreatorApiController {
     }
 
     @DeleteMapping("/api/v1/creators")
-    public ResponseEntity<?> deleteCreators(@RequestBody @Valid CreatorApiController.DeleteCreatorsRequest request, Errors errors) {
+    public ResponseEntity<?> deleteCreators(@RequestBody @Valid DeleteCreatorsRequest request, Errors errors) {
         creatorValidator.validate(request.ids, errors);
         if (errors.hasErrors()) {
             ErrorResponse errorResponse = new ErrorResponse(BAD_REQUEST, "invalid value", errors);
@@ -333,7 +334,7 @@ public class CreatorApiController {
     // ==========================================================================================================================================
     // Validator
     @Component
-    public static class CreatorValidator {
+    public static class CreatorValidator extends BaseValidator {
         /**
          * creator 도메인 값 중 생년날짜, 사망날짜 검증
          *
@@ -347,19 +348,6 @@ public class CreatorApiController {
                 if (death.isBefore(birth)) {
                     errors.reject("wrongValue", "birth is must be before death");
                 }
-            }
-        }
-
-        /**
-         * 식별키가 0이상의 정수인지 검증
-         *
-         * @param ids    식별키
-         * @param errors 에러
-         */
-        public void validate(List<Long> ids, Errors errors) {
-            boolean isAnyLowerThanZero = ids.stream().anyMatch(id -> id < 1);
-            if (isAnyLowerThanZero) {
-                errors.rejectValue("ids", "wrongValue", "id is must be greater than zero");
             }
         }
     }

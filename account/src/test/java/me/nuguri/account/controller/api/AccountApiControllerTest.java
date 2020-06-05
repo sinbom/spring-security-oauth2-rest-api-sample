@@ -16,6 +16,9 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.UUID;
 import java.util.stream.IntStream;
 
@@ -892,6 +895,75 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
                 .andExpect(status().isBadRequest());
     }
 
+    @Test
+    @DisplayName("유저 정보 벌크 삭제 성공적인 경우")
+    public void deleteUsers_V1_Success_200() throws Exception {
+        mockRestTemplate(HttpStatus.OK, properties.getAdminEmail());
+        List<Long> ids = new ArrayList<>();
+        for (int i = 0; i < 5; i++) {
+            ids.add(generateAccount().getId());
+        }
+        AccountApiController.DeleteUsersRequest request = new AccountApiController.DeleteUsersRequest();
+        request.setIds(ids);
+        mockMvc.perform(delete("/api/v1/users")
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + getAccessToken())
+                .accept(MediaTypes.HAL_JSON)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk())
+                .andDo(print());
+    }
+
+    @Test
+    @DisplayName("유저 정보 벌크 삭제 유효하지 않은 토큰으로 실패하는 경우")
+    public void deleteUsers_V1_Unauthorized_401() throws Exception {
+        mockRestTemplate(HttpStatus.UNAUTHORIZED, null);
+        mockMvc.perform(delete("/api/v1/users")
+                .header(HttpHeaders.AUTHORIZATION, "Bearer Invalid Token")
+                .accept(MediaTypes.HAL_JSON)
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isUnauthorized())
+                .andDo(print());
+    }
+
+    @Test
+    @DisplayName("유저 정보 벌크 삭제 권한 없어서 실패하는 경우")
+    public void deleteUsers_V1_Forbidden_403() throws Exception {
+        mockRestTemplate(HttpStatus.OK, properties.getUserEmail());
+        List<Long> ids = new ArrayList<>();
+        for (int i = 0; i < 5; i++) {
+            ids.add(generateAccount().getId());
+        }
+        AccountApiController.DeleteUsersRequest request = new AccountApiController.DeleteUsersRequest();
+        request.setIds(ids);
+        mockMvc.perform(delete("/api/v1/users")
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + getAccessToken())
+                .accept(MediaTypes.HAL_JSON)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isForbidden())
+                .andDo(print());
+    }
+
+    @Test
+    @DisplayName("유저 정보 벌크 삭제 유효하지 않은 입력 값으로 실패하는 경우")
+    public void deleteUsers_V1_Invalid_400() throws Exception {
+        mockRestTemplate(HttpStatus.OK, properties.getAdminEmail());
+        List<Long> ids = new ArrayList<>();
+        for (int i = 0; i < 5; i++) {
+            ids.add(generateAccount().getId());
+        }
+        AccountApiController.DeleteUsersRequest request = new AccountApiController.DeleteUsersRequest();
+        request.setIds(ids);
+        mockMvc.perform(delete("/api/v1/users")
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + getAccessToken())
+                .accept(MediaTypes.HAL_JSON)
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest())
+                .andDo(print());
+    }
+
+
     /**
      * 테스트 계정 및 클라이언트 생성
      */
@@ -908,6 +980,23 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
                     accountService.generate(account);
                 }
         );
+    }
+
+    /**
+     * 테스트 계정 생성
+     *
+     * @return 계정 엔티티
+     */
+    private Account generateAccount() {
+        Account account = Account.builder()
+                .name("테스트")
+                .email(UUID.randomUUID().toString() + "@test.com")
+                .password("test")
+                .gender(Gender.M)
+                .address(new Address("경기도 과천시", "부림2길 76 2층", "13830"))
+                .role(Role.USER)
+                .build();
+        return accountService.generate(account);
     }
 
 }
