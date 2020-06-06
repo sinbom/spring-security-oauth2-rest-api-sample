@@ -15,6 +15,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 import org.springframework.security.access.hierarchicalroles.RoleHierarchy;
 import org.springframework.security.access.hierarchicalroles.RoleHierarchyImpl;
 import org.springframework.security.access.hierarchicalroles.RoleHierarchyUtils;
+import org.springframework.security.oauth2.provider.expression.OAuth2WebSecurityExpressionHandler;
 import org.springframework.security.oauth2.provider.token.DefaultTokenServices;
 import org.springframework.security.oauth2.provider.token.TokenStore;
 import org.springframework.security.oauth2.provider.token.store.JwtAccessTokenConverter;
@@ -42,11 +43,10 @@ public class ApplicationConfiguration {
      * @return
      */
     @Bean
-    public RoleHierarchy roleHierarchy() {
+    public RoleHierarchy roleHierarchy() { // TODO clientHasRole 계층 구조 적용시켜야함
         RoleHierarchyImpl roleHierarchy = new RoleHierarchyImpl();
         Map<String, List<String>> roleHierarchyMap = new HashMap<>();
         roleHierarchyMap.put("ROLE_" + Role.ADMIN, Arrays.asList("ROLE_" + Role.USER));
-        roleHierarchyMap.put("" + Role.ADMIN, Arrays.asList("" + Role.USER));
         // ROLE_ADIN > ROLE_USER\r\nADMIN > USER 표현식으로 변환해주는 유틸 클래스
         String roleHierarchyExpression = RoleHierarchyUtils.roleHierarchyFromMap(roleHierarchyMap);
         roleHierarchy.setHierarchy(roleHierarchyExpression);

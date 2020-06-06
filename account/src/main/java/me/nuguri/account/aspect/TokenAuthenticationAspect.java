@@ -36,8 +36,6 @@ public class TokenAuthenticationAspect {
         for (int i = 0; i < parameters.length; i++) {
             if (parameters[i].isAnnotationPresent(TokenAuthenticationUser.class) && parameters[i].getType().equals(Account.class)) {
                 if (account == null) {
-                    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-                    String name = authentication.getName();
                     String email = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
                     Optional<Account> optional = accountRepository.findByEmail(email);
                     if (optional.isPresent()) {

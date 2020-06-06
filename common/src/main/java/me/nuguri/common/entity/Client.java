@@ -113,7 +113,9 @@ public class Client extends BaseEntity implements Serializable {
         this.refreshTokenValidity = refreshTokenValidity != null ? refreshTokenValidity : 3600;
         this.additionalInformation = additionalInformation;
         this.autoapprove = autoapprove;
-        this.addAccount(account);
+        if (account != null) {
+            this.addAccount(account);
+        }
     }
 
     /**

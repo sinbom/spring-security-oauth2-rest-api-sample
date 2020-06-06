@@ -36,16 +36,12 @@ import javax.persistence.EntityNotFoundException;
 import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotEmpty;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 import java.util.regex.Pattern;
 
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
-import static org.springframework.http.HttpStatus.BAD_REQUEST;
-import static org.springframework.http.HttpStatus.NOT_FOUND;
+import static org.springframework.http.HttpStatus.*;
 
 @RestController
 @RequiredArgsConstructor
@@ -88,10 +84,14 @@ public class ClientApiController {
     )
     @PreAuthorize("hasRole('USER') and #oauth2.hasScope('read')")
     @HasAuthority
-    public ResponseEntity<?> getClient(@PathVariable Long id) {
+    public ResponseEntity<?> getClient(@PathVariable Long id, @TokenAuthenticationUser Account account) {
         Optional<Client> optional = clientRepository.findById(id);
         if (optional.isPresent()) {
             Client client = optional.get();
+            if (!hasAuthority(account, client)) {
+                ErrorResponse errorResponse = new ErrorResponse(FORBIDDEN, "have no authority");
+                return ResponseEntity.status(UNAUTHORIZED).body(errorResponse);
+            }
             GetClientResponse getClientResponse = new GetClientResponse(client);
             GetClientResource getClientResource = new GetClientResource(getClientResponse);
             return ResponseEntity.ok(getClientResource);
@@ -137,7 +137,7 @@ public class ClientApiController {
     )
     @PreAuthorize("hasRole('USER') and #oauth2.hasScope('write')")
     @HasAuthority
-    public ResponseEntity<?> updateClient(@PathVariable Long id, @RequestBody UpdateClientRequest request, Errors errors) {
+    public ResponseEntity<?> updateClient(@PathVariable Long id, @RequestBody UpdateClientRequest request, Errors errors, @TokenAuthenticationUser Account account) {
         Client client = request.toClient();
         client.setId(id);
         clientValidator.validate(client, errors);
@@ -225,6 +225,21 @@ public class ClientApiController {
     }
 
     // ==========================================================================================================================================
+    // Common Method
+
+    /**
+     * 현재 토큰 유저가 관리자 권한이거나 리소스 소유자인지 검증
+     * @param account 토큰 유저
+     * @param client 리소스
+     * @return 접근 가능 여부
+     */
+    private boolean hasAuthority(@TokenAuthenticationUser Account account, Client client) {
+        Role role = account.getRole(); // 토큰 발급 유저 권한
+        Account owner = client.getAccount(); // 리소스 유저
+        return role.equals(Role.ADMIN) || owner.equals(account); // 현재 토큰 유저가 관리자 권한이거나 리소스 소유자인 경우
+    }
+
+    // ==========================================================================================================================================
     // Domain
     @Getter
     @Setter
@@ -243,7 +258,11 @@ public class ClientApiController {
                     .scope(String.join(",", Scope.READ.toString(), Scope.WRITE.toString()))
                     .redirectUri(redirectUri)
                     .resourceIds(String.join(",", resourceIds))
-                    .account(Account.builder().id(account.getId()).build())
+                    .account(
+                            Account.builder()
+                                    .id(account.getId())
+                                    .build()
+                    )
                     .build();
         }
     }
@@ -266,7 +285,7 @@ public class ClientApiController {
 
     @Getter
     @Setter
-    private class DeleteClientsRequest {
+    private static class DeleteClientsRequest {
         @NotEmpty
         private List<Long> ids;
     }
@@ -302,7 +321,7 @@ public class ClientApiController {
     @Getter
     @Setter
     @AllArgsConstructor
-    public class DeleteClientResposne {
+    public static class DeleteClientResposne {
         private long count;
     }
 
