@@ -14,6 +14,7 @@ import org.springframework.core.io.ResourceLoader;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 import org.springframework.security.access.hierarchicalroles.RoleHierarchy;
 import org.springframework.security.access.hierarchicalroles.RoleHierarchyImpl;
+import org.springframework.security.access.hierarchicalroles.RoleHierarchyUtils;
 import org.springframework.security.oauth2.provider.token.DefaultTokenServices;
 import org.springframework.security.oauth2.provider.token.TokenStore;
 import org.springframework.security.oauth2.provider.token.store.JwtAccessTokenConverter;
@@ -24,6 +25,10 @@ import javax.persistence.EntityManager;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 @Configuration
 @EnableJpaAuditing
@@ -39,7 +44,12 @@ public class ApplicationConfiguration {
     @Bean
     public RoleHierarchy roleHierarchy() {
         RoleHierarchyImpl roleHierarchy = new RoleHierarchyImpl();
-        roleHierarchy.setHierarchy("ROLE_" + Role.ADMIN + " > ROLE_" + Role.USER);
+        Map<String, List<String>> roleHierarchyMap = new HashMap<>();
+        roleHierarchyMap.put("ROLE_" + Role.ADMIN, Arrays.asList("ROLE_" + Role.USER));
+        roleHierarchyMap.put("" + Role.ADMIN, Arrays.asList("" + Role.USER));
+        // ROLE_ADIN > ROLE_USER\nADMIN > USER 표현식으로 변환해주는 유틸 클래스
+        String roleHierarchyExpression = RoleHierarchyUtils.roleHierarchyFromMap(roleHierarchyMap);
+        roleHierarchy.setHierarchy(roleHierarchyExpression);
         return roleHierarchy;
     }
 

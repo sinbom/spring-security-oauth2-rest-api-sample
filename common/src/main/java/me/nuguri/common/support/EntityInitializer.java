@@ -52,7 +52,7 @@ public class EntityInitializer {
                 .grantTypes(String.join(",", GrantType.PASSWORD.toString(), GrantType.AUTHORIZATION_CODE.toString(),
                         GrantType.IMPLICIT.toString(), GrantType.CLIENT_CREDENTIALS.toString(), GrantType.REFRESH_TOKEN.toString()))
                 .redirectUri("http://localhost:9600/main")
-                .authorities(String.join(",", Role.ADMIN.toString(), Role.USER.toString()))
+                .authority(Role.ADMIN)
                 .account(admin)
                 .build();
 
@@ -63,7 +63,7 @@ public class EntityInitializer {
                 .scope(String.join(",", Scope.READ.toString()))
                 .grantTypes(String.join(",", GrantType.PASSWORD.toString(), GrantType.CLIENT_CREDENTIALS.toString()))
                 .redirectUri("http://localhost:9600/main")
-                .authorities(String.join(",", Role.USER.toString()))
+                .authority(Role.USER)
                 .account(user)
                 .build();
 

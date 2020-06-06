@@ -16,6 +16,6 @@ public interface AccountRepositoryCustom {
 
     Optional<Account> findByEmailFetchClients(String email);
 
-    long deleteByIdBatchInQuery(List<Long> ids);
+    long deleteByIdsBatchInQuery(List<Long> ids);
 
 }

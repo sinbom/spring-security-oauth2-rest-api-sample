@@ -83,7 +83,7 @@ public class AccountRepositoryImpl extends QuerydslSupportCustom implements Acco
     }
 
     @Override
-    public long deleteByIdBatchInQuery(List<Long> ids) {
+    public long deleteByIdsBatchInQuery(List<Long> ids) {
         // 삭제 유저 엔티티와 연관 관계에 있는 엔티티의 식별키 조회
         List<Tuple> result = jpaQueryFactory
                 .select(order.id, order.delivery.id)

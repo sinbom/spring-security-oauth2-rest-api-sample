@@ -7,7 +7,9 @@ import lombok.RequiredArgsConstructor;
 import me.nuguri.account.dto.ClientSearchCondition;
 import me.nuguri.account.repository.ClientRepositoryCustom;
 import me.nuguri.common.entity.Client;
-import me.nuguri.common.entity.QAccount;
+import me.nuguri.common.enums.GrantType;
+import me.nuguri.common.enums.Role;
+import me.nuguri.common.enums.Scope;
 import me.nuguri.common.support.QuerydslSupportCustom;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -18,6 +20,7 @@ import java.util.List;
 
 import static me.nuguri.common.entity.QAccount.account;
 import static me.nuguri.common.entity.QClient.client;
+import static org.springframework.util.StringUtils.hasText;
 
 @Transactional
 @RequiredArgsConstructor
@@ -38,13 +41,13 @@ public class ClientRepositoryImpl extends QuerydslSupportCustom implements Clien
                 .innerJoin(client.account, account)
                 .fetchJoin()
                 .where(
-                        eqClientId(condition),
-                        eqResourceIds(condition),
-                        eqScope(condition),
-                        eqGrantTypes(condition),
-                        eqRedirectUri(condition),
-                        client.authorities.eq(condition.getAuthorities()),
-                        client.account.email.eq(condition.getEmail()),
+                        eqClientId(condition.getClientId()),
+                        eqResourceIds(condition.getResourceId()),
+                        eqScope(condition.getScope()),
+                        eqGrantType(condition.getGrantType()),
+                        eqRedirectUri(condition.getRedirectUri()),
+                        eqAuthority(condition.getAuthority()),
+                        eqEmail(condition.getEmail()),
                         betweenCreated(client, condition.getStartCreated(), condition.getEndCreated()),
                         betweenUpdated(client, condition.getStartUpdated(), condition.getEndUpdated())
                 );
@@ -56,23 +59,36 @@ public class ClientRepositoryImpl extends QuerydslSupportCustom implements Clien
         return PageableExecutionUtils.getPage(content, pageable, countQuery::fetchCount);
     }
 
-    private BooleanExpression eqRedirectUri(ClientSearchCondition condition) {
-        return client.redirectUri.eq(condition.getRedirectUri());
+    @Override
+    public long deleteByIdsBatchInQuery(List<Long> ids) {
+        return 0;
     }
 
-    private BooleanExpression eqGrantTypes(ClientSearchCondition condition) {
-        return client.grantTypes.eq(condition.getGrantTypes());
+    private BooleanExpression eqEmail(String email) {
+        return hasText(email) ? client.account.email.eq(email) : null;
     }
 
-    private BooleanExpression eqScope(ClientSearchCondition condition) {
-        return client.scope.eq(condition.getScope().toString());
+    private BooleanExpression eqAuthority(Role authority) {
+        return authority != null ? client.authority.eq(authority) : null;
     }
 
-    private BooleanExpression eqResourceIds(ClientSearchCondition condition) {
-        return client.resourceIds.eq(condition.getResourceIds());
+    private BooleanExpression eqRedirectUri(String redirectUri) {
+        return hasText(redirectUri) ? client.redirectUri.eq(redirectUri) : null;
     }
 
-    private BooleanExpression eqClientId(ClientSearchCondition condition) {
-        return client.clientId.eq(condition.getClientId());
+    private BooleanExpression eqGrantType(GrantType grantType) {
+        return grantType != null ? client.grantTypes.eq(grantType.toString()) : null;
+    }
+
+    private BooleanExpression eqScope(Scope scope) {
+        return scope != null ? client.scope.containsIgnoreCase(scope.toString()) : null;
+    }
+
+    private BooleanExpression eqResourceIds(String resourceIds) {
+        return client.resourceIds.eq(resourceIds);
+    }
+
+    private BooleanExpression eqClientId(String clientId) {
+        return client.clientId.eq(clientId);
     }
 }

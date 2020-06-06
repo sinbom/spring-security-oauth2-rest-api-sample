@@ -6,8 +6,6 @@ import me.nuguri.common.entity.Account;
 import me.nuguri.common.entity.Client;
 import me.nuguri.common.enums.GrantType;
 import me.nuguri.common.enums.Scope;
-import org.apache.commons.codec.EncoderException;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -29,7 +27,6 @@ import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuild
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@Disabled
 @DisplayName("클라이언트 API 테스트")
 public class ClientApiControllerTest extends BaseIntegrationTest {
 
@@ -109,8 +106,8 @@ public class ClientApiControllerTest extends BaseIntegrationTest {
     @DisplayName("클라이언트 정보 성공적으로 얻는 경우")
     public void getClient_V1_Admin_Success_200() throws Exception {
         mockRestTemplate(HttpStatus.OK, properties.getAdminEmail());
-        Long id = clientRepository.findById(properties.getClientId()).orElseThrow(EntityExistsException::new).getId();
-        mockMvc.perform(get("/api/v1/client{id}", id)
+        Long id = clientRepository.findByClientId(properties.getClientId()).orElseThrow(EntityExistsException::new).getId();
+        mockMvc.perform(get("/api/v1/client/{id}", id)
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + getAccessToken())
                 .accept(MediaTypes.HAL_JSON))
                 .andExpect(status().isOk())
@@ -121,8 +118,8 @@ public class ClientApiControllerTest extends BaseIntegrationTest {
     @DisplayName("클라이언트 정보 유효하지 않은 토큰으로 못 얻는 경우")
     public void getClient_V1_Admin_Unauthorized_401() throws Exception {
         mockRestTemplate(HttpStatus.UNAUTHORIZED, null);
-        Long id = clientRepository.findById(properties.getClientId()).orElseThrow(EntityExistsException::new).getId();
-        mockMvc.perform(get("/api/v1/client{id}", id)
+        Long id = clientRepository.findByClientId(properties.getClientId()).orElseThrow(EntityExistsException::new).getId();
+        mockMvc.perform(get("/api/v1/client/{id}", id)
                 .header(HttpHeaders.AUTHORIZATION, "Bearer Invalid Token")
                 .accept(MediaTypes.HAL_JSON))
                 .andExpect(status().isUnauthorized())
@@ -133,8 +130,8 @@ public class ClientApiControllerTest extends BaseIntegrationTest {
     @DisplayName("클라이언트 정보 권한 없어서 얻지 못 얻는 경우")
     public void getClient_V1_Admin_Forbidden_403() throws Exception {
         mockRestTemplate(HttpStatus.OK, properties.getUserEmail());
-        Long id = clientRepository.findById(properties.getClientId()).orElseThrow(EntityExistsException::new).getId();
-        mockMvc.perform(get("/api/v1/client{id}", id)
+        Long id = clientRepository.findByClientId(properties.getClientId()).orElseThrow(EntityExistsException::new).getId();
+        mockMvc.perform(get("/api/v1/client/{id}", id)
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + getAccessToken())
                 .accept(MediaTypes.HAL_JSON))
                 .andExpect(status().isForbidden())
@@ -145,7 +142,7 @@ public class ClientApiControllerTest extends BaseIntegrationTest {
     @DisplayName("클라이언트 정보 잘못된 식별자로 못 얻는 경우")
     public void getClient_V1_Admin_Invalid_400() throws Exception {
         mockRestTemplate(HttpStatus.OK, properties.getUserEmail());
-        mockMvc.perform(get("/api/v1/client{id}", "asdasa")
+        mockMvc.perform(get("/api/v1/client/{id}", "asdasa")
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + getAccessToken())
                 .accept(MediaTypes.HAL_JSON))
                 .andExpect(status().isBadRequest())
@@ -156,7 +153,7 @@ public class ClientApiControllerTest extends BaseIntegrationTest {
     @DisplayName("클라이언트 정보 존재하지 않는 식별자로 못 얻는 경우")
     public void getClient_V1_Admin_NotFound_404() throws Exception {
         mockRestTemplate(HttpStatus.OK, properties.getUserEmail());
-        mockMvc.perform(get("/api/v1/client{id}", "12312312")
+        mockMvc.perform(get("/api/v1/client/{id}", "12312312")
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + getAccessToken())
                 .accept(MediaTypes.HAL_JSON))
                 .andExpect(status().isNotFound())
@@ -239,7 +236,7 @@ public class ClientApiControllerTest extends BaseIntegrationTest {
         ClientApiController.GenerateClientRequest request = new ClientApiController.GenerateClientRequest();
         request.setRedirectUri("https://www.test.com");
         request.setResourceIds(Arrays.asList("account", "nuguri"));
-        Long id = clientRepository.findById(properties.getClientId()).orElseThrow(EntityExistsException::new).getId();
+        Long id = clientRepository.findByClientId(properties.getClientId()).orElseThrow(EntityExistsException::new).getId();
         mockMvc.perform(patch("/api/v1/client/{id}", id)
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + getAccessToken())
                 .contentType(MediaType.APPLICATION_JSON)
@@ -256,7 +253,7 @@ public class ClientApiControllerTest extends BaseIntegrationTest {
         ClientApiController.GenerateClientRequest request = new ClientApiController.GenerateClientRequest();
         request.setRedirectUri("https://www.test.com");
         request.setResourceIds(Arrays.asList("account", "nuguri"));
-        Long id = clientRepository.findById(properties.getClientId()).orElseThrow(EntityExistsException::new).getId();
+        Long id = clientRepository.findByClientId(properties.getClientId()).orElseThrow(EntityExistsException::new).getId();
         mockMvc.perform(patch("/api/v1/client/{id}", id)
                 .header(HttpHeaders.AUTHORIZATION, "Bearer Invalid Token")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -273,7 +270,7 @@ public class ClientApiControllerTest extends BaseIntegrationTest {
         ClientApiController.GenerateClientRequest request = new ClientApiController.GenerateClientRequest();
         request.setRedirectUri("https://www.test.com");
         request.setResourceIds(Arrays.asList("account", "nuguri"));
-        Long id = clientRepository.findById(properties.getClientId()).orElseThrow(EntityExistsException::new).getId();
+        Long id = clientRepository.findByClientId(properties.getClientId()).orElseThrow(EntityExistsException::new).getId();
         mockMvc.perform(patch("/api/v1/client/{id}", id)
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + getAccessToken())
                 .contentType(MediaType.APPLICATION_JSON)
@@ -290,7 +287,7 @@ public class ClientApiControllerTest extends BaseIntegrationTest {
         ClientApiController.GenerateClientRequest request = new ClientApiController.GenerateClientRequest();
         request.setRedirectUri("asdsadsad");
         request.setResourceIds(Arrays.asList("account", "nuguri"));
-        Long id = clientRepository.findById(properties.getClientId()).orElseThrow(EntityExistsException::new).getId();
+        Long id = clientRepository.findByClientId(properties.getClientId()).orElseThrow(EntityExistsException::new).getId();
         mockMvc.perform(patch("/api/v1/client/{id}", id)
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + getAccessToken())
                 .contentType(MediaType.APPLICATION_JSON)
@@ -325,7 +322,7 @@ public class ClientApiControllerTest extends BaseIntegrationTest {
         request.setRedirectUri(redirectUri);
         List<String> resourceIds = Arrays.asList("account", "nuguri");
         request.setResourceIds(resourceIds);
-        Long id = clientRepository.findById(properties.getClientId()).orElseThrow(EntityExistsException::new).getId();
+        Long id = clientRepository.findByClientId(properties.getClientId()).orElseThrow(EntityExistsException::new).getId();
         mockMvc.perform(put("/api/v1/client/{id}", id)
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + getAccessToken())
                 .contentType(MediaType.APPLICATION_JSON)
@@ -363,7 +360,7 @@ public class ClientApiControllerTest extends BaseIntegrationTest {
         request.setRedirectUri(redirectUri);
         List<String> resourceIds = Arrays.asList("account", "nuguri");
         request.setResourceIds(resourceIds);
-        Long id = clientRepository.findById(properties.getClientId()).orElseThrow(EntityExistsException::new).getId();
+        Long id = clientRepository.findByClientId(properties.getClientId()).orElseThrow(EntityExistsException::new).getId();
         mockMvc.perform(put("/api/v1/client/{id}", id)
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + getAccessToken())
                 .contentType(MediaType.APPLICATION_JSON)
@@ -382,7 +379,7 @@ public class ClientApiControllerTest extends BaseIntegrationTest {
         request.setRedirectUri(redirectUri);
         List<String> resourceIds = Arrays.asList("account", "nuguri");
         request.setResourceIds(resourceIds);
-        Long id = clientRepository.findById(properties.getClientId()).orElseThrow(EntityExistsException::new).getId();
+        Long id = clientRepository.findByClientId(properties.getClientId()).orElseThrow(EntityExistsException::new).getId();
         mockMvc.perform(put("/api/v1/client/{id}", id)
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + getAccessToken())
                 .contentType(MediaType.APPLICATION_JSON)
@@ -401,7 +398,7 @@ public class ClientApiControllerTest extends BaseIntegrationTest {
         request.setRedirectUri(redirectUri);
         List<String> resourceIds = Arrays.asList("account", "nuguri");
         request.setResourceIds(resourceIds);
-        Long id = clientRepository.findById(properties.getClientId()).orElseThrow(EntityExistsException::new).getId();
+        Long id = clientRepository.findByClientId(properties.getClientId()).orElseThrow(EntityExistsException::new).getId();
         mockMvc.perform(put("/api/v1/client/{id}", id)
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + getAccessToken())
                 .contentType(MediaType.APPLICATION_JSON)
@@ -415,8 +412,8 @@ public class ClientApiControllerTest extends BaseIntegrationTest {
     @DisplayName("클라이언트 삭제 성공하는 경우")
     public void deleteClient_V1_Success_200() throws Exception {
         mockRestTemplate(HttpStatus.OK, properties.getAdminEmail());
-        Long id = clientRepository.findById(properties.getClientId()).orElseThrow(EntityExistsException::new).getId();
-        mockMvc.perform(put("/api/v1/client/{id}", id)
+        Long id = clientRepository.findByClientId(properties.getClientId()).orElseThrow(EntityExistsException::new).getId();
+        mockMvc.perform(delete("/api/v1/client/{id}", id)
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + getAccessToken())
                 .accept(MediaTypes.HAL_JSON))
                 .andExpect(status().isOk())
@@ -427,8 +424,8 @@ public class ClientApiControllerTest extends BaseIntegrationTest {
     @DisplayName("클라이언트 삭제 유효하지 않은 토큰으로 실패하는 경우")
     public void deleteClient_V1_Unauthorized_401() throws Exception {
         mockRestTemplate(HttpStatus.UNAUTHORIZED, null);
-        Long id = clientRepository.findById(properties.getClientId()).orElseThrow(EntityExistsException::new).getId();
-        mockMvc.perform(put("/api/v1/client/{id}", id)
+        Long id = clientRepository.findByClientId(properties.getClientId()).orElseThrow(EntityExistsException::new).getId();
+        mockMvc.perform(delete("/api/v1/client/{id}", id)
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + getAccessToken())
                 .accept(MediaTypes.HAL_JSON))
                 .andExpect(status().isUnauthorized())
@@ -439,8 +436,8 @@ public class ClientApiControllerTest extends BaseIntegrationTest {
     @DisplayName("클라이언트 삭제 성공하는 경우")
     public void deleteClient_V1_Forbidden_403() throws Exception {
         mockRestTemplate(HttpStatus.OK, properties.getAdminEmail());
-        Long id = clientRepository.findById(properties.getClientId()).orElseThrow(EntityExistsException::new).getId();
-        mockMvc.perform(put("/api/v1/client/{id}", id)
+        Long id = clientRepository.findByClientId(properties.getClientId()).orElseThrow(EntityExistsException::new).getId();
+        mockMvc.perform(delete("/api/v1/client/{id}", id)
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + getAccessToken())
                 .accept(MediaTypes.HAL_JSON))
                 .andExpect(status().isForbidden())
@@ -451,7 +448,7 @@ public class ClientApiControllerTest extends BaseIntegrationTest {
     @DisplayName("클라이언트 삭제 유효하지 않은 입력 값으로 실패하는 경우")
     public void deleteClient_V1_Invalid_400() throws Exception {
         mockRestTemplate(HttpStatus.OK, properties.getAdminEmail());
-        mockMvc.perform(put("/api/v1/client/{id}", "asdsad")
+        mockMvc.perform(delete("/api/v1/client/{id}", "asdsad")
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + getAccessToken())
                 .accept(MediaTypes.HAL_JSON))
                 .andExpect(status().isBadRequest())
@@ -462,9 +459,10 @@ public class ClientApiControllerTest extends BaseIntegrationTest {
     @DisplayName("클라이언트 삭제 존재하지 않아서 실패하는 경우")
     public void deleteClient_V1_NotFound_404() throws Exception {
         mockRestTemplate(HttpStatus.OK, properties.getAdminEmail());
-        mockMvc.perform(put("/api/v1/client/{id}", "1231233")
+        mockMvc.perform(delete("/api/v1/client/{id}", "1231233")
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + getAccessToken())
-                .accept(MediaTypes.HAL_JSON))
+                .accept(MediaTypes.HAL_JSON)
+                .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound())
                 .andDo(print());
     }
@@ -476,7 +474,7 @@ public class ClientApiControllerTest extends BaseIntegrationTest {
                         .clientId(UUID.randomUUID().toString())
                         .clientSecret(UUID.randomUUID().toString())
                         .grantTypes(GrantType.AUTHORIZATION_CODE.toString())
-                        .authorities(account.getRole().toString())
+                        .authority(account.getRole())
                         .scope(String.join(",", Scope.READ.toString(), Scope.WRITE.toString()))
                         .redirectUri("https://www.test.com")
                         .resourceIds(String.join(",", "account", "nuguri"))

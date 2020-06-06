@@ -144,22 +144,10 @@ public class AccountApiController {
     ) // clientHasRole은 접두어 일반 토큰 인증과 다르게 ROLE_ 없는 client_credentials 토큰의 허가
     @PreAuthorize("(hasRole('USER') or #oauth2.clientHasRole('ADMIN') and #oauth2.hasScope('write'))")
     public ResponseEntity<?> generateUser(@RequestBody @Valid GenerateUserRequest request, Errors errors) {
-        Account account = Account.builder()
-                .email(request.getEmail())
-                .password(request.getPassword())
-                .name(request.getName())
-                .gender(request.getGender())
-                .address(request.getAddress())
-                .role(request.getRole())
-                .build();
+        Account account = request.toAccount();
         accountValidator.validate(account, errors);
         if (errors.hasErrors()) {
             ErrorResponse errorResponse = new ErrorResponse(BAD_REQUEST, "invalid value", errors);
-            return ResponseEntity.badRequest().body(errorResponse);
-        }
-        boolean isExist = accountRepository.existsByEmail(request.getEmail());
-        if (isExist) {
-            ErrorResponse errorResponse = new ErrorResponse(BAD_REQUEST, "email is already exist");
             return ResponseEntity.badRequest().body(errorResponse);
         }
         Account generate = accountService.generate(account);
@@ -186,14 +174,8 @@ public class AccountApiController {
     @PreAuthorize("hasRole('USER') and #oauth2.hasScope('write')")
     @HasAuthority
     public ResponseEntity<?> updateUser(@PathVariable Long id, @RequestBody UpdateUserRequest request, Errors errors) {
-        Account account = Account.builder()
-                .id(id)
-                .password(request.getPassword())
-                .name(request.getName())
-                .gender(request.getGender())
-                .address(request.getAddress())
-                .role(request.getRole())
-                .build();
+        Account account = request.toAccount();
+        account.setId(id);
         accountValidator.validate(account, errors);
         if (errors.hasErrors()) {
             ErrorResponse errorResponse = new ErrorResponse(BAD_REQUEST, "invalid value", errors);
@@ -226,14 +208,8 @@ public class AccountApiController {
     @PreAuthorize("hasRole('USER')and #oauth2.hasScope('write')")
     @HasAuthority
     public ResponseEntity<?> mergeUser(@PathVariable Long id, @RequestBody @Valid UpdateUserRequest request, Errors errors) {
-        Account account = Account.builder()
-                .id(id)
-                .password(request.getPassword())
-                .name(request.getName())
-                .gender(request.getGender())
-                .address(request.getAddress())
-                .role(request.getRole())
-                .build();
+        Account account = request.toAccount();
+        account.setId(id);
         accountValidator.validate(account, errors);
         if (errors.hasErrors()) {
             ErrorResponse errorResponse = new ErrorResponse(BAD_REQUEST, "invalid value", errors);
@@ -295,7 +271,7 @@ public class AccountApiController {
             ErrorResponse errorResponse = new ErrorResponse(BAD_REQUEST, "invalid value", errors);
             return ResponseEntity.badRequest().body(errorResponse);
         }
-        long count = accountRepository.deleteByIdBatchInQuery(ids);
+        long count = accountRepository.deleteByIdsBatchInQuery(ids);
         if (count > 0) {
             DeleteUserResponse deleteUserResponse = new DeleteUserResponse(count);
             DeleteUsersResource deleteUsersResource = new DeleteUsersResource(deleteUserResponse);
@@ -322,6 +298,17 @@ public class AccountApiController {
         private Address address;
         @NotNull
         private Role role;
+
+        public Account toAccount() {
+            return Account.builder()
+                    .email(this.email)
+                    .password(this.password)
+                    .name(this.name)
+                    .gender(this.gender)
+                    .address(this.address)
+                    .role(this.role)
+                    .build();
+        }
     }
 
     @Getter
@@ -337,6 +324,16 @@ public class AccountApiController {
         private Address address;
         @NotNull
         private Role role;
+
+        public Account toAccount() {
+            return Account.builder()
+                    .password(this.password)
+                    .name(this.name)
+                    .gender(this.gender)
+                    .address(this.address)
+                    .role(this.role)
+                    .build();
+        }
     }
 
     @Getter

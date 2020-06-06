@@ -7,7 +7,6 @@ import me.nuguri.common.enums.Gender;
 import me.nuguri.resc.common.BaseIntegrationTest;
 import me.nuguri.resc.repository.CompanyRepository;
 import me.nuguri.resc.service.CreatorService;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -24,8 +23,6 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Random;
-import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.IntStream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -41,47 +38,6 @@ public class CreatorApiControllerTest extends BaseIntegrationTest {
 
     @Autowired
     private CompanyRepository companyRepository;
-
-    /**
-     * 테스트 메소드 실행 전, 저자와 책 엔티티 연관관계를 설정하고 영속화
-     */
-    @BeforeEach
-    public void beforeEach() {
-        List<Creator> creatorList = new ArrayList<>();
-        String[] creatorNames = {"홍길동", "아무개", "김똥개", "신나라", "박대기"};
-        LocalDate[] creatorBirth = {LocalDate.of(1946, 9, 17), LocalDate.of(1926, 5, 21)
-                , LocalDate.of(1996, 10, 25), LocalDate.of(1920, 6, 13), LocalDate.of(1965, 4, 2)};
-        LocalDate[] creatorDeath = {LocalDate.of(2018, 12, 1), LocalDate.of(2006, 4, 19)
-                , LocalDate.of(2020, 2, 14), LocalDate.of(1987, 7, 11), LocalDate.of(1999, 9, 12)};
-
-        for (int i = 0; i < creatorNames.length; i++) {
-            Creator creator = new Creator();
-            creator.setName(creatorNames[i]);
-            creator.setBirth(creatorBirth[i]);
-            creator.setDeath(creatorDeath[i]);
-            creator.setGender(i % 2 == 0 ? Gender.M : Gender.F);
-            creatorList.add(creator);
-
-            creatorService.generate(creator);
-        }
-
-        long min = LocalDate.of(1900, 1, 1).toEpochDay();
-        long max = LocalDate.now().toEpochDay();
-        for (int i = 0; i < 200; i++) {
-            Book book = new Book();
-            book.setName("Test Book " + i);
-            book.setPublishDate(LocalDate.ofEpochDay(ThreadLocalRandom.current().nextLong(min, max)));
-            book.addCreator(creatorList.get(new Random().nextInt(creatorList.size())));
-            Company company = new Company();
-            company.setName("아무회사" + i);
-            company.setEstablishDate(LocalDate.now());
-            book.addCompany(company);
-
-            companyRepository.save(company);
-        }
-
-        entityManager.clear(); // 테스트 시 조회 쿼리 정확히 보기 위해서 영속성 콘텍스트 초기화
-    }
 
     @ParameterizedTest(name = "{index}. {displayName} parameter(sort: {arguments})")
     @DisplayName("저자 목록 페이징 조회 성공적인 경우")
@@ -566,30 +522,27 @@ public class CreatorApiControllerTest extends BaseIntegrationTest {
      * @return 저자 엔티티
      */
     private Creator generateCreator() {
-        Creator creator = new Creator();
-        creator.setName("Test Creator");
-        creator.setBirth(LocalDate.of(1996, 9, 17));
-        creator.setDeath(LocalDate.now());
-        creator.setGender(Gender.M);
-
+        Creator creator = Creator.builder()
+                .name("Test Creator")
+                .birth(LocalDate.of(1996, 9, 17))
+                .death(LocalDate.now())
+                .gender(Gender.M)
+                .build();
         creatorService.generate(creator);
-
         IntStream.range(1, 5).forEach(n -> {
-            Book book = new Book();
-            book.setName("Test Book" + n);
-            book.setPublishDate(LocalDate.now());
-            book.addCreator(creator);
-
-            Company company = new Company();
-            company.setName("아무회사" + n);
-            company.setEstablishDate(LocalDate.now());
+            Book book = Book.builder()
+                    .name("Test Book" + n)
+                    .publishDate(LocalDate.now())
+                    .creator(creator)
+                    .build();
+            Company company = Company.builder()
+                    .name("아무회사" + n)
+                    .establishDate(LocalDate.now())
+                    .build();
             book.addCompany(company);
-
             companyRepository.save(company);
         });
-
         entityManager.clear(); // 테스트 시 조회 쿼리 정확히 보기 위해서 영속성 콘텍스트 초기화
-
         return creator;
     }
 
