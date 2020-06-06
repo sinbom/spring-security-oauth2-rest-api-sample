@@ -47,7 +47,7 @@ public class ApplicationConfiguration {
         Map<String, List<String>> roleHierarchyMap = new HashMap<>();
         roleHierarchyMap.put("ROLE_" + Role.ADMIN, Arrays.asList("ROLE_" + Role.USER));
         roleHierarchyMap.put("" + Role.ADMIN, Arrays.asList("" + Role.USER));
-        // ROLE_ADIN > ROLE_USER\nADMIN > USER 표현식으로 변환해주는 유틸 클래스
+        // ROLE_ADIN > ROLE_USER\r\nADMIN > USER 표현식으로 변환해주는 유틸 클래스
         String roleHierarchyExpression = RoleHierarchyUtils.roleHierarchyFromMap(roleHierarchyMap);
         roleHierarchy.setHierarchy(roleHierarchyExpression);
         return roleHierarchy;

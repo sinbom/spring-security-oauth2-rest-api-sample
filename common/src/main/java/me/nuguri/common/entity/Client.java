@@ -98,8 +98,9 @@ public class Client extends BaseEntity implements Serializable {
     private Account account;
 
     @Builder
-    protected Client(Long id, String clientId, String resourceIds, String clientSecret, String scope, String grantTypes, String redirectUri, Role authority,
-                     Integer accessTokenValidity, Integer refreshTokenValidity, String additionalInformation, String autoapprove, Account account) {
+    protected Client(Long id, String clientId, String resourceIds, String clientSecret, String scope,
+                     String grantTypes, String redirectUri, Role authority, Integer accessTokenValidity,
+                     Integer refreshTokenValidity, String additionalInformation, String autoapprove, Account account) {
         this.id = id;
         this.clientId = clientId;
         this.resourceIds = resourceIds;
