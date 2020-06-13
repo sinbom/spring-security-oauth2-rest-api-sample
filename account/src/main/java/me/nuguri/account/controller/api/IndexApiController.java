@@ -47,6 +47,7 @@ public class IndexApiController {
     @Setter
     public static class IndexResource {
         private List<Link> _links = new ArrayList<>();
+
         public IndexResource(Account account) {
             _links.add(linkTo(IndexApiController.class).slash("/docs/index.html").withRel("document"));
             _links.add(linkTo(IndexApiController.class).slash("/docs/account.html").withRel("document"));
@@ -56,10 +57,10 @@ public class IndexApiController {
                 if (account.getRole().equals(Role.ADMIN)) {
                     _links.add(linkTo(methodOn(AccountApiController.class).queryUsers(null, null, null)).withRel("queryUsers").withType("GET"));
                 }
-                _links.add(linkTo(methodOn(AccountApiController.class).getUser(account.getId())).withRel("getUser").withType("GET"));
-                _links.add(linkTo(methodOn(AccountApiController.class).updateUser(account.getId(), null, null)).withRel("updateUser").withType("PATCH"));
-                _links.add(linkTo(methodOn(AccountApiController.class).mergeUser(account.getId(), null, null)).withRel("mergeUser").withType("PUT"));
-                _links.add(linkTo(methodOn(AccountApiController.class).deleteUser(account.getId())).withRel("deleteUser").withType("DELETE"));
+                _links.add(linkTo(methodOn(AccountApiController.class).getUser(account.getId(), null)).withRel("getUser").withType("GET"));
+                _links.add(linkTo(methodOn(AccountApiController.class).updateUser(account.getId(), null, null, null)).withRel("updateUser").withType("PATCH"));
+                _links.add(linkTo(methodOn(AccountApiController.class).mergeUser(account.getId(), null, null, null)).withRel("mergeUser").withType("PUT"));
+                _links.add(linkTo(methodOn(AccountApiController.class).deleteUser(account.getId(), null)).withRel("deleteUser").withType("DELETE"));
             }
         }
     }

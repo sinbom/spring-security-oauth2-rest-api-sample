@@ -113,7 +113,9 @@ public class AccountApiController {
     @HasAuthority
     public ResponseEntity<?> getUser(@PathVariable Long id, @TokenAuthenticationUser Account user) {
         checkAuthority(user, id);
-        Account account = accountRepository.findById(id).orElseThrow(EntityNotFoundException::new);
+        Account account = accountRepository
+                .findById(id)
+                .orElseThrow(EntityNotFoundException::new);
         GetUserResponse getUserResponse = new GetUserResponse(account);
         GetUserResource getUserResource = new GetUserResource(getUserResponse);
         return ResponseEntity.ok(getUserResource);
@@ -211,7 +213,9 @@ public class AccountApiController {
     @HasAuthority
     public ResponseEntity<?> deleteUser(@PathVariable Long id, @TokenAuthenticationUser Account user) {
         checkAuthority(user, id);
-        Account account = accountRepository.findById(id).orElseThrow(EntityNotFoundException::new);
+        Account account = accountRepository
+                .findById(id)
+                .orElseThrow(EntityNotFoundException::new);
         accountRepository.delete(account);
         DeleteUserResponse deleteUserResponse = new DeleteUserResponse(1);
         DeleteUserResource deleteUserResource = new DeleteUserResource(deleteUserResponse, id);
@@ -392,7 +396,7 @@ public class AccountApiController {
             add(linkTo(methodOn(AccountApiController.class).generateUser(null, null)).withSelfRel().withType("POST"));
             add(linkTo(methodOn(AccountApiController.class).getUser(content.getId(), null)).withRel("getUser").withType("GET"));
             add(linkTo(methodOn(AccountApiController.class).updateUser(content.getId(), null, null, null)).withRel("updateUser").withType("PATCH"));
-            add(linkTo(methodOn(AccountApiController.class).mergeUser(content.getId(), null,null, null)).withRel("mergeUser").withType("PUT"));
+            add(linkTo(methodOn(AccountApiController.class).mergeUser(content.getId(), null, null, null)).withRel("mergeUser").withType("PUT"));
             add(linkTo(methodOn(AccountApiController.class).deleteUser(content.getId(), null)).withRel("deleteUser").withType("DELETE"));
         }
     }

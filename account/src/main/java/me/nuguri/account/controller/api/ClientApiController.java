@@ -9,8 +9,8 @@ import me.nuguri.account.annotation.TokenAuthenticationUser;
 import me.nuguri.account.dto.ClientSearchCondition;
 import me.nuguri.account.repository.ClientRepository;
 import me.nuguri.account.service.ClientService;
+import me.nuguri.account.service.lazy.ClientLazyService;
 import me.nuguri.common.dto.BaseResponse;
-import me.nuguri.common.dto.ErrorResponse;
 import me.nuguri.common.entity.Account;
 import me.nuguri.common.entity.Client;
 import me.nuguri.common.enums.GrantType;
@@ -25,7 +25,6 @@ import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.Link;
 import org.springframework.hateoas.MediaTypes;
 import org.springframework.hateoas.PagedModel;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
@@ -38,21 +37,21 @@ import javax.persistence.EntityNotFoundException;
 import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.Pattern;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
-import java.util.regex.Pattern;
 
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
-import static org.springframework.http.HttpStatus.*;
 
 @RestController
 @RequiredArgsConstructor
 public class ClientApiController {
 
     private final ClientService clientService;
+
+    private final ClientLazyService clientLazyService;
 
     private final ClientRepository clientRepository;
 
@@ -83,12 +82,9 @@ public class ClientApiController {
     @PreAuthorize("hasRole('USER') and #oauth2.hasScope('read')")
     @HasAuthority
     public ResponseEntity<?> getClient(@PathVariable Long id, @TokenAuthenticationUser Account user) {
-        Client client = clientRepository.findById(id).orElseThrow(EntityNotFoundException::new);
-        checkAuthority(user, client);
-        if (!checkAuthority(user, client)) {
-            ErrorResponse errorResponse = new ErrorResponse(FORBIDDEN, "have no authority");
-            return ResponseEntity.status(UNAUTHORIZED).body(errorResponse);
-        }
+        Client client = clientRepository
+                .findById(id)
+                .orElseThrow(EntityNotFoundException::new);
         GetClientResponse getClientResponse = new GetClientResponse(client);
         GetClientResource getClientResource = new GetClientResource(getClientResponse);
         return ResponseEntity.ok(getClientResource);
@@ -111,10 +107,6 @@ public class ClientApiController {
     public ResponseEntity<?> generateClient(@RequestBody @Valid GenerateClientRequest request, Errors errors, @TokenAuthenticationUser Account user) {
         Client client = request.toClient(user);
         clientValidator.validate(client, errors);
-        if (errors.hasErrors()) {
-            ErrorResponse errorResponse = new ErrorResponse(HttpStatus.BAD_REQUEST, "invalid value", errors);
-            return ResponseEntity.badRequest().body(errorResponse);
-        }
         Client generate = clientService.generate(client);
         GetClientResponse getClientResponse = new GetClientResponse(generate);
         GenerateClientResource generateClientResource = new GenerateClientResource(getClientResponse);
@@ -131,23 +123,14 @@ public class ClientApiController {
     )
     @PreAuthorize("hasRole('USER') and #oauth2.hasScope('write')")
     @HasAuthority
-    public ResponseEntity<?> updateClient(@PathVariable Long id, @RequestBody UpdateClientRequest request, Errors errors, @TokenAuthenticationUser Account user) {
-        Client client = request.toClient();
-        client.setId(id);
+    public ResponseEntity<?> updateClient(@PathVariable Long id, @RequestBody UpdateClientRequest request, Errors errors,
+                                          @TokenAuthenticationUser(entityGraph = "clients") Account user) {
+        Client client = request.toClient(id);
         clientValidator.validate(client, errors);
-        if (errors.hasErrors()) {
-            ErrorResponse errorResponse = new ErrorResponse(BAD_REQUEST, "invalid value", errors);
-            return ResponseEntity.badRequest().body(errorResponse);
-        }
-        try {
-            Client update = clientService.update(client);
-            GetClientResponse getClientResponse = new GetClientResponse(update);
-            UpdateClientResource updateClientResource = new UpdateClientResource(getClientResponse);
-            return ResponseEntity.ok(updateClientResource);
-        } catch (EntityNotFoundException e) {
-            ErrorResponse errorResponse = new ErrorResponse(NOT_FOUND, "not exist client of id");
-            return ResponseEntity.status(NOT_FOUND).body(errorResponse);
-        }
+        Client update = clientLazyService.update(client, user);
+        GetClientResponse getClientResponse = new GetClientResponse(update);
+        UpdateClientResource updateClientResource = new UpdateClientResource(getClientResponse);
+        return ResponseEntity.ok(updateClientResource);
     }
 
     @PutMapping(
@@ -158,22 +141,12 @@ public class ClientApiController {
     @PreAuthorize("hasRole('USER')and #oauth2.hasScope('write')")
     @HasAuthority
     public ResponseEntity<?> mergeClient(@PathVariable Long id, @RequestBody @Valid UpdateClientRequest request, Errors errors, @TokenAuthenticationUser Account user) {
-        Client client = request.toClient();
-        client.setId(id);
+        Client client = request.toClient(id);
         clientValidator.validate(client, errors);
-        if (errors.hasErrors()) {
-            ErrorResponse errorResponse = new ErrorResponse(BAD_REQUEST, "invalid value", errors);
-            return ResponseEntity.badRequest().body(errorResponse);
-        }
-        try {
-            Client merge = clientService.merge(client);
-            GetClientResponse getClientResponse = new GetClientResponse(merge);
-            MergeClientResource mergeClientResource = new MergeClientResource(getClientResponse);
-            return ResponseEntity.ok(mergeClientResource);
-        } catch (EntityNotFoundException e) {
-            ErrorResponse errorResponse = new ErrorResponse(NOT_FOUND, "not exist client of id");
-            return ResponseEntity.status(NOT_FOUND).body(errorResponse);
-        }
+        Client merge = clientService.merge(client);
+        GetClientResponse getClientResponse = new GetClientResponse(merge);
+        MergeClientResource mergeClientResource = new MergeClientResource(getClientResponse);
+        return ResponseEntity.ok(mergeClientResource);
     }
 
     @DeleteMapping(
@@ -183,20 +156,14 @@ public class ClientApiController {
     @PreAuthorize("hasRole('USER')and #oauth2.hasScope('write')")
     @HasAuthority
     public ResponseEntity<?> deleteClient(@PathVariable Long id, @TokenAuthenticationUser Account user) {
-        Optional<Client> optional = clientRepository.findById(id);
-        if (optional.isPresent()) {
-            Client client = optional.get();
-            if (!checkAuthority(user, client)) {
-                ErrorResponse errorResponse = new ErrorResponse(FORBIDDEN, "have no authority");
-                return ResponseEntity.status(UNAUTHORIZED).body(errorResponse);
-            }
-            clientRepository.delete(client);
-            DeleteClientResposne deleteClientResposne = new DeleteClientResposne(1);
-            DeleteClientResource deleteClientResource = new DeleteClientResource(deleteClientResposne, id);
-            return ResponseEntity.ok(deleteClientResource);
-        }
-        ErrorResponse errorResponse = new ErrorResponse(NOT_FOUND, "not exist client of id");
-        return ResponseEntity.status(NOT_FOUND).body(errorResponse);
+        Client client = clientRepository
+                .findById(id)
+                .orElseThrow(EntityNotFoundException::new);
+        clientRepository.delete(client);
+        DeleteClientResposne deleteClientResposne = new DeleteClientResposne(1);
+        DeleteClientResource deleteClientResource = new DeleteClientResource(deleteClientResposne, id);
+        return ResponseEntity.ok(deleteClientResource);
+
     }
 
     @DeleteMapping(
@@ -207,37 +174,10 @@ public class ClientApiController {
     @PreAuthorize("hasRole('ADMIN') and #oauth2.hasScope('write')")
     public ResponseEntity<?> deleteClients(@RequestBody @Valid DeleteClientsRequest request, Errors errors) {
         List<Long> ids = request.getIds();
-        clientValidator.validate(ids, errors);
-        if (errors.hasErrors()) {
-            ErrorResponse errorResponse = new ErrorResponse(BAD_REQUEST, "invalid value", errors);
-            return ResponseEntity.badRequest().body(errorResponse);
-        }
         long count = clientRepository.deleteByIdsBatchInQuery(ids);
-        if (count > 0) {
-            DeleteClientResposne deleteClientResposne = new DeleteClientResposne(count);
-            DeleteClientsResource deleteClientsResource = new DeleteClientsResource(deleteClientResposne);
-            return ResponseEntity.ok(deleteClientsResource);
-        }
-        ErrorResponse errorResponse = new ErrorResponse(NOT_FOUND, "not exist element of id");
-        return ResponseEntity.status(NOT_FOUND).body(errorResponse);
-    }
-
-    // ==========================================================================================================================================
-    // Common Method
-
-    /**
-     * 현재 토큰 유저가 관리자 권한이거나 리소스 소유자인지 검증
-     *
-     * @param user   토큰 유저
-     * @param client 리소스
-     * @return 접근 가능 여부
-     */
-    private void checkAuthority(Account user, Client client) {
-        Role role = user.getRole(); // 토큰 발급 유저 권한
-        Account owner = client.getAccount(); // 리소스 유저
-        if (!role.equals(Role.ADMIN) || !owner.equals(user)) { // 현재 토큰 유저가 관리자 권한이거나 리소스 소유자인 경우
-            throw new AccessDeniedException("can not access resource because has no authority");
-        }
+        DeleteClientResposne deleteClientResposne = new DeleteClientResposne(count);
+        DeleteClientsResource deleteClientsResource = new DeleteClientsResource(deleteClientResposne);
+        return ResponseEntity.ok(deleteClientsResource);
     }
 
     // ==========================================================================================================================================
@@ -247,7 +187,7 @@ public class ClientApiController {
     public static class GenerateClientRequest {
         @NotEmpty
         private List<String> resourceIds;
-        @NotBlank
+        @Pattern(regexp = "^(http|https)://.+$")
         private String redirectUri;
 
         public Client toClient(Account account) {
@@ -273,11 +213,12 @@ public class ClientApiController {
     public static class UpdateClientRequest {
         @NotEmpty
         private List<String> resourceIds;
-        @NotBlank
+        @Pattern(regexp = "^(http|https)://.+$")
         private String redirectUri;
 
-        public Client toClient() {
+        public Client toClient(Long id) {
             return Client.builder()
+                    .id(id)
                     .redirectUri(redirectUri)
                     .resourceIds(String.join(",", resourceIds))
                     .build();
@@ -375,9 +316,6 @@ public class ClientApiController {
     @Component
     public static class ClientValidator extends BaseValidator {
         public void validate(Client client, Errors errors) {
-            if (!Pattern.matches("^(http|https)://.*$", client.getRedirectUri())) {
-                errors.rejectValue("redirectUri", "wrong value", "redirec uri is must be starts with http or https");
-            }
         }
     }
     // ==========================================================================================================================================

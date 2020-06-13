@@ -27,7 +27,9 @@ public class ClientService {
      * @return 생성한 클라이언트 엔티티 객체
      */
     public Client generate(Client client) {
-        client.setClientSecret(passwordEncoder.encode(client.getClientSecret()));
+        String clientSecret = client.getClientSecret();
+        clientSecret = passwordEncoder.encode(clientSecret);
+        client.setClientSecret(clientSecret);
         return clientRepository.save(client);
     }
 
@@ -38,7 +40,10 @@ public class ClientService {
      * @return 수정한 클라이언트 엔티티 객체
      */
     public Client update(Client client) {
-        Client update = clientRepository.findById(client.getId()).orElseThrow(EntityNotFoundException::new);
+        Long id = client.getId();
+        Client update = clientRepository
+                .findById(id)
+                .orElseThrow(EntityNotFoundException::new);
         String redirectUri = client.getRedirectUri();
         String resourceIds = client.getResourceIds();
         if (hasText(redirectUri)) {
@@ -57,7 +62,10 @@ public class ClientService {
      * @return 병합한 클라이언트 엔티티 객체
      */
     public Client merge(Client client) {
-        Client merge = clientRepository.findById(client.getId()).orElseThrow(EntityNotFoundException::new);
+        Long id = client.getId();
+        Client merge = clientRepository
+                .findById(id)
+                .orElseThrow(EntityNotFoundException::new);
         String redirectUri = client.getRedirectUri();
         String resourceIds = client.getResourceIds();
         merge.setRedirectUri(redirectUri);
