@@ -19,6 +19,7 @@ import me.nuguri.common.enums.Scope;
 import me.nuguri.common.support.BaseValidator;
 import me.nuguri.common.support.PaginationValidator;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.Link;
@@ -27,6 +28,7 @@ import org.springframework.hateoas.PagedModel;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Component;
 import org.springframework.validation.Errors;
@@ -36,7 +38,10 @@ import javax.persistence.EntityNotFoundException;
 import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotEmpty;
-import java.util.*;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 import java.util.regex.Pattern;
 
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
@@ -62,16 +67,9 @@ public class ClientApiController {
     @PreAuthorize("hasRole('ADMIN') and #oauth2.hasScope('read')")
     public ResponseEntity<?> queryClients(PagedResourcesAssembler<Client> assembler, @Valid ClientSearchCondition condition, Errors errors) {
         paginationValidator.validate(condition, Client.class, errors);
-        if (errors.hasErrors()) {
-            ErrorResponse errorResponse = new ErrorResponse(BAD_REQUEST, "invalid parameter value", errors);
-            return ResponseEntity.badRequest().body(errorResponse);
-        }
-        Page<Client> page = clientRepository.pageByConditionFetchAccounts(condition, condition.getPageable());
-        if (page.getNumberOfElements() < 1) {
-            String message = page.getTotalElements() < 1 ? "content of all pages does not exist" : "content of current page does not exist";
-            ErrorResponse errorResponse = new ErrorResponse(NOT_FOUND, message);
-            return ResponseEntity.status(NOT_FOUND).body(errorResponse);
-        }
+        Pageable pageable = condition.getPageable();
+        Page<Client> page = clientRepository.pageByConditionFetchAccounts(condition, pageable);
+        paginationValidator.checkEmpty(page);
         PagedModel<QueryClientsResource> pagedResources = assembler.toModel(page,
                 client -> new QueryClientsResource(new GetClientResponse(client)));
         pagedResources.add(linkTo(ClientApiController.class).slash("/docs/client.html").withRel("document"));
@@ -84,20 +82,16 @@ public class ClientApiController {
     )
     @PreAuthorize("hasRole('USER') and #oauth2.hasScope('read')")
     @HasAuthority
-    public ResponseEntity<?> getClient(@PathVariable Long id, @TokenAuthenticationUser Account account) {
-        Optional<Client> optional = clientRepository.findById(id);
-        if (optional.isPresent()) {
-            Client client = optional.get();
-            if (!hasAuthority(account, client)) {
-                ErrorResponse errorResponse = new ErrorResponse(FORBIDDEN, "have no authority");
-                return ResponseEntity.status(UNAUTHORIZED).body(errorResponse);
-            }
-            GetClientResponse getClientResponse = new GetClientResponse(client);
-            GetClientResource getClientResource = new GetClientResource(getClientResponse);
-            return ResponseEntity.ok(getClientResource);
+    public ResponseEntity<?> getClient(@PathVariable Long id, @TokenAuthenticationUser Account user) {
+        Client client = clientRepository.findById(id).orElseThrow(EntityNotFoundException::new);
+        checkAuthority(user, client);
+        if (!checkAuthority(user, client)) {
+            ErrorResponse errorResponse = new ErrorResponse(FORBIDDEN, "have no authority");
+            return ResponseEntity.status(UNAUTHORIZED).body(errorResponse);
         }
-        ErrorResponse errorResponse = new ErrorResponse(NOT_FOUND, "not exist client of id");
-        return ResponseEntity.status(NOT_FOUND).body(errorResponse);
+        GetClientResponse getClientResponse = new GetClientResponse(client);
+        GetClientResource getClientResource = new GetClientResource(getClientResponse);
+        return ResponseEntity.ok(getClientResource);
     }
 
     /**
@@ -105,7 +99,7 @@ public class ClientApiController {
      *
      * @param request resourceIds 접근 리소스, redirectUri 리다이렉트 uri
      * @param errors  에러
-     * @param account 현재 인증 토큰 기반 인증 객체
+     * @param user    현재 인증 토큰 기반 인증 객체
      * @return
      */
     @PostMapping(
@@ -114,8 +108,8 @@ public class ClientApiController {
             produces = MediaTypes.HAL_JSON_VALUE
     )
     @PreAuthorize("hasRole('USER') and #oauth2.hasScope('write')")
-    public ResponseEntity<?> generateClient(@RequestBody @Valid GenerateClientRequest request, Errors errors, @TokenAuthenticationUser Account account) {
-        Client client = request.toClient(account);
+    public ResponseEntity<?> generateClient(@RequestBody @Valid GenerateClientRequest request, Errors errors, @TokenAuthenticationUser Account user) {
+        Client client = request.toClient(user);
         clientValidator.validate(client, errors);
         if (errors.hasErrors()) {
             ErrorResponse errorResponse = new ErrorResponse(HttpStatus.BAD_REQUEST, "invalid value", errors);
@@ -137,7 +131,7 @@ public class ClientApiController {
     )
     @PreAuthorize("hasRole('USER') and #oauth2.hasScope('write')")
     @HasAuthority
-    public ResponseEntity<?> updateClient(@PathVariable Long id, @RequestBody UpdateClientRequest request, Errors errors, @TokenAuthenticationUser Account account) {
+    public ResponseEntity<?> updateClient(@PathVariable Long id, @RequestBody UpdateClientRequest request, Errors errors, @TokenAuthenticationUser Account user) {
         Client client = request.toClient();
         client.setId(id);
         clientValidator.validate(client, errors);
@@ -163,7 +157,7 @@ public class ClientApiController {
     )
     @PreAuthorize("hasRole('USER')and #oauth2.hasScope('write')")
     @HasAuthority
-    public ResponseEntity<?> mergeClient(@PathVariable Long id, @RequestBody @Valid UpdateClientRequest request, Errors errors) {
+    public ResponseEntity<?> mergeClient(@PathVariable Long id, @RequestBody @Valid UpdateClientRequest request, Errors errors, @TokenAuthenticationUser Account user) {
         Client client = request.toClient();
         client.setId(id);
         clientValidator.validate(client, errors);
@@ -188,10 +182,14 @@ public class ClientApiController {
     )
     @PreAuthorize("hasRole('USER')and #oauth2.hasScope('write')")
     @HasAuthority
-    public ResponseEntity<?> deleteClient(@PathVariable Long id) {
+    public ResponseEntity<?> deleteClient(@PathVariable Long id, @TokenAuthenticationUser Account user) {
         Optional<Client> optional = clientRepository.findById(id);
         if (optional.isPresent()) {
             Client client = optional.get();
+            if (!checkAuthority(user, client)) {
+                ErrorResponse errorResponse = new ErrorResponse(FORBIDDEN, "have no authority");
+                return ResponseEntity.status(UNAUTHORIZED).body(errorResponse);
+            }
             clientRepository.delete(client);
             DeleteClientResposne deleteClientResposne = new DeleteClientResposne(1);
             DeleteClientResource deleteClientResource = new DeleteClientResource(deleteClientResposne, id);
@@ -229,14 +227,17 @@ public class ClientApiController {
 
     /**
      * 현재 토큰 유저가 관리자 권한이거나 리소스 소유자인지 검증
-     * @param account 토큰 유저
+     *
+     * @param user   토큰 유저
      * @param client 리소스
      * @return 접근 가능 여부
      */
-    private boolean hasAuthority(@TokenAuthenticationUser Account account, Client client) {
-        Role role = account.getRole(); // 토큰 발급 유저 권한
+    private void checkAuthority(Account user, Client client) {
+        Role role = user.getRole(); // 토큰 발급 유저 권한
         Account owner = client.getAccount(); // 리소스 유저
-        return role.equals(Role.ADMIN) || owner.equals(account); // 현재 토큰 유저가 관리자 권한이거나 리소스 소유자인 경우
+        if (!role.equals(Role.ADMIN) || !owner.equals(user)) { // 현재 토큰 유저가 관리자 권한이거나 리소스 소유자인 경우
+            throw new AccessDeniedException("can not access resource because has no authority");
+        }
     }
 
     // ==========================================================================================================================================

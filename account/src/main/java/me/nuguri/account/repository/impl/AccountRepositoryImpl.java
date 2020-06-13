@@ -16,6 +16,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.repository.support.PageableExecutionUtils;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.persistence.EntityNotFoundException;
 import java.util.List;
 import java.util.Optional;
 
@@ -127,10 +128,14 @@ public class AccountRepositoryImpl extends QuerydslSupportCustom implements Acco
                 .where(client.account.id.in(ids))
                 .execute();
         // 유저 엔티티 제거
-        return jpaQueryFactory
+        long count = jpaQueryFactory
                 .delete(account)
                 .where(inIds(ids))
                 .execute();
+        if (count < 1) {
+            throw new EntityNotFoundException();
+        }
+        return count;
     }
 
     private BooleanExpression inIds(List<Long> ids) {

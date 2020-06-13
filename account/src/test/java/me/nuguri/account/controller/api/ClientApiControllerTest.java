@@ -362,7 +362,7 @@ public class ClientApiControllerTest extends BaseIntegrationTest {
         request.setResourceIds(resourceIds);
         Long id = clientRepository.findByClientId(properties.getClientId()).orElseThrow(EntityExistsException::new).getId();
         mockMvc.perform(put("/api/v1/client/{id}", id)
-                .header(HttpHeaders.AUTHORIZATION, "Bearer " + getAccessToken())
+                .header(HttpHeaders.AUTHORIZATION, "Bearer Invalid Token")
                 .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaTypes.HAL_JSON)
                 .content(objectMapper.writeValueAsString(request)))

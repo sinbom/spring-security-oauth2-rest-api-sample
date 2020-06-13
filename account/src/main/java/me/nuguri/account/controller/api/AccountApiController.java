@@ -10,14 +10,15 @@ import me.nuguri.account.dto.AccountSearchCondition;
 import me.nuguri.account.repository.AccountRepository;
 import me.nuguri.account.service.AccountService;
 import me.nuguri.common.dto.BaseResponse;
-import me.nuguri.common.dto.ErrorResponse;
 import me.nuguri.common.entity.Account;
 import me.nuguri.common.entity.Address;
 import me.nuguri.common.enums.Gender;
 import me.nuguri.common.enums.Role;
+import me.nuguri.common.exception.InvalidRequestException;
 import me.nuguri.common.support.BaseValidator;
 import me.nuguri.common.support.PaginationValidator;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.Link;
@@ -25,6 +26,7 @@ import org.springframework.hateoas.MediaTypes;
 import org.springframework.hateoas.PagedModel;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Component;
 import org.springframework.validation.Errors;
@@ -32,16 +34,14 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.persistence.EntityNotFoundException;
 import javax.validation.Valid;
+import javax.validation.constraints.Email;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import java.util.List;
-import java.util.Optional;
 
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
-import static org.springframework.http.HttpStatus.BAD_REQUEST;
-import static org.springframework.http.HttpStatus.NOT_FOUND;
 import static org.springframework.util.StringUtils.hasText;
 import static org.springframework.util.StringUtils.isEmpty;
 
@@ -90,16 +90,9 @@ public class AccountApiController {
     @PreAuthorize("hasRole('ADMIN') and #oauth2.hasScope('read')")
     public ResponseEntity<?> queryUsers(PagedResourcesAssembler<Account> assembler, @Valid AccountSearchCondition condition, Errors errors) {
         paginationValidator.validate(condition, Account.class, errors);
-        if (errors.hasErrors()) {
-            ErrorResponse errorResponse = new ErrorResponse(BAD_REQUEST, "invalid parameter value", errors);
-            return ResponseEntity.badRequest().body(errorResponse);
-        }
-        Page<Account> page = accountRepository.pageByCondition(condition, condition.getPageable());
-        if (page.getNumberOfElements() < 1) {
-            String message = page.getTotalElements() < 1 ? "content of all pages does not exist" : "content of current page does not exist";
-            ErrorResponse errorResponse = new ErrorResponse(NOT_FOUND, message);
-            return ResponseEntity.status(NOT_FOUND).body(errorResponse);
-        }
+        Pageable pageable = condition.getPageable();
+        Page<Account> page = accountRepository.pageByCondition(condition, pageable);
+        paginationValidator.checkEmpty(page);
         PagedModel<QueryUsersResource> pagedResources = assembler.toModel(page,
                 account -> new QueryUsersResource(new GetUserResponse(account)));
         pagedResources.add(linkTo(AccountApiController.class).slash("/docs/account.html").withRel("document"));
@@ -118,16 +111,12 @@ public class AccountApiController {
     )
     @PreAuthorize("hasRole('USER') and #oauth2.hasScope('read')")
     @HasAuthority
-    public ResponseEntity<?> getUser(@PathVariable Long id) {
-        Optional<Account> optional = accountRepository.findById(id);
-        if (optional.isPresent()) {
-            Account account = optional.get();
-            GetUserResponse getUserResponse = new GetUserResponse(account);
-            GetUserResource getUserResource = new GetUserResource(getUserResponse);
-            return ResponseEntity.ok(getUserResource);
-        }
-        ErrorResponse errorResponse = new ErrorResponse(NOT_FOUND, "not exist account of id");
-        return ResponseEntity.status(NOT_FOUND).body(errorResponse);
+    public ResponseEntity<?> getUser(@PathVariable Long id, @TokenAuthenticationUser Account user) {
+        checkAuthority(user, id);
+        Account account = accountRepository.findById(id).orElseThrow(EntityNotFoundException::new);
+        GetUserResponse getUserResponse = new GetUserResponse(account);
+        GetUserResource getUserResource = new GetUserResource(getUserResponse);
+        return ResponseEntity.ok(getUserResource);
     }
 
     /**
@@ -141,15 +130,11 @@ public class AccountApiController {
             value = "/api/v1/user",
             consumes = MediaType.APPLICATION_JSON_VALUE,
             produces = MediaTypes.HAL_JSON_VALUE
-    ) // clientHasRole은 접두어 일반 토큰 인증과 다르게 ROLE_ 없는 client_credentials 토큰의 허가
+    ) // TODO clientHasRole은 접두어 일반 토큰 인증과 다르게 ROLE_ 없는 client_credentials 토큰의 허가
     @PreAuthorize("(hasRole('USER') or #oauth2.clientHasRole('ADMIN') and #oauth2.hasScope('write'))")
     public ResponseEntity<?> generateUser(@RequestBody @Valid GenerateUserRequest request, Errors errors) {
         Account account = request.toAccount();
         accountValidator.validate(account, errors);
-        if (errors.hasErrors()) {
-            ErrorResponse errorResponse = new ErrorResponse(BAD_REQUEST, "invalid value", errors);
-            return ResponseEntity.badRequest().body(errorResponse);
-        }
         Account generate = accountService.generate(account);
         GetUserResponse getUserResponse = new GetUserResponse(generate);
         GenerateUserResource generateUserResource = new GenerateUserResource(getUserResponse);
@@ -173,23 +158,16 @@ public class AccountApiController {
     )
     @PreAuthorize("hasRole('USER') and #oauth2.hasScope('write')")
     @HasAuthority
-    public ResponseEntity<?> updateUser(@PathVariable Long id, @RequestBody UpdateUserRequest request, Errors errors) {
-        Account account = request.toAccount();
-        account.setId(id);
+    public ResponseEntity<?> updateUser(@PathVariable Long id, @RequestBody UpdateUserRequest request,
+                                        Errors errors, @TokenAuthenticationUser Account user) {
+        checkAuthority(user, id);
+        Account account = request.toAccount(id);
         accountValidator.validate(account, errors);
-        if (errors.hasErrors()) {
-            ErrorResponse errorResponse = new ErrorResponse(BAD_REQUEST, "invalid value", errors);
-            return ResponseEntity.badRequest().body(errorResponse);
-        }
-        try {
-            Account update = accountService.update(account);
-            GetUserResponse getUserResponse = new GetUserResponse(update);
-            UpdateUserResource updateUserResource = new UpdateUserResource(getUserResponse);
-            return ResponseEntity.ok(updateUserResource);
-        } catch (EntityNotFoundException e) {
-            ErrorResponse errorResponse = new ErrorResponse(NOT_FOUND, "not exist account of id");
-            return ResponseEntity.status(NOT_FOUND).body(errorResponse);
-        }
+        Account update = accountService.update(account);
+        GetUserResponse getUserResponse = new GetUserResponse(update);
+        UpdateUserResource updateUserResource = new UpdateUserResource(getUserResponse);
+        return ResponseEntity.ok(updateUserResource);
+
     }
 
     /**
@@ -207,23 +185,16 @@ public class AccountApiController {
     )
     @PreAuthorize("hasRole('USER')and #oauth2.hasScope('write')")
     @HasAuthority
-    public ResponseEntity<?> mergeUser(@PathVariable Long id, @RequestBody @Valid UpdateUserRequest request, Errors errors) {
-        Account account = request.toAccount();
-        account.setId(id);
+    public ResponseEntity<?> mergeUser(@PathVariable Long id, @RequestBody @Valid UpdateUserRequest request,
+                                       Errors errors, @TokenAuthenticationUser Account user) {
+        checkAuthority(user, id);
+        Account account = request.toAccount(id);
         accountValidator.validate(account, errors);
-        if (errors.hasErrors()) {
-            ErrorResponse errorResponse = new ErrorResponse(BAD_REQUEST, "invalid value", errors);
-            return ResponseEntity.badRequest().body(errorResponse);
-        }
-        try {
-            Account merge = accountService.merge(account);
-            GetUserResponse getUserResponse = new GetUserResponse(merge);
-            MergeUserResource mergeUserResource = new MergeUserResource(getUserResponse);
-            return ResponseEntity.ok(mergeUserResource);
-        } catch (EntityNotFoundException e) {
-            ErrorResponse errorResponse = new ErrorResponse(NOT_FOUND, "not exist account of id");
-            return ResponseEntity.status(NOT_FOUND).body(errorResponse);
-        }
+        Account merge = accountService.merge(account);
+        GetUserResponse getUserResponse = new GetUserResponse(merge);
+        MergeUserResource mergeUserResource = new MergeUserResource(getUserResponse);
+        return ResponseEntity.ok(mergeUserResource);
+
     }
 
     /**
@@ -238,17 +209,13 @@ public class AccountApiController {
     )
     @PreAuthorize("hasRole('USER')and #oauth2.hasScope('write')")
     @HasAuthority
-    public ResponseEntity<?> deleteUser(@PathVariable Long id) {
-        Optional<Account> optional = accountRepository.findById(id);
-        if (optional.isPresent()) {
-            Account account = optional.get();
-            accountRepository.delete(account);
-            DeleteUserResponse deleteUserResponse = new DeleteUserResponse(1);
-            DeleteUserResource deleteUserResource = new DeleteUserResource(deleteUserResponse, id);
-            return ResponseEntity.ok(deleteUserResource);
-        }
-        ErrorResponse errorResponse = new ErrorResponse(NOT_FOUND, "not exist account of id");
-        return ResponseEntity.status(NOT_FOUND).body(errorResponse);
+    public ResponseEntity<?> deleteUser(@PathVariable Long id, @TokenAuthenticationUser Account user) {
+        checkAuthority(user, id);
+        Account account = accountRepository.findById(id).orElseThrow(EntityNotFoundException::new);
+        accountRepository.delete(account);
+        DeleteUserResponse deleteUserResponse = new DeleteUserResponse(1);
+        DeleteUserResource deleteUserResource = new DeleteUserResource(deleteUserResponse, id);
+        return ResponseEntity.ok(deleteUserResource);
     }
 
     /**
@@ -266,19 +233,27 @@ public class AccountApiController {
     @PreAuthorize("hasRole('ADMIN') and #oauth2.hasScope('write')")
     public ResponseEntity<?> deleteUsers(@RequestBody @Valid DeleteUsersRequest request, Errors errors) {
         List<Long> ids = request.getIds();
-        accountValidator.validate(ids, errors);
-        if (errors.hasErrors()) {
-            ErrorResponse errorResponse = new ErrorResponse(BAD_REQUEST, "invalid value", errors);
-            return ResponseEntity.badRequest().body(errorResponse);
-        }
         long count = accountRepository.deleteByIdsBatchInQuery(ids);
-        if (count > 0) {
-            DeleteUserResponse deleteUserResponse = new DeleteUserResponse(count);
-            DeleteUsersResource deleteUsersResource = new DeleteUsersResource(deleteUserResponse);
-            return ResponseEntity.ok(deleteUsersResource);
+        DeleteUserResponse deleteUserResponse = new DeleteUserResponse(count);
+        DeleteUsersResource deleteUsersResource = new DeleteUsersResource(deleteUserResponse);
+        return ResponseEntity.ok(deleteUsersResource);
+    }
+    // ==========================================================================================================================================
+    // Common Method
+
+    /**
+     * 현재 토큰 유저가 관리자 권한이거나 현재 유저 정보에 접근한 것인지 검증
+     *
+     * @param user 토큰 유저
+     * @param id   리소스 식별키
+     * @return 접근 가능 여부
+     */
+    private void checkAuthority(Account user, Long id) {
+        Long userId = user.getId();
+        Role role = user.getRole(); // 토큰 발급 유저 권한
+        if (!role.equals(Role.ADMIN) && !userId.equals(id)) { // 현재 토큰 유저가 관리자 권한도 아니고 자기 자신의 리소스 정보 접근이 아닌 경우
+            throw new AccessDeniedException("can not access resource because has no authority");
         }
-        ErrorResponse errorResponse = new ErrorResponse(NOT_FOUND, "not exist element of id");
-        return ResponseEntity.status(NOT_FOUND).body(errorResponse);
     }
 
     // ==========================================================================================================================================
@@ -287,6 +262,7 @@ public class AccountApiController {
     @Setter
     public static class GenerateUserRequest {
         @NotBlank
+        @Email
         private String email;
         @NotBlank
         private String password;
@@ -325,8 +301,9 @@ public class AccountApiController {
         @NotNull
         private Role role;
 
-        public Account toAccount() {
+        public Account toAccount(Long id) {
             return Account.builder()
+                    .id(id)
                     .password(this.password)
                     .name(this.name)
                     .gender(this.gender)
@@ -378,10 +355,10 @@ public class AccountApiController {
     public static class QueryUsersResource extends EntityModel<GetUserResponse> {
         public QueryUsersResource(GetUserResponse content, Link... links) {
             super(content, links);
-            add(linkTo(methodOn(AccountApiController.class).getUser(content.getId())).withRel("getUser").withType("GET"));
-            add(linkTo(methodOn(AccountApiController.class).updateUser(content.getId(), null, null)).withRel("updateUser").withType("PATCH"));
-            add(linkTo(methodOn(AccountApiController.class).mergeUser(content.getId(), null, null)).withRel("mergeUser").withType("PUT"));
-            add(linkTo(methodOn(AccountApiController.class).deleteUser(content.getId())).withRel("deleteUser").withType("DELETE"));
+            add(linkTo(methodOn(AccountApiController.class).getUser(content.getId(), null)).withRel("getUser").withType("GET"));
+            add(linkTo(methodOn(AccountApiController.class).updateUser(content.getId(), null, null, null)).withRel("updateUser").withType("PATCH"));
+            add(linkTo(methodOn(AccountApiController.class).mergeUser(content.getId(), null, null, null)).withRel("mergeUser").withType("PUT"));
+            add(linkTo(methodOn(AccountApiController.class).deleteUser(content.getId(), null)).withRel("deleteUser").withType("DELETE"));
         }
     }
 
@@ -390,10 +367,10 @@ public class AccountApiController {
             super(content, links);
             add(linkTo(AccountApiController.class).slash("/docs/account.html").withRel("document"));
             add(linkTo(methodOn(AccountApiController.class).getMe(null)).withSelfRel().withType("GET"));
-            add(linkTo(methodOn(AccountApiController.class).getUser(content.getId())).withRel("getUser").withType("GET"));
-            add(linkTo(methodOn(AccountApiController.class).updateUser(content.getId(), null, null)).withRel("updateUser").withType("PATCH"));
-            add(linkTo(methodOn(AccountApiController.class).mergeUser(content.getId(), null, null)).withRel("mergeUser").withType("PUT"));
-            add(linkTo(methodOn(AccountApiController.class).deleteUser(content.getId())).withRel("deleteUser").withType("DELETE"));
+            add(linkTo(methodOn(AccountApiController.class).getUser(content.getId(), null)).withRel("getUser").withType("GET"));
+            add(linkTo(methodOn(AccountApiController.class).updateUser(content.getId(), null, null, null)).withRel("updateUser").withType("PATCH"));
+            add(linkTo(methodOn(AccountApiController.class).mergeUser(content.getId(), null, null, null)).withRel("mergeUser").withType("PUT"));
+            add(linkTo(methodOn(AccountApiController.class).deleteUser(content.getId(), null)).withRel("deleteUser").withType("DELETE"));
         }
     }
 
@@ -401,10 +378,10 @@ public class AccountApiController {
         public GetUserResource(GetUserResponse content, Link... links) {
             super(content, links);
             add(linkTo(AccountApiController.class).slash("/docs/account.html").withRel("document"));
-            add(linkTo(methodOn(AccountApiController.class).getUser(content.getId())).withSelfRel().withType("GET"));
-            add(linkTo(methodOn(AccountApiController.class).updateUser(content.getId(), null, null)).withRel("updateUser").withType("PATCH"));
-            add(linkTo(methodOn(AccountApiController.class).mergeUser(content.getId(), null, null)).withRel("mergeUser").withType("PUT"));
-            add(linkTo(methodOn(AccountApiController.class).deleteUser(content.getId())).withRel("deleteUser").withType("DELETE"));
+            add(linkTo(methodOn(AccountApiController.class).getUser(content.getId(), null)).withSelfRel().withType("GET"));
+            add(linkTo(methodOn(AccountApiController.class).updateUser(content.getId(), null, null, null)).withRel("updateUser").withType("PATCH"));
+            add(linkTo(methodOn(AccountApiController.class).mergeUser(content.getId(), null, null, null)).withRel("mergeUser").withType("PUT"));
+            add(linkTo(methodOn(AccountApiController.class).deleteUser(content.getId(), null)).withRel("deleteUser").withType("DELETE"));
         }
     }
 
@@ -413,10 +390,10 @@ public class AccountApiController {
             super(content, links);
             add(linkTo(AccountApiController.class).slash("/docs/account.html").withRel("document"));
             add(linkTo(methodOn(AccountApiController.class).generateUser(null, null)).withSelfRel().withType("POST"));
-            add(linkTo(methodOn(AccountApiController.class).getUser(content.getId())).withRel("getUser").withType("GET"));
-            add(linkTo(methodOn(AccountApiController.class).updateUser(content.getId(), null, null)).withRel("updateUser").withType("PATCH"));
-            add(linkTo(methodOn(AccountApiController.class).mergeUser(content.getId(), null, null)).withRel("mergeUser").withType("PUT"));
-            add(linkTo(methodOn(AccountApiController.class).deleteUser(content.getId())).withRel("deleteUser").withType("DELETE"));
+            add(linkTo(methodOn(AccountApiController.class).getUser(content.getId(), null)).withRel("getUser").withType("GET"));
+            add(linkTo(methodOn(AccountApiController.class).updateUser(content.getId(), null, null, null)).withRel("updateUser").withType("PATCH"));
+            add(linkTo(methodOn(AccountApiController.class).mergeUser(content.getId(), null,null, null)).withRel("mergeUser").withType("PUT"));
+            add(linkTo(methodOn(AccountApiController.class).deleteUser(content.getId(), null)).withRel("deleteUser").withType("DELETE"));
         }
     }
 
@@ -424,10 +401,10 @@ public class AccountApiController {
         public UpdateUserResource(GetUserResponse content, Link... links) {
             super(content, links);
             add(linkTo(AccountApiController.class).slash("/docs/account.html").withRel("document"));
-            add(linkTo(methodOn(AccountApiController.class).updateUser(content.getId(), null, null)).withSelfRel().withType("PATCH"));
-            add(linkTo(methodOn(AccountApiController.class).getUser(content.getId())).withRel("getUser").withType("GET"));
-            add(linkTo(methodOn(AccountApiController.class).mergeUser(content.getId(), null, null)).withRel("mergeUser").withType("PUT"));
-            add(linkTo(methodOn(AccountApiController.class).deleteUser(content.getId())).withRel("deleteUser").withType("DELETE"));
+            add(linkTo(methodOn(AccountApiController.class).updateUser(content.getId(), null, null, null)).withSelfRel().withType("PATCH"));
+            add(linkTo(methodOn(AccountApiController.class).getUser(content.getId(), null)).withRel("getUser").withType("GET"));
+            add(linkTo(methodOn(AccountApiController.class).mergeUser(content.getId(), null, null, null)).withRel("mergeUser").withType("PUT"));
+            add(linkTo(methodOn(AccountApiController.class).deleteUser(content.getId(), null)).withRel("deleteUser").withType("DELETE"));
         }
     }
 
@@ -435,10 +412,10 @@ public class AccountApiController {
         public MergeUserResource(GetUserResponse content, Link... links) {
             super(content, links);
             add(linkTo(AccountApiController.class).slash("/docs/account.html").withRel("document"));
-            add(linkTo(methodOn(AccountApiController.class).mergeUser(content.getId(), null, null)).withSelfRel().withType("PUT"));
-            add(linkTo(methodOn(AccountApiController.class).getUser(content.getId())).withRel("getUser").withType("GET"));
-            add(linkTo(methodOn(AccountApiController.class).updateUser(content.getId(), null, null)).withRel("updateUser").withType("PATCH"));
-            add(linkTo(methodOn(AccountApiController.class).deleteUser(content.getId())).withRel("deleteUser").withType("DELETE"));
+            add(linkTo(methodOn(AccountApiController.class).mergeUser(content.getId(), null, null, null)).withSelfRel().withType("PUT"));
+            add(linkTo(methodOn(AccountApiController.class).getUser(content.getId(), null)).withRel("getUser").withType("GET"));
+            add(linkTo(methodOn(AccountApiController.class).updateUser(content.getId(), null, null, null)).withRel("updateUser").withType("PATCH"));
+            add(linkTo(methodOn(AccountApiController.class).deleteUser(content.getId(), null)).withRel("deleteUser").withType("DELETE"));
         }
     }
 
@@ -446,7 +423,7 @@ public class AccountApiController {
         public DeleteUserResource(DeleteUserResponse content, Long id, Link... links) {
             super(content, links);
             add(linkTo(AccountApiController.class).slash("/docs/account.html").withRel("document"));
-            add(linkTo(methodOn(AccountApiController.class).deleteUser(id)).withSelfRel().withType("DELETE"));
+            add(linkTo(methodOn(AccountApiController.class).deleteUser(id, null)).withSelfRel().withType("DELETE"));
         }
     }
 
@@ -470,14 +447,8 @@ public class AccountApiController {
          * @param errors  에러
          */
         public void validate(Account request, Errors errors) {
-            String email = request.getEmail();
             String password = request.getPassword();
             Address address = request.getAddress();
-            if (hasText(email)) {
-                if (!email.matches("^[a-zA-Z0-9_-]{5,15}@[a-zA-Z0-9-]{1,10}\\.[a-zA-Z]{2,6}$")) {
-                    errors.rejectValue("email", "wrongValue", "email is wrong ex) [alphabet or number 10~15]@[alphabet or number 1~10].[alphabet 2~6]");
-                }
-            }
             if (hasText(password)) {
                 if (!password.matches("^.{5,15}$")) {
                     errors.rejectValue("password", "wrongValue", "password is wrong, any character from 5 to 15");
@@ -491,8 +462,11 @@ public class AccountApiController {
                     errors.reject("wrongValue", "address(city, street, zipCode) field is blank");
                 }
             }
-        }
 
+            if (errors.hasErrors()) {
+                throw new InvalidRequestException(errors, "invalid request fields");
+            }
+        }
     }
     // ==========================================================================================================================================
 

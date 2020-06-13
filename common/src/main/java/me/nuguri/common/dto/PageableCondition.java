@@ -7,6 +7,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.util.StringUtils;
 
+import javax.validation.constraints.Pattern;
 import java.util.Arrays;
 
 @Getter
@@ -14,9 +15,11 @@ import java.util.Arrays;
 public class PageableCondition extends BaseSearchCondition {
 
     /** 페이지 */
+    @Pattern(regexp = "^[1-9][0-9]*$")
     private String page = "1";
 
     /** 사이즈 */
+    @Pattern(regexp = "^[1-9][0-9]*$")
     private String size = "10";
 
      /** 정렬 */

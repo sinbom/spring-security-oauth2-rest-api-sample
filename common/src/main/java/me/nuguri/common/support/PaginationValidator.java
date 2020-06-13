@@ -1,6 +1,10 @@
 package me.nuguri.common.support;
 
 import me.nuguri.common.dto.PageableCondition;
+import me.nuguri.common.exception.InvalidRequestException;
+import me.nuguri.common.exception.NoElementException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Sort;
 import org.springframework.validation.Errors;
 
 import static org.springframework.util.StringUtils.hasText;
@@ -16,12 +20,6 @@ public class PaginationValidator {
      * @param <T>               페이징 객체 엔티티 타입
      */
     public <T> void validate(PageableCondition pageableCondition, Class<T> entityType, Errors errors) {
-        if (!pageableCondition.getPage().matches("^[1-9][0-9]*$")) {
-            errors.rejectValue("page", "wrongValue", "page is wrong");
-        }
-        if (!pageableCondition.getSize().matches("^[1-9][0-9]*$")) {
-            errors.rejectValue("size", "wrongValue", "size is wrong");
-        }
         if (hasText(pageableCondition.getSort())) {
             String[] sort = pageableCondition.getSort().split(",");
             if (sort.length > 1) {
@@ -33,7 +31,8 @@ public class PaginationValidator {
                         errors.rejectValue("sort", "wrongValue", "sort property is wrong");
                     }
                 }
-                if (!sort[sort.length - 1].equalsIgnoreCase("asc") && !sort[sort.length - 1].equalsIgnoreCase("desc")) {
+                if (!sort[sort.length - 1].equalsIgnoreCase(Sort.Direction.ASC.name()) &&
+                        !sort[sort.length - 1].equalsIgnoreCase(Sort.Direction.DESC.name())) {
                     errors.rejectValue("sort", "wrongValue", "sort direction is wrong");
                 }
             } else if (sort.length == 1) {
@@ -43,6 +42,22 @@ public class PaginationValidator {
                     errors.rejectValue("sort", "wrongValue", "sort property is wrong");
                 }
             }
+        }
+
+        if (errors.hasErrors()) {
+            throw new InvalidRequestException(errors, "invalid request parameters");
+        }
+    }
+
+    /**
+     * 페이징 결과 데이터가 없는 경우 예외 발생
+     * @param page 페이징 결과
+     */
+    public void checkEmpty(Page<?> page) {
+        if (page.getTotalElements() < 1) {
+            long totalElements = page.getTotalElements();
+            String message = totalElements < 1 ? "content of all pages does not exist" : "content of current page does not exist";
+            throw new NoElementException(message);
         }
     }
 

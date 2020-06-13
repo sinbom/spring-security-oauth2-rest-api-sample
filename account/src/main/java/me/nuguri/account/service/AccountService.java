@@ -28,7 +28,7 @@ public class AccountService implements UserDetailsService {
     private final PasswordEncoder passwordEncoder;
 
     /**
-     * 큐리티 로그인 및 인증 토큰 발급(password 방식) 수행 시 사용, 유저 엔티티 대리키(email) 조회
+     * 시큐리티 로그인 및 인증 토큰 발급(password 방식) 수행 시 사용, 유저 엔티티 대리키(email) 조회
      *
      * @param email 이메일
      * @return 유저 엔티티 래핑 + 시큐리티 인증 객체
@@ -49,7 +49,9 @@ public class AccountService implements UserDetailsService {
      * @return 생성한 유저 엔티티 객체
      */
     public Account generate(Account account) {
-        account.setPassword(passwordEncoder.encode(account.getPassword()));
+        String password = account.getPassword();
+        password = passwordEncoder.encode(password);
+        account.setPassword(password);
         return accountRepository.save(account);
     }
 
@@ -60,15 +62,18 @@ public class AccountService implements UserDetailsService {
      * @return 수정한 유저 엔티티 객체
      */
     public Account update(Account account) {
-        Account update = accountRepository.findById(account.getId()).orElseThrow(EntityNotFoundException::new);
+        Long id = account.getId();
+        Account update = accountRepository
+                .findById(id)
+                .orElseThrow(EntityNotFoundException::new);
         String password = account.getPassword();
         String name = account.getName();
         Gender gender = account.getGender();
         Address address = account.getAddress();
         Role role = account.getRole();
         if (hasText(password)) {
-            String encodedPassword = passwordEncoder.encode(password);
-            update.setPassword(encodedPassword);
+            password = passwordEncoder.encode(password);
+            update.setPassword(password);
         }
         if (hasText(name)) {
             update.setName(name);
@@ -92,8 +97,12 @@ public class AccountService implements UserDetailsService {
      * @return 병합한 유저 엔티티 객체
      */
     public Account merge(Account account) {
-        Account merge = accountRepository.findById(account.getId()).orElseThrow(EntityNotFoundException::new);
-        String password = passwordEncoder.encode(account.getPassword());
+        Long id = account.getId();
+        Account merge = accountRepository
+                .findById(id)
+                .orElseThrow(EntityNotFoundException::new);
+        String password = account.getPassword();
+        password = passwordEncoder.encode(password);
         String name = account.getName();
         Gender gender = account.getGender();
         Address address = account.getAddress();
