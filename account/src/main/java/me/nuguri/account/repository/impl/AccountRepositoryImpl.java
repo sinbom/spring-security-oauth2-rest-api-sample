@@ -10,6 +10,7 @@ import me.nuguri.account.repository.AccountRepositoryCustom;
 import me.nuguri.common.entity.Account;
 import me.nuguri.common.enums.Gender;
 import me.nuguri.common.enums.Role;
+import me.nuguri.common.exception.NoElementException;
 import me.nuguri.common.support.QuerydslSupportCustom;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -62,7 +63,11 @@ public class AccountRepositoryImpl extends QuerydslSupportCustom implements Acco
                 .limit(pageable.getPageSize())
                 .orderBy(getOrderSpecifiers(account, pageable))
                 .fetch();
-        return PageableExecutionUtils.getPage(content, pageable, countQuery::fetchCount);
+        Page<Account> page = PageableExecutionUtils.getPage(content, pageable, countQuery::fetchCount);
+        if (page.getNumberOfElements() < 1) {
+            throw new NoElementException();
+        }
+        return page;
     }
 
     /**

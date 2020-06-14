@@ -1,7 +1,6 @@
 package me.nuguri.auth.config;
 
 import lombok.RequiredArgsConstructor;
-import me.nuguri.auth.property.AuthServerConfigProperties;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpMethod;
@@ -11,7 +10,6 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.jwt.Jwt;
 import org.springframework.security.oauth2.config.annotation.configurers.ClientDetailsServiceConfigurer;
 import org.springframework.security.oauth2.config.annotation.web.configuration.AuthorizationServerConfigurerAdapter;
 import org.springframework.security.oauth2.config.annotation.web.configuration.EnableAuthorizationServer;
@@ -21,12 +19,13 @@ import org.springframework.security.oauth2.config.annotation.web.configurers.Aut
 import org.springframework.security.oauth2.config.annotation.web.configurers.AuthorizationServerSecurityConfigurer;
 import org.springframework.security.oauth2.config.annotation.web.configurers.ResourceServerSecurityConfigurer;
 import org.springframework.security.oauth2.provider.error.OAuth2AccessDeniedHandler;
-import org.springframework.security.oauth2.provider.token.AccessTokenConverter;
 import org.springframework.security.oauth2.provider.token.TokenEnhancer;
+import org.springframework.security.oauth2.provider.token.TokenEnhancerChain;
 import org.springframework.security.oauth2.provider.token.TokenStore;
 import org.springframework.security.oauth2.provider.token.store.JwtAccessTokenConverter;
 
 import javax.sql.DataSource;
+import java.util.Arrays;
 
 @Configuration
 @EnableAuthorizationServer
@@ -43,6 +42,8 @@ public class AuthorizationServerConfiguration {
 
         private final TokenStore tokenStore;
 
+        private final TokenEnhancer tokenEnhancer;
+
         private final JwtAccessTokenConverter jwtAccessTokenConverter;
 
         private final AuthenticationManager authenticationManager;
@@ -51,6 +52,7 @@ public class AuthorizationServerConfiguration {
 
         /**
          * 인증 서버 설정
+         *
          * @param security
          * @throws Exception
          */
@@ -66,6 +68,7 @@ public class AuthorizationServerConfiguration {
 
         /**
          * 인증 서버 클라이언트 설정
+         *
          * @param clients
          * @throws Exception
          */
@@ -86,13 +89,16 @@ public class AuthorizationServerConfiguration {
 
         /**
          * 인증 서버 엔드포인트 설정
+         *
          * @param endpoints
          * @throws Exception
          */
         @Override
         public void configure(AuthorizationServerEndpointsConfigurer endpoints) throws Exception {
+            TokenEnhancerChain tokenEnhancerChain = new TokenEnhancerChain();
+            tokenEnhancerChain.setTokenEnhancers(Arrays.asList(tokenEnhancer, jwtAccessTokenConverter));
             endpoints
-                    //                    .tokenEnhancer(tokenEnhancer)
+                    .tokenEnhancer(tokenEnhancerChain)
                     .tokenStore(tokenStore)
                     .accessTokenConverter(jwtAccessTokenConverter)
                     .userDetailsService(userDetailsService)
@@ -109,6 +115,7 @@ public class AuthorizationServerConfiguration {
 
         /**
          * 리소스 서버 설정
+         *
          * @param resources
          * @throws Exception
          */
@@ -119,6 +126,7 @@ public class AuthorizationServerConfiguration {
 
         /**
          * 리소스 서버 필터 체인 설정, /api/** url 패턴에 대한 권한 처리
+         *
          * @param http
          * @throws Exception
          */

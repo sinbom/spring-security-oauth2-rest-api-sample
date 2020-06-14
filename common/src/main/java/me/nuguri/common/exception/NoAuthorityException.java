@@ -3,9 +3,9 @@ package me.nuguri.common.exception;
 import lombok.NoArgsConstructor;
 
 @NoArgsConstructor
-public class NoElementException extends BaseException {
+public class NoAuthorityException extends RuntimeException {
 
-    public NoElementException(String message) {
+    public NoAuthorityException(String message) {
         super(message);
     }
 

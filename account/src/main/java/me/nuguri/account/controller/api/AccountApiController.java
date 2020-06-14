@@ -5,10 +5,12 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import me.nuguri.account.annotation.HasAuthority;
+import me.nuguri.account.annotation.TokenAuthentication;
 import me.nuguri.account.annotation.TokenAuthenticationUser;
 import me.nuguri.account.dto.AccountSearchCondition;
 import me.nuguri.account.repository.AccountRepository;
 import me.nuguri.account.service.AccountService;
+import me.nuguri.common.adapter.AuthenticationAdapter;
 import me.nuguri.common.dto.BaseResponse;
 import me.nuguri.common.entity.Account;
 import me.nuguri.common.entity.Address;
@@ -26,13 +28,11 @@ import org.springframework.hateoas.MediaTypes;
 import org.springframework.hateoas.PagedModel;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Component;
 import org.springframework.validation.Errors;
 import org.springframework.web.bind.annotation.*;
 
-import javax.persistence.EntityNotFoundException;
 import javax.validation.Valid;
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotBlank;
@@ -102,7 +102,8 @@ public class AccountApiController {
     /**
      * 유저 정보 조회
      *
-     * @param id 식별키
+     * @param id             식별키
+     * @param authentication 토큰 정보
      * @return
      */
     @GetMapping(
@@ -111,11 +112,8 @@ public class AccountApiController {
     )
     @PreAuthorize("hasRole('USER') and #oauth2.hasScope('read')")
     @HasAuthority
-    public ResponseEntity<?> getUser(@PathVariable Long id, @TokenAuthenticationUser Account user) {
-        checkAuthority(user, id);
-        Account account = accountRepository
-                .findById(id)
-                .orElseThrow(EntityNotFoundException::new);
+    public ResponseEntity<?> getUser(@PathVariable Long id, @TokenAuthentication AuthenticationAdapter authentication) {
+        Account account = accountService.findById(id, authentication);
         GetUserResponse getUserResponse = new GetUserResponse(account);
         GetUserResource getUserResource = new GetUserResource(getUserResponse);
         return ResponseEntity.ok(getUserResource);
@@ -146,11 +144,12 @@ public class AccountApiController {
     }
 
     /**
-     * 유저 정보 입력된 값만 변경
+     * 유저 정보 입력돈 값만 변경
      *
-     * @param id      식별키
-     * @param request password 비밀번호, roles 권한
-     * @param errors  에러
+     * @param id             식별키
+     * @param request        password 비밀번호, roles 권한
+     * @param errors         에러
+     * @param authentication 토큰 정보
      * @return
      */
     @PatchMapping(
@@ -161,23 +160,22 @@ public class AccountApiController {
     @PreAuthorize("hasRole('USER') and #oauth2.hasScope('write')")
     @HasAuthority
     public ResponseEntity<?> updateUser(@PathVariable Long id, @RequestBody UpdateUserRequest request,
-                                        Errors errors, @TokenAuthenticationUser Account user) {
-        checkAuthority(user, id);
+                                        Errors errors, @TokenAuthentication AuthenticationAdapter authentication) {
         Account account = request.toAccount(id);
         accountValidator.validate(account, errors);
-        Account update = accountService.update(account);
+        Account update = accountService.update(account, authentication);
         GetUserResponse getUserResponse = new GetUserResponse(update);
         UpdateUserResource updateUserResource = new UpdateUserResource(getUserResponse);
         return ResponseEntity.ok(updateUserResource);
-
     }
 
     /**
      * 유저 정보 전체 값 변경, 없는 유저의 경우 생성
      *
-     * @param id      식별키
-     * @param request password 비밀번호, roles 권한
-     * @param errors  에러
+     * @param id             식별키
+     * @param request        password 비밀번호, roles 권한
+     * @param errors         에러
+     * @param authentication 토큰 정보
      * @return
      */
     @PutMapping(
@@ -188,11 +186,10 @@ public class AccountApiController {
     @PreAuthorize("hasRole('USER')and #oauth2.hasScope('write')")
     @HasAuthority
     public ResponseEntity<?> mergeUser(@PathVariable Long id, @RequestBody @Valid UpdateUserRequest request,
-                                       Errors errors, @TokenAuthenticationUser Account user) {
-        checkAuthority(user, id);
+                                       Errors errors, @TokenAuthentication AuthenticationAdapter authentication) {
         Account account = request.toAccount(id);
         accountValidator.validate(account, errors);
-        Account merge = accountService.merge(account);
+        Account merge = accountService.merge(account, authentication);
         GetUserResponse getUserResponse = new GetUserResponse(merge);
         MergeUserResource mergeUserResource = new MergeUserResource(getUserResponse);
         return ResponseEntity.ok(mergeUserResource);
@@ -202,7 +199,8 @@ public class AccountApiController {
     /**
      * 유저 정보 삭제
      *
-     * @param id 식별키
+     * @param id             식별키
+     * @param authentication 토큰 정보
      * @return
      */
     @DeleteMapping(
@@ -211,12 +209,8 @@ public class AccountApiController {
     )
     @PreAuthorize("hasRole('USER')and #oauth2.hasScope('write')")
     @HasAuthority
-    public ResponseEntity<?> deleteUser(@PathVariable Long id, @TokenAuthenticationUser Account user) {
-        checkAuthority(user, id);
-        Account account = accountRepository
-                .findById(id)
-                .orElseThrow(EntityNotFoundException::new);
-        accountRepository.delete(account);
+    public ResponseEntity<?> deleteUser(@PathVariable Long id, @TokenAuthentication AuthenticationAdapter authentication) {
+        accountService.delete(id, authentication);
         DeleteUserResponse deleteUserResponse = new DeleteUserResponse(1);
         DeleteUserResource deleteUserResource = new DeleteUserResource(deleteUserResponse, id);
         return ResponseEntity.ok(deleteUserResource);
@@ -226,7 +220,6 @@ public class AccountApiController {
      * 유저 정보 벌크 삭제
      *
      * @param request ids 식별키
-     * @param errors  에러
      * @return
      */
     @DeleteMapping(
@@ -235,33 +228,16 @@ public class AccountApiController {
             produces = MediaTypes.HAL_JSON_VALUE
     )
     @PreAuthorize("hasRole('ADMIN') and #oauth2.hasScope('write')")
-    public ResponseEntity<?> deleteUsers(@RequestBody @Valid DeleteUsersRequest request, Errors errors) {
+    public ResponseEntity<?> deleteUsers(@RequestBody @Valid DeleteUsersRequest request) {
         List<Long> ids = request.getIds();
         long count = accountRepository.deleteByIdsBatchInQuery(ids);
         DeleteUserResponse deleteUserResponse = new DeleteUserResponse(count);
         DeleteUsersResource deleteUsersResource = new DeleteUsersResource(deleteUserResponse);
         return ResponseEntity.ok(deleteUsersResource);
     }
-    // ==========================================================================================================================================
-    // Common Method
-
-    /**
-     * 현재 토큰 유저가 관리자 권한이거나 현재 유저 정보에 접근한 것인지 검증
-     *
-     * @param user 토큰 유저
-     * @param id   리소스 식별키
-     * @return 접근 가능 여부
-     */
-    private void checkAuthority(Account user, Long id) {
-        Long userId = user.getId();
-        Role role = user.getRole(); // 토큰 발급 유저 권한
-        if (!role.equals(Role.ADMIN) && !userId.equals(id)) { // 현재 토큰 유저가 관리자 권한도 아니고 자기 자신의 리소스 정보 접근이 아닌 경우
-            throw new AccessDeniedException("can not access resource because has no authority");
-        }
-    }
 
     // ==========================================================================================================================================
-    // Domain
+    // DTO
     @Getter
     @Setter
     public static class GenerateUserRequest {
@@ -435,7 +411,7 @@ public class AccountApiController {
         public DeleteUsersResource(DeleteUserResponse content, Link... links) {
             super(content, links);
             add(linkTo(AccountApiController.class).slash("/docs/account.html").withRel("document"));
-            add(linkTo(methodOn(AccountApiController.class).deleteUsers(null, null)).withSelfRel().withType("DELETE"));
+            add(linkTo(methodOn(AccountApiController.class).deleteUsers(null)).withSelfRel().withType("DELETE"));
         }
     }
     // ==========================================================================================================================================

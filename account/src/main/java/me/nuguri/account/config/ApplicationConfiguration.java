@@ -2,6 +2,8 @@ package me.nuguri.account.config;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
+import me.nuguri.common.adapter.AuthenticationAdapter;
+import me.nuguri.common.adapter.CustomUserAuthentication;
 import me.nuguri.common.enums.Role;
 import me.nuguri.common.support.EntityInitializer;
 import org.springframework.boot.ApplicationRunner;
@@ -15,7 +17,10 @@ import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 import org.springframework.security.access.hierarchicalroles.RoleHierarchy;
 import org.springframework.security.access.hierarchicalroles.RoleHierarchyImpl;
 import org.springframework.security.access.hierarchicalroles.RoleHierarchyUtils;
-import org.springframework.security.oauth2.provider.expression.OAuth2WebSecurityExpressionHandler;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.oauth2.provider.OAuth2Authentication;
+import org.springframework.security.oauth2.provider.OAuth2Request;
+import org.springframework.security.oauth2.provider.token.DefaultAccessTokenConverter;
 import org.springframework.security.oauth2.provider.token.DefaultTokenServices;
 import org.springframework.security.oauth2.provider.token.TokenStore;
 import org.springframework.security.oauth2.provider.token.store.JwtAccessTokenConverter;
@@ -26,10 +31,7 @@ import javax.persistence.EntityManager;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Configuration
 @EnableJpaAuditing
@@ -67,8 +69,20 @@ public class ApplicationConfiguration {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+
         JwtAccessTokenConverter jwtAccessTokenConverter = new JwtAccessTokenConverter();
         jwtAccessTokenConverter.setVerifierKey(publicKey);
+        jwtAccessTokenConverter.setAccessTokenConverter(new DefaultAccessTokenConverter() {
+            @Override
+            public OAuth2Authentication extractAuthentication(Map<String, ?> map) {
+                OAuth2Authentication oAuth2Authentication = super.extractAuthentication(map);
+                OAuth2Request oAuth2Request = oAuth2Authentication.getOAuth2Request();
+                Authentication authentication = oAuth2Authentication.getUserAuthentication();
+                long id = ((Integer) map.get("id")).longValue();
+                Authentication customAuthentication = new CustomUserAuthentication(authentication, id);
+                return new OAuth2Authentication(oAuth2Request, customAuthentication);
+            }
+        });
         return jwtAccessTokenConverter;
     }
 

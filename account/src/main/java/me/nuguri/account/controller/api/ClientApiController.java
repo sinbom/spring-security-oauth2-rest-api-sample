@@ -5,11 +5,13 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import me.nuguri.account.annotation.HasAuthority;
+import me.nuguri.account.annotation.TokenAuthentication;
 import me.nuguri.account.annotation.TokenAuthenticationUser;
 import me.nuguri.account.dto.ClientSearchCondition;
 import me.nuguri.account.repository.ClientRepository;
 import me.nuguri.account.service.ClientService;
 import me.nuguri.account.service.lazy.ClientLazyService;
+import me.nuguri.common.adapter.AuthenticationAdapter;
 import me.nuguri.common.dto.BaseResponse;
 import me.nuguri.common.entity.Account;
 import me.nuguri.common.entity.Client;
@@ -27,15 +29,12 @@ import org.springframework.hateoas.MediaTypes;
 import org.springframework.hateoas.PagedModel;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Component;
 import org.springframework.validation.Errors;
 import org.springframework.web.bind.annotation.*;
 
-import javax.persistence.EntityNotFoundException;
 import javax.validation.Valid;
-import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.Pattern;
 import java.util.Arrays;
@@ -81,10 +80,9 @@ public class ClientApiController {
     )
     @PreAuthorize("hasRole('USER') and #oauth2.hasScope('read')")
     @HasAuthority
-    public ResponseEntity<?> getClient(@PathVariable Long id, @TokenAuthenticationUser Account user) {
-        Client client = clientRepository
-                .findById(id)
-                .orElseThrow(EntityNotFoundException::new);
+    public ResponseEntity<?> getClient(@PathVariable Long id, @TokenAuthentication AuthenticationAdapter authentication) {
+        Long ownerId = authentication.getId();
+        Client client = clientService.findById(id, authentication);
         GetClientResponse getClientResponse = new GetClientResponse(client);
         GetClientResource getClientResource = new GetClientResource(getClientResponse);
         return ResponseEntity.ok(getClientResource);
@@ -124,13 +122,14 @@ public class ClientApiController {
     @PreAuthorize("hasRole('USER') and #oauth2.hasScope('write')")
     @HasAuthority
     public ResponseEntity<?> updateClient(@PathVariable Long id, @RequestBody UpdateClientRequest request, Errors errors,
-                                          @TokenAuthenticationUser(entityGraph = "clients") Account user) {
-        Client client = request.toClient(id);
+                                          @TokenAuthentication AuthenticationAdapter authentication) {
+/*        Client client = request.toClient(id);
         clientValidator.validate(client, errors);
-        Client update = clientLazyService.update(client, user);
+        Client update = clientLazyService.update(client, authentication);
         GetClientResponse getClientResponse = new GetClientResponse(update);
         UpdateClientResource updateClientResource = new UpdateClientResource(getClientResponse);
-        return ResponseEntity.ok(updateClientResource);
+        return ResponseEntity.ok(updateClientResource);*/
+        return null;
     }
 
     @PutMapping(
@@ -155,11 +154,8 @@ public class ClientApiController {
     )
     @PreAuthorize("hasRole('USER')and #oauth2.hasScope('write')")
     @HasAuthority
-    public ResponseEntity<?> deleteClient(@PathVariable Long id, @TokenAuthenticationUser Account user) {
-        Client client = clientRepository
-                .findById(id)
-                .orElseThrow(EntityNotFoundException::new);
-        clientRepository.delete(client);
+    public ResponseEntity<?> deleteClient(@PathVariable Long id, @TokenAuthenticationUser(entityGraph = "clients") Account user) {
+        clientRepository.deleteById(id);
         DeleteClientResposne deleteClientResposne = new DeleteClientResposne(1);
         DeleteClientResource deleteClientResource = new DeleteClientResource(deleteClientResposne, id);
         return ResponseEntity.ok(deleteClientResource);
@@ -172,7 +168,7 @@ public class ClientApiController {
             produces = MediaTypes.HAL_JSON_VALUE
     )
     @PreAuthorize("hasRole('ADMIN') and #oauth2.hasScope('write')")
-    public ResponseEntity<?> deleteClients(@RequestBody @Valid DeleteClientsRequest request, Errors errors) {
+    public ResponseEntity<?> deleteClients(@RequestBody @Valid DeleteClientsRequest request) {
         List<Long> ids = request.getIds();
         long count = clientRepository.deleteByIdsBatchInQuery(ids);
         DeleteClientResposne deleteClientResposne = new DeleteClientResposne(count);
@@ -181,7 +177,7 @@ public class ClientApiController {
     }
 
     // ==========================================================================================================================================
-    // Domain
+    // DTO
     @Getter
     @Setter
     public static class GenerateClientRequest {

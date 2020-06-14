@@ -1,7 +1,10 @@
 package me.nuguri.account.aspect;
 
 import lombok.RequiredArgsConstructor;
+import me.nuguri.account.annotation.TokenAuthentication;
 import me.nuguri.account.annotation.TokenAuthenticationUser;
+import me.nuguri.common.adapter.AuthenticationAdapter;
+import me.nuguri.common.adapter.CustomUserAuthentication;
 import me.nuguri.common.dto.ErrorResponse;
 import me.nuguri.common.entity.Account;
 import org.aspectj.lang.ProceedingJoinPoint;
@@ -9,7 +12,9 @@ import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.reflect.MethodSignature;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.provider.OAuth2Authentication;
 import org.springframework.stereotype.Component;
 
 import javax.persistence.*;
@@ -33,7 +38,7 @@ public class TokenAuthenticationAspect {
             OneToOne.class, OneToMany.class, ManyToMany.class);
 
     @Around("execution(* *(.., @me.nuguri.account.annotation.TokenAuthenticationUser (*), ..))")
-    public Object getTokenAuthentication(ProceedingJoinPoint joinPoint) throws Throwable {
+    public Object getTokenAuthenticationUser(ProceedingJoinPoint joinPoint) throws Throwable {
         Object[] args = joinPoint.getArgs();
         MethodSignature signature = (MethodSignature) joinPoint.getSignature();
         Parameter[] parameters = signature.getMethod().getParameters();
@@ -73,6 +78,28 @@ public class TokenAuthenticationAspect {
                     }
                 }
                 args[i] = account;
+            }
+        }
+        return joinPoint.proceed(args);
+    }
+
+    @Around("execution(* *(.., @me.nuguri.account.annotation.TokenAuthentication (*), ..))")
+    public Object getTokenAuthentication(ProceedingJoinPoint joinPoint) throws Throwable {
+        Object[] args = joinPoint.getArgs();
+        MethodSignature signature = (MethodSignature) joinPoint.getSignature();
+        Parameter[] parameters = signature.getMethod().getParameters();
+        AuthenticationAdapter authenticationAdapter = null;
+        for (int i = 0; i < parameters.length; i++) {
+            if (parameters[i].isAnnotationPresent(TokenAuthentication.class) &&
+                    parameters[i].getType().isAssignableFrom(AuthenticationAdapter.class)) {
+                if (authenticationAdapter == null) {
+                    OAuth2Authentication oAuth2Authentication = (OAuth2Authentication) SecurityContextHolder
+                            .getContext()
+                            .getAuthentication();
+                    CustomUserAuthentication authentication = (CustomUserAuthentication) oAuth2Authentication.getUserAuthentication();
+                    authenticationAdapter = new AuthenticationAdapter(authentication);
+                }
+                args[i] = authenticationAdapter;
             }
         }
         return joinPoint.proceed(args);

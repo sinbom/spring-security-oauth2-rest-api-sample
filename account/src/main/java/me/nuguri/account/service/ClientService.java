@@ -2,7 +2,10 @@ package me.nuguri.account.service;
 
 import lombok.RequiredArgsConstructor;
 import me.nuguri.account.repository.ClientRepository;
+import me.nuguri.common.adapter.AuthenticationAdapter;
 import me.nuguri.common.entity.Client;
+import me.nuguri.common.exception.NoAuthorityException;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,6 +22,19 @@ public class ClientService {
     private final ClientRepository clientRepository;
 
     private final PasswordEncoder passwordEncoder;
+
+    public Client findById(Long id, AuthenticationAdapter authentication) {
+        Long ownerId = authentication.getId();
+        Client client = clientRepository
+                .findById(id)
+                .orElseThrow(EntityNotFoundException::new);
+        if (!client.getAccount().getId().equals(ownerId)) {
+            throw new NoAuthorityException();
+        }
+        return clientRepository
+                .findById(id)
+                .orElseThrow(EntityNotFoundException::new);
+    }
 
     /**
      * 클라이언트 엔티티 생성, 입력 받은 파라미터 값으로 생성

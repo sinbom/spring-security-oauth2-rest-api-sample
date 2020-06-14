@@ -2,11 +2,13 @@ package me.nuguri.account.service;
 
 import lombok.RequiredArgsConstructor;
 import me.nuguri.account.repository.AccountRepository;
-import me.nuguri.common.dto.AccountAdapter;
+import me.nuguri.common.adapter.AccountAdapter;
+import me.nuguri.common.adapter.AuthenticationAdapter;
 import me.nuguri.common.entity.Account;
 import me.nuguri.common.entity.Address;
 import me.nuguri.common.enums.Gender;
 import me.nuguri.common.enums.Role;
+import me.nuguri.common.exception.NoAuthorityException;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -15,6 +17,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.EntityNotFoundException;
+
+import java.util.List;
 
 import static org.springframework.util.StringUtils.hasText;
 
@@ -43,6 +47,25 @@ public class AccountService implements UserDetailsService {
     }
 
     /**
+     * 유저 정보 조회, 관리자 권한이거나 리소스 소유자인 경우 조회 허용
+     *
+     * @param id             식별키
+     * @param authentication 토큰 정보
+     * @return
+     */
+    @Transactional(readOnly = true)
+    public Account findById(Long id, AuthenticationAdapter authentication) {
+        Long ownerId = authentication.getId();
+        List<Role> authorities = authentication.getAuthorities();
+        if (authorities.stream().noneMatch(r -> r.equals(Role.ADMIN)) && !id.equals(ownerId)) {
+            throw new NoAuthorityException();
+        }
+        return accountRepository
+                .findById(id)
+                .orElseThrow(EntityNotFoundException::new);
+    }
+
+    /**
      * 유저 엔티티 생성, 입력 받은 파라미터 값으로 생성
      *
      * @param account email 이메일, password 비밀번호, name 이름, roles 권한
@@ -58,14 +81,13 @@ public class AccountService implements UserDetailsService {
     /**
      * 유저 엔티티 수정, 입력 받은 파라미터(Not Null Fields)만 대입해서 수정
      *
-     * @param account password 비밀번호, name 이름, gender 성별, address 주소, roles 권한
+     * @param account        password 비밀번호, name 이름, gender 성별, address 주소, roles 권한
+     * @param authentication 토큰 정보
      * @return 수정한 유저 엔티티 객체
      */
-    public Account update(Account account) {
+    public Account update(Account account, AuthenticationAdapter authentication) {
         Long id = account.getId();
-        Account update = accountRepository
-                .findById(id)
-                .orElseThrow(EntityNotFoundException::new);
+        Account update = findById(id, authentication);
         String password = account.getPassword();
         String name = account.getName();
         Gender gender = account.getGender();
@@ -93,14 +115,13 @@ public class AccountService implements UserDetailsService {
     /**
      * 유저 엔티티 병합, 입력 받은 모든 파라미터 모두 대입해서 수정, 식별키에 해당하는 유저가 없는 경우 생성하지는 않음
      *
-     * @param account password 비밀번호, name 이름, gender 성별, address 주소, roles 권한
+     * @param account        password 비밀번호, name 이름, gender 성별, address 주소, roles 권한
+     * @param authentication 토큰 정보
      * @return 병합한 유저 엔티티 객체
      */
-    public Account merge(Account account) {
+    public Account merge(Account account, AuthenticationAdapter authentication) {
         Long id = account.getId();
-        Account merge = accountRepository
-                .findById(id)
-                .orElseThrow(EntityNotFoundException::new);
+        Account merge = findById(id, authentication);
         String password = account.getPassword();
         password = passwordEncoder.encode(password);
         String name = account.getName();
@@ -113,6 +134,17 @@ public class AccountService implements UserDetailsService {
         merge.setAddress(address);
         merge.setRole(role);
         return merge;
+    }
+
+    /**
+     * 유저 엔티티 삭제
+     *
+     * @param id             식별키
+     * @param authentication 토큰 정보
+     */
+    public void delete(Long id, AuthenticationAdapter authentication) {
+        Account account = findById(id, authentication);
+        accountRepository.delete(account);
     }
 
 }

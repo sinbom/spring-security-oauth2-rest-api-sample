@@ -1,15 +1,18 @@
 package me.nuguri.common.exception;
 
 import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.springframework.validation.Errors;
 
 @Getter
+@NoArgsConstructor
 public abstract class BaseException extends RuntimeException {
 
     /**
      * 에러 정보 객체
      */
-    private final Errors errors;
+    private Errors errors;
 
     public BaseException(Errors errors, String message) {
         super(message);
@@ -20,4 +23,5 @@ public abstract class BaseException extends RuntimeException {
         super(message);
         this.errors = null;
     }
+
 }

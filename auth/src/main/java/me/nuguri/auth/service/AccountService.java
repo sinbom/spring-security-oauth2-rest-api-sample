@@ -2,7 +2,8 @@ package me.nuguri.auth.service;
 
 import lombok.RequiredArgsConstructor;
 import me.nuguri.auth.repository.AccountRepository;
-import me.nuguri.common.dto.AccountAdapter;
+import me.nuguri.common.adapter.AccountAdapter;
+import me.nuguri.common.entity.Account;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -24,7 +25,10 @@ public class AccountService implements UserDetailsService {
     @Override
     @Transactional(readOnly = true)
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-        return new AccountAdapter(accountRepository.findByEmail(email).orElseThrow(() -> new UsernameNotFoundException(email)));
+        Account account = accountRepository
+                .findByEmail(email)
+                .orElseThrow(() -> new UsernameNotFoundException(email));
+        return new AccountAdapter(account);
     }
 
 }

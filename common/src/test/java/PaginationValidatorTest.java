@@ -3,6 +3,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import me.nuguri.common.dto.BaseSearchCondition;
 import me.nuguri.common.dto.ErrorResponse;
 import me.nuguri.common.dto.PageableCondition;
+import me.nuguri.common.exception.InvalidRequestException;
 import me.nuguri.common.support.PaginationValidator;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -16,6 +17,7 @@ import java.util.List;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class PaginationValidatorTest {
 
@@ -55,13 +57,11 @@ public class PaginationValidatorTest {
         pageableCondition.setSort(sort);
         PaginationValidator paginationValidator = new PaginationValidator();
         Errors testErrors = new BeanPropertyBindingResult(pageableCondition, "condition");
-        ErrorResponse errorResponse = new ErrorResponse(HttpStatus.BAD_REQUEST, "error", testErrors);
-        // when
-        paginationValidator.validate(pageableCondition, BaseSearchCondition.class, testErrors);
-        String json = objectMapper.writeValueAsString(errorResponse);
-        List<Map<String, String>> errors = (List<Map<String, String>>) parser.parseMap(json).get("errors");
-        // then
-        errors.forEach(error -> assertThat(error).hasNoNullFieldsOrProperties());
+        // when, then
+        assertThrows(
+                InvalidRequestException.class,
+                () -> paginationValidator.validate(pageableCondition, BaseSearchCondition.class, testErrors)
+        );
     }
 
 

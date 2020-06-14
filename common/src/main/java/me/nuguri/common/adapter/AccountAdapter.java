@@ -1,4 +1,4 @@
-package me.nuguri.common.dto;
+package me.nuguri.common.adapter;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;

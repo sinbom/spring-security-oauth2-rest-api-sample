@@ -1,10 +1,8 @@
 package me.nuguri.resc.config;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import me.nuguri.resc.Application;
 import me.nuguri.resc.repository.BaseRepository;
 import me.nuguri.resc.repository.impl.BaseRepositoryImpl;
-import org.modelmapper.ModelMapper;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
@@ -17,11 +15,6 @@ import javax.persistence.EntityManager;
 @EnableJpaAuditing
 @EnableJpaRepositories(basePackageClasses = BaseRepository.class, repositoryBaseClass = BaseRepositoryImpl.class)
 public class ApplicationConfiguration {
-
-    @Bean
-    public ModelMapper modelMapper() {
-        return new ModelMapper();
-    }
 
     @Bean
     public RestTemplate restTemplate() {

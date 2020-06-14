@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import me.nuguri.account.property.AccountServerProperties;
 import me.nuguri.account.repository.AccountRepository;
 import me.nuguri.account.service.AccountService;
+import me.nuguri.common.adapter.CustomUserAuthentication;
 import me.nuguri.common.entity.Account;
 import me.nuguri.common.enums.Scope;
 import me.nuguri.common.support.EntityInitializer;
@@ -104,6 +105,7 @@ public abstract class BaseIntegrationTest {
     protected void mockRestTemplate(HttpStatus httpStatus, String email) {
         if (HttpStatus.OK.equals(httpStatus)) {
             Account account = accountRepository.findByEmail(email).orElseThrow(EntityExistsException::new);
+            Long id = account.getId();
             when(
                     restTemplate.exchange(
                             eq(properties.getAccessTokenUrl()),
@@ -116,7 +118,8 @@ public abstract class BaseIntegrationTest {
             params.put("client_id", "nuguri");
             Set<String> scopes = new HashSet<>(Arrays.asList(Scope.READ.toString(), Scope.WRITE.toString()));
             Collection<? extends GrantedAuthority> authorities = Arrays.asList(new SimpleGrantedAuthority("ROLE_" + account.getRole()));
-            UsernamePasswordAuthenticationToken mockUser = new UsernamePasswordAuthenticationToken(account.getEmail(), "N/A", authorities);
+            UsernamePasswordAuthenticationToken user = new UsernamePasswordAuthenticationToken(account.getEmail(), "N/A", authorities);
+            CustomUserAuthentication mockUser = new CustomUserAuthentication(user, id);
             Set<String> resourceIds = new HashSet<>(Arrays.asList("account", "nuguri"));
             OAuth2Request mockRequest = new OAuth2Request(params, "nuguri", authorities, true,
                     scopes, resourceIds, null, null, null);

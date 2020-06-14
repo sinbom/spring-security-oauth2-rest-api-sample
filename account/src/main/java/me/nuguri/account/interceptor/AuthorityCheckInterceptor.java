@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import me.nuguri.account.annotation.HasAuthority;
 import me.nuguri.account.repository.AccountRepository;
-import me.nuguri.common.dto.AccountAdapter;
+import me.nuguri.common.adapter.AccountAdapter;
 import me.nuguri.common.dto.ErrorResponse;
 import me.nuguri.common.entity.Account;
 import me.nuguri.common.enums.Role;
