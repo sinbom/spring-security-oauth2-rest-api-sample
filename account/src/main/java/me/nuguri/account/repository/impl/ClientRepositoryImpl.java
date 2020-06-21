@@ -8,8 +8,8 @@ import me.nuguri.account.dto.ClientSearchCondition;
 import me.nuguri.account.repository.ClientRepositoryCustom;
 import me.nuguri.common.entity.Client;
 import me.nuguri.common.enums.GrantType;
-import me.nuguri.common.enums.Role;
-import me.nuguri.common.enums.Scope;
+import me.nuguri.common.enums.Roles;
+import me.nuguri.common.enums.Scopes;
 import me.nuguri.common.support.QuerydslSupportCustom;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -43,7 +43,7 @@ public class ClientRepositoryImpl extends QuerydslSupportCustom implements Clien
                 .where(
                         eqClientId(condition.getClientId()),
                         eqResourceIds(condition.getResourceId()),
-                        eqScope(condition.getScope()),
+                        eqScope(condition.getScopes()),
                         eqGrantType(condition.getGrantType()),
                         eqRedirectUri(condition.getRedirectUri()),
                         eqAuthority(condition.getAuthority()),
@@ -68,7 +68,7 @@ public class ClientRepositoryImpl extends QuerydslSupportCustom implements Clien
         return hasText(email) ? client.account.email.eq(email) : null;
     }
 
-    private BooleanExpression eqAuthority(Role authority) {
+    private BooleanExpression eqAuthority(Roles authority) {
         return authority != null ? client.authority.eq(authority) : null;
     }
 
@@ -80,8 +80,8 @@ public class ClientRepositoryImpl extends QuerydslSupportCustom implements Clien
         return grantType != null ? client.grantTypes.eq(grantType.toString()) : null;
     }
 
-    private BooleanExpression eqScope(Scope scope) {
-        return scope != null ? client.scope.containsIgnoreCase(scope.toString()) : null;
+    private BooleanExpression eqScope(Scopes scopes) {
+        return scopes != null ? client.scope.containsIgnoreCase(scopes.toString()) : null;
     }
 
     private BooleanExpression eqResourceIds(String resourceIds) {

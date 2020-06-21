@@ -4,8 +4,8 @@ import lombok.Getter;
 import lombok.Setter;
 import me.nuguri.common.dto.PageableCondition;
 import me.nuguri.common.enums.GrantType;
-import me.nuguri.common.enums.Role;
-import me.nuguri.common.enums.Scope;
+import me.nuguri.common.enums.Roles;
+import me.nuguri.common.enums.Scopes;
 
 @Getter
 @Setter
@@ -18,7 +18,7 @@ public class ClientSearchCondition extends PageableCondition {
     private String resourceId;
 
     /** 접근 범위 */
-    private Scope scope;
+    private Scopes scopes;
 
     /** 권한 부여 방식 */
     private GrantType grantType;
@@ -27,7 +27,7 @@ public class ClientSearchCondition extends PageableCondition {
     private String redirectUri;
 
     /** 권한 */
-    private Role authority;
+    private Roles authority;
 
     /** 클라이언트 등록 계정 */
     private String email;

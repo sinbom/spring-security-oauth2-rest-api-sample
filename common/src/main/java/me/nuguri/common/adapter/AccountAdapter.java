@@ -8,9 +8,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.User;
 
 import java.io.Serializable;
-import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashSet;
 
 @Getter
 @Setter
@@ -25,7 +23,7 @@ public class AccountAdapter extends User implements Serializable {
         super(
                 account.getEmail(),
                 account.getPassword(),
-                Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + account.getRole()))
+                Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + account.getRoles()))
         );
         this.account = account;
     }

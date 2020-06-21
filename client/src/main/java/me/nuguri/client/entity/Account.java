@@ -4,13 +4,10 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import me.nuguri.client.enums.LoginType;
-import me.nuguri.common.enums.Gender;
-import me.nuguri.common.enums.Role;
+import me.nuguri.common.enums.Roles;
 
 import javax.persistence.*;
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Set;
 
 /**
@@ -47,7 +44,7 @@ public class Account implements Serializable {
     /** 권한 */
     @ElementCollection
     @Enumerated(EnumType.STRING)
-    private Set<Role> roles;
+    private Set<Roles> roles;
 
 
 

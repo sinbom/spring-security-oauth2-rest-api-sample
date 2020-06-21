@@ -10,14 +10,13 @@ import me.nuguri.account.annotation.TokenAuthenticationUser;
 import me.nuguri.account.dto.ClientSearchCondition;
 import me.nuguri.account.repository.ClientRepository;
 import me.nuguri.account.service.ClientService;
-import me.nuguri.account.service.lazy.ClientLazyService;
 import me.nuguri.common.adapter.AuthenticationAdapter;
 import me.nuguri.common.dto.BaseResponse;
 import me.nuguri.common.entity.Account;
 import me.nuguri.common.entity.Client;
 import me.nuguri.common.enums.GrantType;
-import me.nuguri.common.enums.Role;
-import me.nuguri.common.enums.Scope;
+import me.nuguri.common.enums.Roles;
+import me.nuguri.common.enums.Scopes;
 import me.nuguri.common.support.BaseValidator;
 import me.nuguri.common.support.PaginationValidator;
 import org.springframework.data.domain.Page;
@@ -50,8 +49,6 @@ public class ClientApiController {
 
     private final ClientService clientService;
 
-    private final ClientLazyService clientLazyService;
-
     private final ClientRepository clientRepository;
 
     private final PaginationValidator paginationValidator;
@@ -81,7 +78,6 @@ public class ClientApiController {
     @PreAuthorize("hasRole('USER') and #oauth2.hasScope('read')")
     @HasAuthority
     public ResponseEntity<?> getClient(@PathVariable Long id, @TokenAuthentication AuthenticationAdapter authentication) {
-        Long ownerId = authentication.getId();
         Client client = clientService.findById(id, authentication);
         GetClientResponse getClientResponse = new GetClientResponse(client);
         GetClientResource getClientResource = new GetClientResource(getClientResponse);
@@ -102,7 +98,8 @@ public class ClientApiController {
             produces = MediaTypes.HAL_JSON_VALUE
     )
     @PreAuthorize("hasRole('USER') and #oauth2.hasScope('write')")
-    public ResponseEntity<?> generateClient(@RequestBody @Valid GenerateClientRequest request, Errors errors, @TokenAuthenticationUser Account user) {
+    public ResponseEntity<?> generateClient(@RequestBody @Valid GenerateClientRequest request, Errors errors,
+                                            @TokenAuthenticationUser(entityGraph = "clients") Account user) {
         Client client = request.toClient(user);
         clientValidator.validate(client, errors);
         Client generate = clientService.generate(client);
@@ -123,13 +120,12 @@ public class ClientApiController {
     @HasAuthority
     public ResponseEntity<?> updateClient(@PathVariable Long id, @RequestBody UpdateClientRequest request, Errors errors,
                                           @TokenAuthentication AuthenticationAdapter authentication) {
-/*        Client client = request.toClient(id);
+        Client client = request.toClient(id);
         clientValidator.validate(client, errors);
-        Client update = clientLazyService.update(client, authentication);
+        Client update = clientService.update(client, authentication);
         GetClientResponse getClientResponse = new GetClientResponse(update);
         UpdateClientResource updateClientResource = new UpdateClientResource(getClientResponse);
-        return ResponseEntity.ok(updateClientResource);*/
-        return null;
+        return ResponseEntity.ok(updateClientResource);
     }
 
     @PutMapping(
@@ -139,10 +135,11 @@ public class ClientApiController {
     )
     @PreAuthorize("hasRole('USER')and #oauth2.hasScope('write')")
     @HasAuthority
-    public ResponseEntity<?> mergeClient(@PathVariable Long id, @RequestBody @Valid UpdateClientRequest request, Errors errors, @TokenAuthenticationUser Account user) {
+    public ResponseEntity<?> mergeClient(@PathVariable Long id, @RequestBody @Valid UpdateClientRequest request,
+                                         Errors errors, @TokenAuthentication AuthenticationAdapter authentication) {
         Client client = request.toClient(id);
         clientValidator.validate(client, errors);
-        Client merge = clientService.merge(client);
+        Client merge = clientService.merge(client, authentication);
         GetClientResponse getClientResponse = new GetClientResponse(merge);
         MergeClientResource mergeClientResource = new MergeClientResource(getClientResponse);
         return ResponseEntity.ok(mergeClientResource);
@@ -154,10 +151,10 @@ public class ClientApiController {
     )
     @PreAuthorize("hasRole('USER')and #oauth2.hasScope('write')")
     @HasAuthority
-    public ResponseEntity<?> deleteClient(@PathVariable Long id, @TokenAuthenticationUser(entityGraph = "clients") Account user) {
-        clientRepository.deleteById(id);
-        DeleteClientResposne deleteClientResposne = new DeleteClientResposne(1);
-        DeleteClientResource deleteClientResource = new DeleteClientResource(deleteClientResposne, id);
+    public ResponseEntity<?> deleteClient(@PathVariable Long id, @TokenAuthentication AuthenticationAdapter authentication) {
+        clientService.delete(id, authentication);
+        DeleteClientResponse deleteClientResponse = new DeleteClientResponse(1);
+        DeleteClientResource deleteClientResource = new DeleteClientResource(deleteClientResponse, id);
         return ResponseEntity.ok(deleteClientResource);
 
     }
@@ -171,8 +168,8 @@ public class ClientApiController {
     public ResponseEntity<?> deleteClients(@RequestBody @Valid DeleteClientsRequest request) {
         List<Long> ids = request.getIds();
         long count = clientRepository.deleteByIdsBatchInQuery(ids);
-        DeleteClientResposne deleteClientResposne = new DeleteClientResposne(count);
-        DeleteClientsResource deleteClientsResource = new DeleteClientsResource(deleteClientResposne);
+        DeleteClientResponse deleteClientResponse = new DeleteClientResponse(count);
+        DeleteClientsResource deleteClientsResource = new DeleteClientsResource(deleteClientResponse);
         return ResponseEntity.ok(deleteClientsResource);
     }
 
@@ -191,15 +188,11 @@ public class ClientApiController {
                     .clientId(UUID.randomUUID().toString())
                     .clientSecret(UUID.randomUUID().toString())
                     .grantTypes(GrantType.AUTHORIZATION_CODE.toString())
-                    .authority(account.getRole())
-                    .scope(String.join(",", Scope.READ.toString(), Scope.WRITE.toString()))
+                    .authority(account.getRoles())
+                    .scope(String.join(",", Scopes.READ.toString(), Scopes.WRITE.toString()))
                     .redirectUri(redirectUri)
                     .resourceIds(String.join(",", resourceIds))
-                    .account(
-                            Account.builder()
-                                    .id(account.getId())
-                                    .build()
-                    )
+                    .account(account)
                     .build();
         }
     }
@@ -207,9 +200,7 @@ public class ClientApiController {
     @Getter
     @Setter
     public static class UpdateClientRequest {
-        @NotEmpty
         private List<String> resourceIds;
-        @Pattern(regexp = "^(http|https)://.+$")
         private String redirectUri;
 
         public Client toClient(Long id) {
@@ -217,6 +208,7 @@ public class ClientApiController {
                     .id(id)
                     .redirectUri(redirectUri)
                     .resourceIds(String.join(",", resourceIds))
+                    .account(Account.builder().build())
                     .build();
         }
     }
@@ -236,7 +228,7 @@ public class ClientApiController {
         private List<String> resourceIds;
         private List<String> scopes;
         private List<String> grantTypes;
-        private Role authority;
+        private Roles authority;
         private Integer accessTokenValidity;
         private Integer refreshTokenValidity;
         private String redirectUri;
@@ -259,7 +251,7 @@ public class ClientApiController {
     @Getter
     @Setter
     @AllArgsConstructor
-    public static class DeleteClientResposne {
+    public static class DeleteClientResponse {
         private long count;
     }
 
@@ -295,14 +287,14 @@ public class ClientApiController {
         }
     }
 
-    public class DeleteClientResource extends EntityModel<DeleteClientResposne> {
-        public DeleteClientResource(DeleteClientResposne content, Long id, Link... links) {
+    public class DeleteClientResource extends EntityModel<DeleteClientResponse> {
+        public DeleteClientResource(DeleteClientResponse content, Long id, Link... links) {
             super(content, links);
         }
     }
 
-    public class DeleteClientsResource extends EntityModel<DeleteClientResposne> {
-        public DeleteClientsResource(DeleteClientResposne content, Link... links) {
+    public class DeleteClientsResource extends EntityModel<DeleteClientResponse> {
+        public DeleteClientsResource(DeleteClientResponse content, Link... links) {
             super(content, links);
         }
     }

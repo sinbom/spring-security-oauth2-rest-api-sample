@@ -6,8 +6,8 @@ import lombok.extern.slf4j.Slf4j;
 import me.nuguri.common.entity.*;
 import me.nuguri.common.enums.Gender;
 import me.nuguri.common.enums.GrantType;
-import me.nuguri.common.enums.Role;
-import me.nuguri.common.enums.Scope;
+import me.nuguri.common.enums.Roles;
+import me.nuguri.common.enums.Scopes;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -33,7 +33,7 @@ public class EntityInitializer {
                 .password(passwordEncoder.encode("1234"))
                 .gender(Gender.M)
                 .address(new Address("경기도 과천시", "부림2길 76 2층", "13830"))
-                .role(Role.ADMIN)
+                .role(Roles.ADMIN)
                 .build();
         Account user = Account.builder()
                 .name("사용자")
@@ -41,18 +41,18 @@ public class EntityInitializer {
                 .password(passwordEncoder.encode("1234"))
                 .gender(Gender.F)
                 .address(new Address("경기도 과천시", "부림2길 76 2층", "13830"))
-                .role(Role.USER)
+                .role(Roles.USER)
                 .build();
 
         Client.builder()
                 .clientId("nuguri")
                 .clientSecret(passwordEncoder.encode("bom"))
                 .resourceIds("account,nuguri")
-                .scope(String.join(",", Scope.READ.toString(), Scope.WRITE.toString()))
+                .scope(String.join(",", Scopes.READ.toString(), Scopes.WRITE.toString()))
                 .grantTypes(String.join(",", GrantType.PASSWORD.toString(), GrantType.AUTHORIZATION_CODE.toString(),
                         GrantType.IMPLICIT.toString(), GrantType.CLIENT_CREDENTIALS.toString(), GrantType.REFRESH_TOKEN.toString()))
                 .redirectUri("http://localhost:9600/main")
-                .authority(Role.ADMIN)
+                .authority(Roles.ADMIN)
                 .account(admin)
                 .build();
 
@@ -60,10 +60,10 @@ public class EntityInitializer {
                 .clientId("test")
                 .clientSecret(passwordEncoder.encode("test"))
                 .resourceIds("account")
-                .scope(String.join(",", Scope.READ.toString()))
+                .scope(String.join(",", Scopes.READ.toString()))
                 .grantTypes(String.join(",", GrantType.PASSWORD.toString(), GrantType.CLIENT_CREDENTIALS.toString()))
                 .redirectUri("http://localhost:9600/main")
-                .authority(Role.USER)
+                .authority(Roles.USER)
                 .account(user)
                 .build();
 

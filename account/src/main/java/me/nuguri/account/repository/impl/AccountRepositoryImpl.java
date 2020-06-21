@@ -9,7 +9,7 @@ import me.nuguri.account.dto.AccountSearchCondition;
 import me.nuguri.account.repository.AccountRepositoryCustom;
 import me.nuguri.common.entity.Account;
 import me.nuguri.common.enums.Gender;
-import me.nuguri.common.enums.Role;
+import me.nuguri.common.enums.Roles;
 import me.nuguri.common.exception.NoElementException;
 import me.nuguri.common.support.QuerydslSupportCustom;
 import org.springframework.data.domain.Page;
@@ -51,7 +51,7 @@ public class AccountRepositoryImpl extends QuerydslSupportCustom implements Acco
                         eqEmail(condition.getEmail()),
                         eqName(condition.getName()),
                         eqGender(condition.getGender()),
-                        eqRole(condition.getRole()),
+                        eqRole(condition.getRoles()),
                         eqCity(condition.getCity()),
                         eqStreet(condition.getStreet()),
                         eqZipCode(condition.getZipCode()),
@@ -159,8 +159,8 @@ public class AccountRepositoryImpl extends QuerydslSupportCustom implements Acco
         return hasText(zipCode) ? account.address.zipCode.eq(zipCode) : null;
     }
 
-    private BooleanExpression eqRole(Role role) {
-        return role != null ? account.role.eq(role) : null;
+    private BooleanExpression eqRole(Roles roles) {
+        return roles != null ? account.role.eq(roles) : null;
     }
 
     private BooleanExpression eqGender(Gender gender) {

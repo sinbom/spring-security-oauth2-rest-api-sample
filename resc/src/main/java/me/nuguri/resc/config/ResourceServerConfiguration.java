@@ -1,7 +1,6 @@
 package me.nuguri.resc.config;
 
 import lombok.RequiredArgsConstructor;
-import me.nuguri.common.enums.Role;
 import me.nuguri.resc.property.ResourceServerConfigProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

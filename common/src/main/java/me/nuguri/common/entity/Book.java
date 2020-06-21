@@ -1,15 +1,12 @@
 package me.nuguri.common.entity;
 
 import lombok.*;
-import lombok.experimental.SuperBuilder;
-import me.nuguri.common.enums.ProductType;
 
 import javax.persistence.Column;
 import javax.persistence.DiscriminatorValue;
 import javax.persistence.Entity;
 import javax.persistence.PrimaryKeyJoinColumn;
 import java.time.LocalDate;
-import java.util.List;
 
 /**
  * 책 엔티티

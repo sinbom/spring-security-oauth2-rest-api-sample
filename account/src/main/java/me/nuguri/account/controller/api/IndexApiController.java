@@ -5,7 +5,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import me.nuguri.account.repository.AccountRepository;
 import me.nuguri.common.entity.Account;
-import me.nuguri.common.enums.Role;
+import me.nuguri.common.enums.Roles;
 import org.springframework.hateoas.Link;
 import org.springframework.hateoas.MediaTypes;
 import org.springframework.http.ResponseEntity;
@@ -54,7 +54,7 @@ public class IndexApiController {
             _links.add(linkTo(methodOn(IndexApiController.class).index(null)).withSelfRel());
             _links.add(linkTo(methodOn(AccountApiController.class).generateUser(null, null)).withRel("generateUser").withType("POST"));
             if (account != null) {
-                if (account.getRole().equals(Role.ADMIN)) {
+                if (account.getRoles().equals(Roles.ADMIN)) {
                     _links.add(linkTo(methodOn(AccountApiController.class).queryUsers(null, null, null)).withRel("queryUsers").withType("GET"));
                 }
                 _links.add(linkTo(methodOn(AccountApiController.class).getUser(account.getId(), null)).withRel("getUser").withType("GET"));

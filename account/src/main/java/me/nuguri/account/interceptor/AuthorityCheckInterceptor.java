@@ -7,7 +7,7 @@ import me.nuguri.account.repository.AccountRepository;
 import me.nuguri.common.adapter.AccountAdapter;
 import me.nuguri.common.dto.ErrorResponse;
 import me.nuguri.common.entity.Account;
-import me.nuguri.common.enums.Role;
+import me.nuguri.common.enums.Roles;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -67,7 +67,7 @@ public class AuthorityCheckInterceptor extends HandlerInterceptorAdapter {
                     }
                 }
 
-                if (account.getId().toString().equals(id) || account.getRole().equals(Role.ADMIN)) {
+                if (account.getId().toString().equals(id) || account.getRoles().equals(Roles.ADMIN)) {
                     return true;
                 } else {
                     ErrorResponse errorResponse = new ErrorResponse(FORBIDDEN, "have no authority");

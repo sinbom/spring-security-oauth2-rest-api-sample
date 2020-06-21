@@ -4,7 +4,7 @@ import me.nuguri.account.common.BaseIntegrationTest;
 import me.nuguri.common.entity.Account;
 import me.nuguri.common.entity.Address;
 import me.nuguri.common.enums.Gender;
-import me.nuguri.common.enums.Role;
+import me.nuguri.common.enums.Roles;
 import org.apache.commons.codec.EncoderException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -368,7 +368,7 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
                 .password("test")
                 .gender(Gender.F)
                 .address(new Address("경기도 과천시", "부림2길 76 2층", "13830"))
-                .role(Role.USER)
+                .role(Roles.USER)
                 .build();
         Long id = accountService.generate(account).getId();
         mockMvc.perform(get("/api/v1/user/{id}", id)
@@ -418,7 +418,7 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
                 .password("123123")
                 .gender(Gender.F)
                 .address(new Address("경기도 과천시", "부림2길 76 2층", "13830"))
-                .role(Role.USER)
+                .role(Roles.USER)
                 .build();
 
         mockMvc.perform(post("/api/v1/user")
@@ -513,7 +513,7 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
                 .password("124331")
                 .gender(Gender.F)
                 .address(new Address("경기도 과천시", "부림2길 76 2층", "13830"))
-                .role(Role.USER)
+                .role(Roles.USER)
                 .build();
 
         accountService.generate(request);
@@ -537,11 +537,11 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
         mockRestTemplate(HttpStatus.OK, properties.getUserEmail());
         String name = "테스트";
         String password = "123123";
-        Role role = Role.ADMIN;
+        Roles roles = Roles.ADMIN;
         Account request = Account.builder()
                 .name(name)
                 .password(password)
-                .role(role)
+                .role(roles)
                 .build();
         Account account = accountRepository.findByEmail(properties.getUserEmail()).orElseThrow(EncoderException::new);
         mockMvc.perform(patch("/api/v1/user/{id}", account.getId())
@@ -602,7 +602,7 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
         Account updated = accountRepository.findByEmail(properties.getUserEmail()).orElseThrow(EncoderException::new);
         assertEquals(name, updated.getName());
         assertTrue(passwordEncoder.matches(password, updated.getPassword()));
-        assertEquals(role, updated.getRole());
+        assertEquals(roles, updated.getRoles());
         assertEquals(account.getGender(), updated.getGender());
         assertEquals(account.getAddress(), updated.getAddress());
     }
@@ -614,7 +614,7 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
         Account request = Account.builder()
                 .name("테스트")
                 .password("1123123")
-                .role(Role.ADMIN)
+                .role(Roles.ADMIN)
                 .build();
         mockMvc.perform(patch("/api/v1/user/{id}", "198237981")
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + getAccessToken())
@@ -648,7 +648,7 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
         mockRestTemplate(HttpStatus.UNAUTHORIZED, null);
         Account request = Account.builder()
                 .password("1123123")
-                .role(Role.USER)
+                .role(Roles.USER)
                 .build();
         Long id = accountRepository.findByEmail(properties.getAdminEmail()).orElseThrow(EncoderException::new).getId();
         mockMvc.perform(patch("/api/v1/user/{id}", id)
@@ -666,7 +666,7 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
         mockRestTemplate(HttpStatus.OK, properties.getUserEmail());
         Account request = Account.builder()
                 .password("1123123")
-                .role(Role.USER)
+                .role(Roles.USER)
                 .build();
         Long id = accountRepository.findByEmail(properties.getAdminEmail()).orElseThrow(EncoderException::new).getId();
         mockMvc.perform(patch("/api/v1/user/{id}", id)
@@ -686,13 +686,13 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
         String password = "1123123";
         Gender gender = Gender.F;
         Address address = new Address("경기도 과천시", "부림2길 76 2층", "13830");
-        Role role = Role.ADMIN;
+        Roles roles = Roles.ADMIN;
         Account request = Account.builder()
                 .name(name)
                 .password(password)
                 .gender(gender)
                 .address(address)
-                .role(role)
+                .role(roles)
                 .build();
         Long id = accountRepository.findByEmail(properties.getUserEmail()).orElseThrow(EncoderException::new).getId();
         mockMvc.perform(put("/api/v1/user/{id}", id)
@@ -755,7 +755,7 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
         assertTrue(passwordEncoder.matches(password, merge.getPassword()));
         assertEquals(gender, merge.getGender());
         assertEquals(address, merge.getAddress());
-        assertEquals(role, merge.getRole());
+        assertEquals(roles, merge.getRoles());
     }
 
     @Test
@@ -767,7 +767,7 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
                 .password("1123123")
                 .gender(Gender.F)
                 .address(new Address("경기도 과천시", "부림2길 76 2층", "13830"))
-                .role(Role.USER)
+                .role(Roles.USER)
                 .build();
         Long id = accountRepository.findByEmail(properties.getAdminEmail()).orElseThrow(EncoderException::new).getId();
         mockMvc.perform(put("/api/v1/user/{id}", id)
@@ -788,7 +788,7 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
                 .password("1123123")
                 .gender(Gender.F)
                 .address(new Address("경기도 과천시", "부림2길 76 2층", "13830"))
-                .role(Role.USER)
+                .role(Roles.USER)
                 .build();
         Long id = accountRepository.findByEmail(properties.getAdminEmail()).orElseThrow(EncoderException::new).getId();
         mockMvc.perform(put("/api/v1/user/{id}", id)
@@ -809,7 +809,7 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
                 .password("1123123")
                 .gender(Gender.F)
                 .address(new Address("경기도 과천시", "부림2길 76 2층", "13830"))
-                .role(Role.ADMIN)
+                .role(Roles.ADMIN)
                 .build();
         mockMvc.perform(put("/api/v1/user/{id}", "198237981")
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + getAccessToken())
@@ -829,7 +829,7 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
                 .password("1")
                 .gender(Gender.F)
                 .address(new Address("", "", ""))
-                .role(Role.ADMIN)
+                .role(Roles.ADMIN)
                 .build();
         Long id = accountRepository.findByEmail(properties.getAdminEmail()).orElseThrow(EncoderException::new).getId();
         mockMvc.perform(put("/api/v1/user/{id}", id)
@@ -1033,7 +1033,7 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
                             .password("test")
                             .gender(n % 2 == 0 ? Gender.M : Gender.F)
                             .address(new Address("경기도 과천시", "부림2길 76 2층", "13830"))
-                            .role(n % 2 == 0 ? Role.USER : Role.ADMIN)
+                            .role(n % 2 == 0 ? Roles.USER : Roles.ADMIN)
                             .build();
                     accountService.generate(account);
                 }
@@ -1052,7 +1052,7 @@ public class AccountApiControllerTest extends BaseIntegrationTest {
                 .password("test")
                 .gender(Gender.M)
                 .address(new Address("경기도 과천시", "부림2길 76 2층", "13830"))
-                .role(Role.USER)
+                .role(Roles.USER)
                 .build();
         return accountService.generate(account);
     }

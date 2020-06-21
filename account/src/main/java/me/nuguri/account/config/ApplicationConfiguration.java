@@ -2,9 +2,8 @@ package me.nuguri.account.config;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
-import me.nuguri.common.adapter.AuthenticationAdapter;
 import me.nuguri.common.adapter.CustomUserAuthentication;
-import me.nuguri.common.enums.Role;
+import me.nuguri.common.enums.Roles;
 import me.nuguri.common.support.EntityInitializer;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -48,7 +47,7 @@ public class ApplicationConfiguration {
     public RoleHierarchy roleHierarchy() { // TODO clientHasRole 계층 구조 적용시켜야함
         RoleHierarchyImpl roleHierarchy = new RoleHierarchyImpl();
         Map<String, List<String>> roleHierarchyMap = new HashMap<>();
-        roleHierarchyMap.put("ROLE_" + Role.ADMIN, Arrays.asList("ROLE_" + Role.USER));
+        roleHierarchyMap.put("ROLE_" + Roles.ADMIN, Arrays.asList("ROLE_" + Roles.USER));
         // ROLE_ADIN > ROLE_USER\r\nADMIN > USER 표현식으로 변환해주는 유틸 클래스
         String roleHierarchyExpression = RoleHierarchyUtils.roleHierarchyFromMap(roleHierarchyMap);
         roleHierarchy.setHierarchy(roleHierarchyExpression);

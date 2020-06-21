@@ -1,16 +1,17 @@
 package me.nuguri.common.entity;
 
 import lombok.*;
-import me.nuguri.common.enums.Role;
+import me.nuguri.common.converter.BooleanColumnConverter;
 
 import javax.persistence.*;
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * 클라이언트 엔티티
  */
 @Entity
-@Table(name = "oauth_client_details")
 @Getter
 @Setter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -33,41 +34,16 @@ public class Client extends BaseEntity implements Serializable {
     private String clientId;
 
     /**
-     * 리소스 Id
-     */
-    @Column(nullable = false)
-    private String resourceIds;
-
-    /**
      * 클라이언트 Secret
      */
     @Column(updatable = false)
     private String clientSecret;
 
     /**
-     * 접근 범위
-     */
-    @Column(nullable = false)
-    private String scope;
-
-    /**
-     * 권한 부여 방식
-     */
-    @Column(name = "authorizedGrantTypes", nullable = false)
-    private String grantTypes;
-
-    /**
      * 리다이렉트 URI
      */
-    @Column(name = "web_server_redirect_uri", nullable = false)
+    @Column(nullable = false)
     private String redirectUri;
-
-    /**
-     * 권한
-     */
-    @Enumerated(EnumType.STRING)
-    @Column(name = "authorities", nullable = false)
-    private Role authority;
 
     /**
      * 토근 유효 시간 초
@@ -82,14 +58,11 @@ public class Client extends BaseEntity implements Serializable {
     private Integer refreshTokenValidity;
 
     /**
-     * 토큰 추가 정보
-     */
-    private String additionalInformation;
-
-    /**
      * 인증 동의 자동 저장 여부
      */
-    private String autoapprove;
+    @Convert(converter = BooleanColumnConverter.class)
+    @Column(nullable = false)
+    private boolean autoApprove;
 
     /**
      * 클라이언트 등록 계정
@@ -97,25 +70,41 @@ public class Client extends BaseEntity implements Serializable {
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
     private Account account;
 
+    /**
+     * 클라이언트 접근 권한 목록 엔티티
+     */
+    @OneToMany(mappedBy = "client")
+    private List<ClientAuthority> clientAuthorities = new ArrayList<>();
+
+    /**
+     * 클라이언트 접근 범위 목록 엔티티
+     */
+    @OneToMany(mappedBy = "client")
+    private List<ClientScope> clientScopes = new ArrayList<>();
+
+    /**
+     * 클라이언트 접근 리소스 목록 엔티티
+     */
+    @OneToMany(mappedBy = "client")
+    private List<ClientResource> clientResources = new ArrayList<>();
+
+    /**
+     * 클라이언트 인증 부여 방식 목록 엔티티
+     */
+    @OneToMany(mappedBy = "client")
+    private List<ClientGrantType> clientGrantTypes = new ArrayList<>();
+
     @Builder
-    protected Client(Long id, String clientId, String resourceIds, String clientSecret, String scope,
-                     String grantTypes, String redirectUri, Role authority, Integer accessTokenValidity,
-                     Integer refreshTokenValidity, String additionalInformation, String autoapprove, Account account) {
+    protected Client(Long id, String clientId, String resourceIds, String clientSecret, String redirectUri,
+                     Integer accessTokenValidity, Integer refreshTokenValidity, boolean autoApprove, Account account) {
         this.id = id;
         this.clientId = clientId;
-        this.resourceIds = resourceIds;
         this.clientSecret = clientSecret;
-        this.scope = scope;
-        this.grantTypes = grantTypes;
         this.redirectUri = redirectUri;
-        this.authority = authority;
         this.accessTokenValidity = accessTokenValidity != null ? accessTokenValidity : 600;
         this.refreshTokenValidity = refreshTokenValidity != null ? refreshTokenValidity : 3600;
-        this.additionalInformation = additionalInformation;
-        this.autoapprove = autoapprove;
-        if (account != null) {
-            this.addAccount(account);
-        }
+        this.autoApprove = autoApprove;
+        this.addAccount(account);
     }
 
     /**

@@ -1,7 +1,7 @@
 package me.nuguri.common.adapter;
 
 import lombok.RequiredArgsConstructor;
-import me.nuguri.common.enums.Role;
+import me.nuguri.common.enums.Roles;
 import org.springframework.security.core.GrantedAuthority;
 
 import java.util.Collection;
@@ -18,13 +18,13 @@ public class AuthenticationAdapter {
         return authentication.getId();
     }
 
-    public List<Role> getAuthorities() {
+    public List<Roles> getAuthorities() {
         Collection<GrantedAuthority> authorities = authentication.getAuthorities();
         return authorities
                 .stream()
                 .map(a -> {
                     String role = a.getAuthority().replace("ROLE_", "");
-                    return Role.valueOf(role);
+                    return Roles.valueOf(role);
                 })
                 .collect(toList());
     }

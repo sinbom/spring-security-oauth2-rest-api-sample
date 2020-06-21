@@ -15,7 +15,7 @@ import me.nuguri.common.dto.BaseResponse;
 import me.nuguri.common.entity.Account;
 import me.nuguri.common.entity.Address;
 import me.nuguri.common.enums.Gender;
-import me.nuguri.common.enums.Role;
+import me.nuguri.common.enums.Roles;
 import me.nuguri.common.exception.InvalidRequestException;
 import me.nuguri.common.support.BaseValidator;
 import me.nuguri.common.support.PaginationValidator;
@@ -253,7 +253,7 @@ public class AccountApiController {
         @NotNull
         private Address address;
         @NotNull
-        private Role role;
+        private Roles roles;
 
         public Account toAccount() {
             return Account.builder()
@@ -262,7 +262,7 @@ public class AccountApiController {
                     .name(this.name)
                     .gender(this.gender)
                     .address(this.address)
-                    .role(this.role)
+                    .role(this.roles)
                     .build();
         }
     }
@@ -279,7 +279,7 @@ public class AccountApiController {
         @NotNull
         private Address address;
         @NotNull
-        private Role role;
+        private Roles roles;
 
         public Account toAccount(Long id) {
             return Account.builder()
@@ -288,7 +288,7 @@ public class AccountApiController {
                     .name(this.name)
                     .gender(this.gender)
                     .address(this.address)
-                    .role(this.role)
+                    .role(this.roles)
                     .build();
         }
     }
@@ -308,7 +308,7 @@ public class AccountApiController {
         private String name;
         private Gender gender;
         private Address address;
-        private Role role;
+        private Roles roles;
 
         public GetUserResponse(Account account) {
             this.id = account.getId();
@@ -316,7 +316,7 @@ public class AccountApiController {
             this.name = account.getName();
             this.gender = account.getGender();
             this.address = account.getAddress();
-            this.role = account.getRole();
+            this.roles = account.getRoles();
             this.setCreated(account.getCreated());
             this.setUpdated(account.getUpdated());
         }

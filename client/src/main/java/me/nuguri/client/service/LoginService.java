@@ -6,7 +6,7 @@ import me.nuguri.client.entity.Account;
 import me.nuguri.client.enums.LoginType;
 import me.nuguri.client.properties.LoginProperties;
 import me.nuguri.common.enums.GrantType;
-import me.nuguri.common.enums.Role;
+import me.nuguri.common.enums.Roles;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -153,7 +153,7 @@ public class LoginService {
             account.setEmail(id);
             account.setName(name);
             account.setPassword(UUID.randomUUID().toString());
-            account.setRoles(new HashSet<>(Arrays.asList(Role.USER)));
+            account.setRoles(new HashSet<>(Arrays.asList(Roles.USER)));
             account.setLoginType(loginType);
             account = accountService.generate(account);
         }

@@ -4,13 +4,15 @@ import lombok.RequiredArgsConstructor;
 import me.nuguri.account.repository.ClientRepository;
 import me.nuguri.common.adapter.AuthenticationAdapter;
 import me.nuguri.common.entity.Client;
+import me.nuguri.common.enums.Roles;
 import me.nuguri.common.exception.NoAuthorityException;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.EntityNotFoundException;
+
+import java.util.List;
 
 import static org.springframework.util.StringUtils.hasText;
 
@@ -25,10 +27,11 @@ public class ClientService {
 
     public Client findById(Long id, AuthenticationAdapter authentication) {
         Long ownerId = authentication.getId();
+        List<Roles> authorities = authentication.getAuthorities();
         Client client = clientRepository
                 .findById(id)
                 .orElseThrow(EntityNotFoundException::new);
-        if (!client.getAccount().getId().equals(ownerId)) {
+        if (authorities.stream().noneMatch(r -> r.equals(Roles.ADMIN)) && !client.getAccount().getId().equals(ownerId)) {
             throw new NoAuthorityException();
         }
         return clientRepository
@@ -55,11 +58,9 @@ public class ClientService {
      * @param client resourceIds 접근 리소스, redirectUri 리다이렉트 uri
      * @return 수정한 클라이언트 엔티티 객체
      */
-    public Client update(Client client) {
+    public Client update(Client client, AuthenticationAdapter authentication) {
         Long id = client.getId();
-        Client update = clientRepository
-                .findById(id)
-                .orElseThrow(EntityNotFoundException::new);
+        Client update = findById(id, authentication);
         String redirectUri = client.getRedirectUri();
         String resourceIds = client.getResourceIds();
         if (hasText(redirectUri)) {
@@ -77,15 +78,24 @@ public class ClientService {
      * @param client resourceIds 접근 리소스, redirectUri 리다이렉트 uri
      * @return 병합한 클라이언트 엔티티 객체
      */
-    public Client merge(Client client) {
+    public Client merge(Client client, AuthenticationAdapter authentication) {
         Long id = client.getId();
-        Client merge = clientRepository
-                .findById(id)
-                .orElseThrow(EntityNotFoundException::new);
+        Client merge = findById(id, authentication);
         String redirectUri = client.getRedirectUri();
         String resourceIds = client.getResourceIds();
         merge.setRedirectUri(redirectUri);
         merge.setResourceIds(resourceIds);
         return merge;
+    }
+
+    /**
+     * 클라이언트 엔티티 삭제
+     *
+     * @param id             식별키
+     * @param authentication 토큰 정보
+     */
+    public void delete(Long id, AuthenticationAdapter authentication) {
+        Client client = findById(id, authentication);
+        clientRepository.delete(client);
     }
 }

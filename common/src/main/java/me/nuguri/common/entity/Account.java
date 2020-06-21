@@ -2,13 +2,12 @@ package me.nuguri.common.entity;
 
 import lombok.*;
 import me.nuguri.common.enums.Gender;
-import me.nuguri.common.enums.Role;
+import me.nuguri.common.enums.Roles;
 
 import javax.persistence.*;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 /**
  * 계정 엔티티
@@ -52,7 +51,7 @@ public class Account extends BaseEntity implements Serializable {
     /** 권한 */
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private Role role;
+    private Roles roles;
 
     /** 등록 클라이언트 */
     @OneToMany(mappedBy = "account", cascade = CascadeType.ALL)
@@ -63,14 +62,14 @@ public class Account extends BaseEntity implements Serializable {
     private List<Order> orders = new ArrayList<>();
 
     @Builder
-    protected Account(Long id, String email, String password, String name, Gender gender, Address address, Role role) {
+    protected Account(Long id, String email, String password, String name, Gender gender, Address address, Roles roles) {
         this.id = id;
         this.email = email;
         this.password = password;
         this.name = name;
         this.gender = gender;
         this.address = address;
-        this.role = role;
+        this.roles = roles;
     }
 
 }

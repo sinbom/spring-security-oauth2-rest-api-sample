@@ -1,7 +1,6 @@
 package me.nuguri.common.entity;
 
 import lombok.*;
-import me.nuguri.common.enums.Size;
 
 import javax.persistence.DiscriminatorValue;
 import javax.persistence.Entity;

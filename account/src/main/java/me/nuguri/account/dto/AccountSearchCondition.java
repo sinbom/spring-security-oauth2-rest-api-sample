@@ -2,13 +2,9 @@ package me.nuguri.account.dto;
 
 import lombok.Getter;
 import lombok.Setter;
-import me.nuguri.common.dto.BaseSearchCondition;
 import me.nuguri.common.dto.PageableCondition;
-import me.nuguri.common.entity.Address;
 import me.nuguri.common.enums.Gender;
-import me.nuguri.common.enums.Role;
-
-import javax.persistence.*;
+import me.nuguri.common.enums.Roles;
 
 @Getter
 @Setter
@@ -33,6 +29,6 @@ public class AccountSearchCondition extends PageableCondition {
     private String zipCode;
 
     /** 권한 */
-    private Role role;
+    private Roles roles;
 
 }

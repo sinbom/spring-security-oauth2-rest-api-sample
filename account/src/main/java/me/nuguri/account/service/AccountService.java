@@ -7,7 +7,7 @@ import me.nuguri.common.adapter.AuthenticationAdapter;
 import me.nuguri.common.entity.Account;
 import me.nuguri.common.entity.Address;
 import me.nuguri.common.enums.Gender;
-import me.nuguri.common.enums.Role;
+import me.nuguri.common.enums.Roles;
 import me.nuguri.common.exception.NoAuthorityException;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -56,8 +56,8 @@ public class AccountService implements UserDetailsService {
     @Transactional(readOnly = true)
     public Account findById(Long id, AuthenticationAdapter authentication) {
         Long ownerId = authentication.getId();
-        List<Role> authorities = authentication.getAuthorities();
-        if (authorities.stream().noneMatch(r -> r.equals(Role.ADMIN)) && !id.equals(ownerId)) {
+        List<Roles> authorities = authentication.getAuthorities();
+        if (authorities.stream().noneMatch(r -> r.equals(Roles.ADMIN)) && !id.equals(ownerId)) {
             throw new NoAuthorityException();
         }
         return accountRepository
@@ -92,7 +92,7 @@ public class AccountService implements UserDetailsService {
         String name = account.getName();
         Gender gender = account.getGender();
         Address address = account.getAddress();
-        Role role = account.getRole();
+        Roles roles = account.getRoles();
         if (hasText(password)) {
             password = passwordEncoder.encode(password);
             update.setPassword(password);
@@ -106,8 +106,8 @@ public class AccountService implements UserDetailsService {
         if (address != null) {
             update.setAddress(address);
         }
-        if (role != null) {
-            update.setRole(role);
+        if (roles != null) {
+            update.setRoles(roles);
         }
         return update;
     }
@@ -127,12 +127,12 @@ public class AccountService implements UserDetailsService {
         String name = account.getName();
         Gender gender = account.getGender();
         Address address = account.getAddress();
-        Role role = account.getRole();
+        Roles roles = account.getRoles();
         merge.setPassword(password);
         merge.setName(name);
         merge.setGender(gender);
         merge.setAddress(address);
-        merge.setRole(role);
+        merge.setRoles(roles);
         return merge;
     }
 

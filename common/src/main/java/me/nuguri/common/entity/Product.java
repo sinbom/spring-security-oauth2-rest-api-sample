@@ -1,7 +1,6 @@
 package me.nuguri.common.entity;
 
 import lombok.*;
-import lombok.experimental.SuperBuilder;
 import me.nuguri.common.enums.ProductType;
 
 import javax.persistence.*;
