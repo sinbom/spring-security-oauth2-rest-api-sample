@@ -7,10 +7,15 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 
+/**
+ * 리소스 서버 식별 엔티티
+ */
 @Entity
 @Getter
 @Setter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor(access = AccessLevel.PROTECTED)
+@Builder
 @EqualsAndHashCode(of = "id", callSuper = false)
 public class Resource extends BaseEntity {
 
@@ -25,6 +30,6 @@ public class Resource extends BaseEntity {
      * 리소스 이름
      */
     @Column(nullable = false, unique = true)
-    private String resourceId;
+    private String name;
 
 }

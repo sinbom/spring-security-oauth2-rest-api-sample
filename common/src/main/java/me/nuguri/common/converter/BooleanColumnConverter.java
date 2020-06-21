@@ -11,7 +11,10 @@ public class BooleanColumnConverter implements AttributeConverter<Boolean, Strin
 
     @Override
     public String convertToDatabaseColumn(Boolean booleanValue) {
-        return booleanValue != null ? "Y" : "N";
+        if (booleanValue != null) {
+            return booleanValue ? "Y" : "N";
+        }
+        return "N";
     }
 
     @Override

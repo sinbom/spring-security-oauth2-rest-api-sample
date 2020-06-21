@@ -4,8 +4,6 @@ import me.nuguri.account.common.BaseIntegrationTest;
 import me.nuguri.account.repository.ClientRepository;
 import me.nuguri.common.entity.Account;
 import me.nuguri.common.entity.Client;
-import me.nuguri.common.enums.GrantType;
-import me.nuguri.common.enums.Scopes;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -473,11 +471,7 @@ public class ClientApiControllerTest extends BaseIntegrationTest {
                 Client.builder()
                         .clientId(UUID.randomUUID().toString())
                         .clientSecret(UUID.randomUUID().toString())
-                        .grantTypes(GrantType.AUTHORIZATION_CODE.toString())
-                        .authority(account.getRoles())
-                        .scope(String.join(",", Scopes.READ.toString(), Scopes.WRITE.toString()))
                         .redirectUri("https://www.test.com")
-                        .resourceIds(String.join(",", "account", "nuguri"))
                         .account(account)
                         .build()
                 )

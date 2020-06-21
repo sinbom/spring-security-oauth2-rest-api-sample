@@ -5,6 +5,9 @@ import lombok.*;
 import javax.persistence.Embeddable;
 import java.io.Serializable;
 
+/**
+ * 주소 컬럼, 임베디드 객체
+ */
 @Embeddable
 @Getter
 @Setter

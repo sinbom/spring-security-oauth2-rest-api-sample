@@ -6,18 +6,20 @@ import lombok.extern.slf4j.Slf4j;
 import me.nuguri.common.entity.*;
 import me.nuguri.common.enums.Gender;
 import me.nuguri.common.enums.GrantType;
-import me.nuguri.common.enums.Roles;
-import me.nuguri.common.enums.Scopes;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.EntityManager;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
 
+/**
+ * 개발 및 테스트시 초기 엔티티 설정용 임시 이니셜라이저
+ */
 @Slf4j
 @RequiredArgsConstructor
 public class EntityInitializer {
@@ -27,49 +29,147 @@ public class EntityInitializer {
     @Transactional
     public void init(EntityManager em) {
         log.info("[log] EntityInitializer init entities");
+        // 리소스 서버 식별 엔티티 생성
+        List<Resource> resources = new ArrayList<>();
+        Arrays.asList("account", "nuguri", "test")
+                .forEach(s -> {
+                    Resource resource = Resource.builder()
+                            .name(s)
+                            .build();
+                    em.persist(resource);
+                    resources.add(resource);
+                });
+        // 접근 범위 엔티티 생성
+        List<Scope> scopes = new ArrayList<>();
+        Arrays.asList("read", "write")
+                .forEach(s -> {
+                    Scope scope = Scope.builder()
+                            .name(s)
+                            .build();
+                    em.persist(scope);
+                    scopes.add(scope);
+                });
+        // 접근 권한 엔티티 생성
+        List<Authority> authorities = new ArrayList<>();
+        Arrays.asList("ADMIN", "USER")
+                .forEach(s -> {
+                    Authority authority = Authority.builder()
+                            .name(s)
+                            .build();
+                    em.persist(authority);
+                    authorities.add(authority);
+                });
+        // 사용자 엔티티 생성
         Account admin = Account.builder()
                 .name("관리자")
                 .email("admin@naver.com")
                 .password(passwordEncoder.encode("1234"))
                 .gender(Gender.M)
                 .address(new Address("경기도 과천시", "부림2길 76 2층", "13830"))
-                .role(Roles.ADMIN)
+                .authority(authorities.get(0))
                 .build();
         Account user = Account.builder()
                 .name("사용자")
                 .email("user@naver.com")
                 .password(passwordEncoder.encode("1234"))
                 .gender(Gender.F)
-                .address(new Address("경기도 과천시", "부림2길 76 2층", "13830"))
-                .role(Roles.USER)
+                .address(new Address("경기도 안양시", "한미아파트 502호", "12314"))
+                .authority(authorities.get(1))
                 .build();
-
-        Client.builder()
+        em.persist(admin);
+        em.persist(user);
+        // 클라이언트 엔티티 생성
+        Client adminClient = Client.builder()
                 .clientId("nuguri")
                 .clientSecret(passwordEncoder.encode("bom"))
-                .resourceIds("account,nuguri")
-                .scope(String.join(",", Scopes.READ.toString(), Scopes.WRITE.toString()))
-                .grantTypes(String.join(",", GrantType.PASSWORD.toString(), GrantType.AUTHORIZATION_CODE.toString(),
-                        GrantType.IMPLICIT.toString(), GrantType.CLIENT_CREDENTIALS.toString(), GrantType.REFRESH_TOKEN.toString()))
-                .redirectUri("http://localhost:9600/main")
-                .authority(Roles.ADMIN)
                 .account(admin)
                 .build();
-
-        Client.builder()
+        Client userClient = Client.builder()
                 .clientId("test")
                 .clientSecret(passwordEncoder.encode("test"))
-                .resourceIds("account")
-                .scope(String.join(",", Scopes.READ.toString()))
-                .grantTypes(String.join(",", GrantType.PASSWORD.toString(), GrantType.CLIENT_CREDENTIALS.toString()))
-                .redirectUri("http://localhost:9600/main")
-                .authority(Roles.USER)
                 .account(user)
                 .build();
-
-        em.persist(user);
-        em.persist(admin);
-
+        em.persist(adminClient);
+        em.persist(userClient);
+        // 클라이언트 접근 권한 매핑 엔티티 생성
+        ClientAuthority adminClientAuthtorityMapping1 = ClientAuthority.builder()
+                .client(adminClient)
+                .authority(authorities.get(0))
+                .build();
+        ClientAuthority adminClientAuthorityMapping2 = ClientAuthority.builder()
+                .client(adminClient)
+                .authority(authorities.get(1))
+                .build();
+        ClientAuthority userClientAuthorityMapping1 = ClientAuthority.builder()
+                .client(userClient)
+                .authority(authorities.get(1))
+                .build();
+        em.persist(adminClientAuthtorityMapping1);
+        em.persist(adminClientAuthorityMapping2);
+        em.persist(userClientAuthorityMapping1);
+        // 클라이언트 접근 범위 매핑 엔티티 생성
+        ClientScope adminClientScopeMapping1 = ClientScope.builder()
+                .client(adminClient)
+                .scope(scopes.get(0))
+                .build();
+        ClientScope adminClientScopeMapping2 = ClientScope.builder()
+                .client(adminClient)
+                .scope(scopes.get(1))
+                .build();
+        ClientScope userClientScopeMapping1 = ClientScope.builder()
+                .client(userClient)
+                .scope(scopes.get(0))
+                .build();
+        em.persist(adminClientScopeMapping1);
+        em.persist(adminClientScopeMapping2);
+        em.persist(userClientScopeMapping1);
+        // 클라이언트 인증 부여 방식 매핑 엔티티 생성
+        GrantType[] grantTypes = GrantType.values();
+        Arrays.stream(grantTypes)
+                .forEach(g ->
+                        em.persist(ClientGrantType.builder()
+                                .client(adminClient)
+                                .grantType(g)
+                                .build())
+                );
+        ClientGrantType userClientGrantTypeMapping1 = ClientGrantType.builder()
+                .client(userClient)
+                .grantType(GrantType.AUTHORIZATION_CODE)
+                .build();
+        ClientGrantType userClientGrantTypeMapping2 = ClientGrantType.builder()
+                .client(userClient)
+                .grantType(GrantType.CLIENT_CREDENTIALS)
+                .build();
+        em.persist(userClientGrantTypeMapping1);
+        em.persist(userClientGrantTypeMapping2);
+        // 클라이언트 접근 리소스 매핑 엔티티 생성
+        resources.forEach(r ->
+                em.persist(ClientResource.builder()
+                        .client(adminClient)
+                        .resource(r)
+                        .build())
+        );
+        resources.stream()
+                .limit(2)
+                .forEach(r ->
+                        em.persist(ClientResource.builder()
+                                .client(userClient)
+                                .resource(r)
+                                .build()
+                        )
+                );
+        // 클라이언트 리다이렉트 매핑 엔티티 생성
+        ClientRedirectUri adminClientRedirectMapping1 = ClientRedirectUri.builder()
+                .uri("http://localhost:9600/main")
+                .client(adminClient)
+                .build();
+        ClientRedirectUri userClientRedirectMapping1 = ClientRedirectUri.builder()
+                .uri("http://localhost:9600/main")
+                .client(userClient)
+                .build();
+        em.persist(adminClientRedirectMapping1);
+        em.persist(userClientRedirectMapping1);
+        // TODO 인증, 계정 서버 작업 정리후 정리할 것
         Random random = new Random();
         List<Creator> creators = new ArrayList<>();
         String[] authorNames = {"홍길동", "아무개", "김똥개", "신나라", "박대기"};

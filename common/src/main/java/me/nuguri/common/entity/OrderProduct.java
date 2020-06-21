@@ -12,7 +12,7 @@ import javax.persistence.*;
 @Setter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @EqualsAndHashCode(of = "id", callSuper = false)
-public class OrderProduct {
+public class OrderProduct extends BaseEntity {
 
     /** 식별키 */
     @Id

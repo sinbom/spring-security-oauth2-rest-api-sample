@@ -4,6 +4,7 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import me.nuguri.common.entity.Account;
+import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.User;
 
@@ -23,7 +24,7 @@ public class AccountAdapter extends User implements Serializable {
         super(
                 account.getEmail(),
                 account.getPassword(),
-                Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + account.getRoles()))
+                AuthorityUtils.createAuthorityList("ROLE_" + account.getAuthority().getName())
         );
         this.account = account;
     }

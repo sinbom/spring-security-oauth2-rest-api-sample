@@ -1,14 +1,18 @@
 package me.nuguri.common.entity;
 
 import lombok.*;
-import me.nuguri.common.enums.Scopes;
 
 import javax.persistence.*;
 
+/**
+ * 접근 범위 엔티티
+ */
 @Entity
 @Getter
 @Setter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor(access = AccessLevel.PROTECTED)
+@Builder
 @EqualsAndHashCode(of = "id", callSuper = false)
 public class Scope extends BaseEntity {
 
@@ -23,7 +27,6 @@ public class Scope extends BaseEntity {
      * 접근 범위
      */
     @Column(nullable = false, unique = true)
-    @Enumerated(EnumType.STRING)
-    private String scope;
+    private String name;
 
 }

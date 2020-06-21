@@ -2,6 +2,7 @@ package me.nuguri.common.entity;
 
 import lombok.*;
 import me.nuguri.common.converter.BooleanColumnConverter;
+import me.nuguri.common.enums.Size;
 
 import javax.persistence.*;
 import java.io.Serializable;
@@ -38,12 +39,6 @@ public class Client extends BaseEntity implements Serializable {
      */
     @Column(updatable = false)
     private String clientSecret;
-
-    /**
-     * 리다이렉트 URI
-     */
-    @Column(nullable = false)
-    private String redirectUri;
 
     /**
      * 토근 유효 시간 초
@@ -94,13 +89,18 @@ public class Client extends BaseEntity implements Serializable {
     @OneToMany(mappedBy = "client")
     private List<ClientGrantType> clientGrantTypes = new ArrayList<>();
 
+    /**
+     * 클라이언트 리다이렉트 목록 엔티티
+     */
+    @OneToMany(mappedBy = "client")
+    private List<ClientRedirectUri> clientRedirectUris = new ArrayList<>();
+
     @Builder
-    protected Client(Long id, String clientId, String resourceIds, String clientSecret, String redirectUri,
-                     Integer accessTokenValidity, Integer refreshTokenValidity, boolean autoApprove, Account account) {
+    protected Client(Long id, String clientId, String clientSecret, Integer accessTokenValidity,
+                     Integer refreshTokenValidity, boolean autoApprove, Account account) {
         this.id = id;
         this.clientId = clientId;
         this.clientSecret = clientSecret;
-        this.redirectUri = redirectUri;
         this.accessTokenValidity = accessTokenValidity != null ? accessTokenValidity : 600;
         this.refreshTokenValidity = refreshTokenValidity != null ? refreshTokenValidity : 3600;
         this.autoApprove = autoApprove;

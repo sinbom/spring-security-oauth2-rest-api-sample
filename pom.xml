@@ -74,7 +74,7 @@
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-devtools</artifactId>
-      <scopes>runtime</scopes>
+      <scope>runtime</scope>
     </dependency>
 
     <dependency>
@@ -86,7 +86,7 @@
     <dependency>
       <groupId>mysql</groupId>
       <artifactId>mysql-connector-java</artifactId>
-      <scopes>runtime</scopes>
+      <scope>runtime</scope>
     </dependency>
 
     <dependency>
@@ -103,13 +103,13 @@
     <dependency>
       <groupId>com.h2database</groupId>
       <artifactId>h2</artifactId>
-      <scopes>test</scopes>
+      <scope>test</scope>
     </dependency>
 
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-test</artifactId>
-      <scopes>test</scopes>
+      <scope>test</scope>
         <exclusions>
           <exclusion>
             <groupId>org.junit.vintage</groupId>
@@ -121,13 +121,13 @@
     <dependency>
       <groupId>org.springframework.restdocs</groupId>
       <artifactId>spring-restdocs-mockmvc</artifactId>
-      <scopes>test</scopes>
+      <scope>test</scope>
     </dependency>
 
     <dependency>
       <groupId>org.springframework.security</groupId>
       <artifactId>spring-security-test</artifactId>
-      <scopes>test</scopes>
+      <scope>test</scope>
     </dependency>
   </dependencies>
 
