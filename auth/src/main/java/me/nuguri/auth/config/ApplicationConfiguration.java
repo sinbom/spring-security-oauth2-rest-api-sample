@@ -1,5 +1,6 @@
 package me.nuguri.auth.config;
 
+import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import me.nuguri.common.adapter.AccountAdapter;
 import me.nuguri.common.enums.GrantType;
@@ -30,6 +31,8 @@ import java.util.Map;
 public class ApplicationConfiguration {
 
     private final ResourceLoader resourceLoader;
+
+    private final EntityManager entityManager;
 
     @Bean
     public TokenStore tokenStore() {
@@ -73,6 +76,11 @@ public class ApplicationConfiguration {
             }
             return oAuth2AccessToken;
         };
+    }
+
+    @Bean
+    public JPAQueryFactory jpaQueryFactory() {
+        return new JPAQueryFactory(entityManager);
     }
 
  /*   @Bean            // jdbc 방식 토큰 스토어

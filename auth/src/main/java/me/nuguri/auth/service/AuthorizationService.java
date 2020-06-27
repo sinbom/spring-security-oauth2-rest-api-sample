@@ -3,6 +3,7 @@ package me.nuguri.auth.service;
 import lombok.RequiredArgsConstructor;
 import me.nuguri.auth.repository.AccountRepository;
 import me.nuguri.auth.repository.ClientRepository;
+import me.nuguri.auth.service.lazy.AuthorizationLazyService;
 import me.nuguri.common.adapter.AccountAdapter;
 import me.nuguri.common.entity.Account;
 import me.nuguri.common.entity.Client;
@@ -34,6 +35,8 @@ public class AuthorizationService implements UserDetailsService, ClientDetailsSe
 
     private final ClientRepository clientRepository;
 
+    private final AuthorizationLazyService authorizationLazyService;
+
     /**
      * 시큐리티 로그인 및 인증 토큰 발급(password 방식) 수행 시 사용, 유저 엔티티 대리키(email) 조회
      *
@@ -52,9 +55,7 @@ public class AuthorizationService implements UserDetailsService, ClientDetailsSe
     @Override
     @Transactional(readOnly = true)
     public ClientDetails loadClientByClientId(String clientId) throws ClientRegistrationException {
-        Client client = clientRepository
-                .findByClientId(clientId)
-                .orElseThrow(() -> new ClientRegistrationException(clientId));
+        Client client = authorizationLazyService.findByClientIdFetchAndLazy(clientId);
         // 클라이언트 시크릿
         String clientSecret = client.getClientSecret();
         // 인증 토큰 유효 시간

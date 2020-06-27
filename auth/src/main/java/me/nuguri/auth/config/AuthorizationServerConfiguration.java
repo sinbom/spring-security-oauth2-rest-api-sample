@@ -1,6 +1,7 @@
 package me.nuguri.auth.config;
 
 import lombok.RequiredArgsConstructor;
+import me.nuguri.auth.service.AuthorizationService;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpMethod;
@@ -8,7 +9,6 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.config.annotation.configurers.ClientDetailsServiceConfigurer;
 import org.springframework.security.oauth2.config.annotation.web.configuration.AuthorizationServerConfigurerAdapter;
@@ -48,7 +48,7 @@ public class AuthorizationServerConfiguration {
 
         private final AuthenticationManager authenticationManager;
 
-        private final UserDetailsService userDetailsService;
+        private final AuthorizationService authorizationService;
 
         /**
          * 인증 서버 설정
@@ -74,7 +74,8 @@ public class AuthorizationServerConfiguration {
          */
         @Override
         public void configure(ClientDetailsServiceConfigurer clients) throws Exception {
-            clients.jdbc(dataSource); // JDBC 방식 클라이언트 등록
+            clients.withClientDetails(authorizationService);
+//            clients.jdbc(dataSource); // JDBC 방식 클라이언트 등록
 /*        인메모리 클라이언트 세팅
         clients.inMemory()
                 .withClient(properties.getClientId())
@@ -101,7 +102,7 @@ public class AuthorizationServerConfiguration {
                     .tokenEnhancer(tokenEnhancerChain)
                     .tokenStore(tokenStore)
                     .accessTokenConverter(jwtAccessTokenConverter)
-                    .userDetailsService(userDetailsService)
+                    .userDetailsService(authorizationService)
                     .authenticationManager(authenticationManager);
         }
 
